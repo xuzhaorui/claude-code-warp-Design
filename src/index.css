@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bumble-yellow: #FFC629;
+  --color-bumble-bg: #F2F2F2;
+  --color-bumble-text: #222222;
+  --color-bumble-text-secondary: #757575;
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
