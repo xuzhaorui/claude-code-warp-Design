@@ -1,9 +1,52 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bumble-yellow: #FFC629;
-  --color-bumble-bg: #F2F2F2;
-  --color-bumble-text: #222222;
-  --color-bumble-text-secondary: #757575;
+  --color-brand-yellow: #FFC629;
+  --color-action-black: #1A1A1A;
+  --color-bg-main: #FFFFFF;
+  --color-bg-secondary: #F2F2F2;
+  --color-text-primary: #222222;
+  --color-text-secondary: #757575;
   --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--color-bg-main);
+  color: var(--color-text-primary);
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-brand-yellow);
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(0.9); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
