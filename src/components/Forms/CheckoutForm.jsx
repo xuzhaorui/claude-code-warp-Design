@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) {
@@ -7,6 +7,11 @@ export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) 
   const [saleTotalPrice, setSaleTotalPrice] = useState('');
   const [remark, setRemark] = useState('');
   const [confirmLoss, setConfirmLoss] = useState(false);
+  const quantityRef = useRef(null);
+  useEffect(() => {
+    const timer = setTimeout(() => quantityRef.current?.focus(), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   const qty = Number(quantity) || 0;
   const saleTotal = Number(saleTotalPrice) || 0;
@@ -66,6 +71,7 @@ export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) 
       <div>
         <label className="text-xs font-semibold text-text-secondary mb-1 block">出库数量</label>
         <input
+          ref={quantityRef}
           type="number"
           min="1"
           value={quantity}

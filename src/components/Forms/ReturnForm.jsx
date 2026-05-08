@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClose }) {
   const [returnQty, setReturnQty] = useState('');
   const [remark, setRemark] = useState('');
+  const returnQtyRef = useRef(null);
+  useEffect(() => {
+    const timer = setTimeout(() => returnQtyRef.current?.focus(), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   const qty = Number(returnQty) || 0;
   const overQty = qty > borrowRecord.borrowQty;
@@ -42,6 +47,7 @@ export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClo
       <div>
         <label className="text-xs font-semibold text-text-secondary mb-1 block">归还数量</label>
         <input
+          ref={returnQtyRef}
           type="number"
           min="1"
           max={borrowRecord.borrowQty}

@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 export default function InventoryCheckForm({ item, operatorName, onSubmit, onClose }) {
   const [actualQty, setActualQty] = useState('');
   const [remark, setRemark] = useState('');
+  const actualQtyRef = useRef(null);
+  useEffect(() => {
+    const timer = setTimeout(() => actualQtyRef.current?.focus(), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   const bookQty = item.stockQty;
   const actual = Number(actualQty) || 0;
@@ -41,6 +46,7 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
       <div>
         <label className="text-xs font-semibold text-text-secondary mb-1 block">盘点真实数量</label>
         <input
+          ref={actualQtyRef}
           type="number"
           min="0"
           value={actualQty}

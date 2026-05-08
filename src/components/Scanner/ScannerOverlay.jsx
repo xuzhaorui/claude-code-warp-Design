@@ -1,35 +1,113 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 
-export default function ScannerOverlay({ isOpen, onClose, onScanSuccess }) {
+const SPRING = { type: 'spring', stiffness: 200, damping: 25, mass: 1 };
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 800;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.08);
+    setTimeout(() => ctx.close(), 200);
+  } catch {}
+}
+
+export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTitle, sheetContent, onSheetClose }) {
   const scannerRef = useRef(null);
   const [error, setError] = useState('');
+  const [scanned, setScanned] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
+  const mountedRef = useRef(true);
+  const scanningRef = useRef(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
+  // Show/hide sheet based on content
+  useEffect(() => {
+    if (!sheetContent && showSheet) {
+      setShowSheet(false);
+      const timer = setTimeout(() => {
+        if (mountedRef.current) {
+          setScanned(false);
+          resumeScanning();
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+    if (sheetContent && !showSheet) {
+      setShowSheet(true);
+    }
+  }, [sheetContent]);
+
+  const resumeScanning = useCallback(() => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+    try {
+      scanner.resume?.();
+    } catch {}
+    // Re-start scanning loop if paused
+    try {
+      scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          if (!mountedRef.current || scanningRef.current) return;
+          scanningRef.current = true;
+          setScanned(true);
+          try { navigator.vibrate?.([100, 50, 100]); } catch {}
+          playBeep();
+          try { scanner.pause(true); } catch {}
+          onScanSuccess?.(decodedText);
+        },
+        () => {}
+      ).catch(() => {});
+    } catch {}
+  }, [onScanSuccess]);
 
   useEffect(() => {
     if (!isOpen) return;
 
     let scanner = null;
-    let mounted = true;
+    let active = true;
+    setScanned(false);
+    setShowSheet(false);
+    setError('');
+    scanningRef.current = false;
 
     const startScan = async () => {
       try {
-        scanner = new Html5Qrcode('scanner-container');
+        scanner = new Html5Qrcode('seamless-scanner');
         scannerRef.current = scanner;
         await scanner.start(
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 250, height: 250 } },
           (decodedText) => {
-            if (mounted) {
-              scanner.stop().catch(() => {});
-              onScanSuccess(decodedText);
-            }
+            if (!active || scanningRef.current) return;
+            scanningRef.current = true;
+            active = false;
+            setScanned(true);
+            try { navigator.vibrate?.([100, 50, 100]); } catch {}
+            playBeep();
+            try { scanner.pause(true); } catch {}
+            onScanSuccess?.(decodedText);
           },
           () => {}
         );
       } catch (err) {
-        if (mounted) {
+        if (active) {
           setError('无法访问摄像头，请检查权限设置');
           console.error('Scanner error:', err);
         }
@@ -39,12 +117,32 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess }) {
     startScan();
 
     return () => {
-      mounted = false;
+      active = false;
+      scanningRef.current = false;
       if (scanner) {
         scanner.stop().catch(() => {});
       }
     };
-  }, [isOpen, onScanSuccess]);
+  }, [isOpen]);
+
+  const handleManualClose = useCallback(() => {
+    setShowSheet(false);
+    onSheetClose?.();
+    onClose();
+  }, [onClose, onSheetClose]);
+
+  const handleSheetClose = useCallback(() => {
+    setShowSheet(false);
+    onSheetClose?.();
+    const timer = setTimeout(() => {
+      if (mountedRef.current) {
+        setScanned(false);
+        scanningRef.current = false;
+        resumeScanning();
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [onSheetClose, resumeScanning]);
 
   return (
     <AnimatePresence>
@@ -56,44 +154,99 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess }) {
           transition={{ duration: 0.2 }}
           className="fixed inset-0 bg-black z-[60] flex flex-col"
         >
-          <div className="flex justify-between items-center p-4 text-white">
-            <span className="font-semibold">扫码识别</span>
-            <button onClick={onClose} className="p-2 active:bg-white/10 rounded-full">
-              <X size={24} />
-            </button>
-          </div>
-
-          <div className="flex-1 flex items-center justify-center relative">
-            {error ? (
-              <div className="text-center text-white/80 px-8">
-                <p className="text-lg mb-2">{error}</p>
-                <button
-                  onClick={onClose}
-                  className="mt-4 px-6 py-2 bg-white/20 rounded-full text-white"
-                >
-                  关闭
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <div id="scanner-container" className="w-64 h-64 rounded-2xl overflow-hidden" />
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-brand-yellow rounded-tl-lg" />
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-brand-yellow rounded-tr-lg" />
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-brand-yellow rounded-bl-lg" />
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-brand-yellow rounded-br-lg" />
-                  <div
-                    className="absolute left-2 right-2 h-0.5 bg-brand-yellow/70"
-                    style={{ animation: 'scan-line 2s linear infinite' }}
-                  />
+          {/* Camera view with blur on scan */}
+          <div className={`flex-1 relative transition-all duration-300 ${scanned ? 'blur-[5px] brightness-50' : ''}`}>
+            <div className="flex-1 flex items-center justify-center h-full">
+              {error ? (
+                <div className="text-center text-white/80 px-8">
+                  <p className="text-lg mb-2">{error}</p>
+                  <button onClick={onClose} className="mt-4 px-6 py-2 bg-white/20 rounded-full text-white">
+                    关闭
+                  </button>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="relative">
+                  <div id="seamless-scanner" className="w-64 h-64 rounded-2xl overflow-hidden" />
+                  {/* Corner brackets */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className={`absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 rounded-tl-lg transition-colors duration-200 ${scanned ? 'border-brand-yellow' : 'border-white/50'}`} />
+                    <div className={`absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 rounded-tr-lg transition-colors duration-200 ${scanned ? 'border-brand-yellow' : 'border-white/50'}`} />
+                    <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 rounded-bl-lg transition-colors duration-200 ${scanned ? 'border-brand-yellow' : 'border-white/50'}`} />
+                    <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 rounded-br-lg transition-colors duration-200 ${scanned ? 'border-brand-yellow' : 'border-white/50'}`} />
+                  </div>
+                  {/* Animated scan line */}
+                  {!scanned && (
+                    <motion.div
+                      className="absolute left-3 right-3 h-[2px]"
+                      style={{
+                        background: 'linear-gradient(90deg, transparent, #FFC629, transparent)',
+                        boxShadow: '0 0 8px 2px rgba(255, 198, 41, 0.4)',
+                      }}
+                      animate={{ top: ['0%', '95%', '0%'] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="text-center text-white/60 pb-8 text-sm">
-            将二维码对准扫描框
-          </div>
+          {/* Hint text */}
+          {!scanned && !error && (
+            <div className="absolute bottom-8 left-0 right-0 text-center text-white/60 text-sm">
+              将二维码对准扫描框
+            </div>
+          )}
+
+          {/* Exit button - frosted glass */}
+          <button
+            onClick={handleManualClose}
+            className="absolute top-4 left-4 px-4 py-2 rounded-full text-white text-sm font-semibold backdrop-blur-xl bg-white/15 border border-white/20 active:bg-white/25"
+          >
+            退出扫码
+          </button>
+
+          {/* Bottom sheet for form content */}
+          <AnimatePresence>
+            {showSheet && sheetContent && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.3 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute inset-0 bg-black"
+                  onClick={handleSheetClose}
+                />
+                <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={SPRING}
+                  drag="y"
+                  dragConstraints={{ top: 0 }}
+                  dragElastic={0.15}
+                  onDragEnd={(_, info) => {
+                    if (info.offset.y > 150 || info.velocity.y > 500) handleSheetClose();
+                  }}
+                  className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col"
+                >
+                  <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
+                    <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
+                    <div className="flex items-center justify-between w-full px-5">
+                      <h2 className="text-lg font-bold text-text-primary">{sheetTitle}</h2>
+                      <button onClick={handleSheetClose} className="p-1 -mr-1 active:bg-gray-100 rounded-full">
+                        <X size={20} className="text-text-secondary" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-y-auto hide-scrollbar px-5 py-4">
+                    {sheetContent}
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScanLine, LogOut } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
-import FormSheet from '../components/BottomSheet/FormSheet';
 import DetailSheet from '../components/BottomSheet/DetailSheet';
 import CheckoutForm from '../components/Forms/CheckoutForm';
 import CheckoutDetail from '../components/Details/CheckoutDetail';
@@ -11,7 +10,6 @@ import { getItemByCode, getCheckoutRecords, submitCheckout, removeCheckoutRecord
 
 export default function CheckoutTab() {
   const [scanning, setScanning] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [scannedItem, setScannedItem] = useState(null);
@@ -30,20 +28,18 @@ export default function CheckoutTab() {
   })();
 
   const handleScan = useCallback(async (code) => {
-    setScanning(false);
     const item = await getItemByCode(code);
     if (item) {
       setScannedItem(item);
-      setShowForm(true);
+      setFormError('');
     } else {
+      setScannedItem(null);
       setFormError('未找到该编号对应的库存货物');
-      setTimeout(() => setFormError(''), 3000);
     }
   }, []);
 
   const handleSubmit = async (record) => {
     await submitCheckout(record);
-    setShowForm(false);
     setScannedItem(null);
     await loadRecords();
   };
@@ -53,14 +49,26 @@ export default function CheckoutTab() {
     await removeCheckoutRecord(id);
   }, []);
 
+  const sheetContent = scannedItem ? (
+    <CheckoutForm
+      item={scannedItem}
+      operatorName={operatorName}
+      onSubmit={handleSubmit}
+      onClose={() => setScannedItem(null)}
+    />
+  ) : formError ? (
+    <div className="text-center py-6">
+      <p className="text-red-500 text-sm">{formError}</p>
+    </div>
+  ) : null;
+
   return (
     <div className="h-full flex flex-col bg-bg-main">
-      {/* Scan area - 30~40% */}
       <div className="px-5 pt-5 pb-4">
         <h1 className="text-2xl font-bold text-text-primary mb-4">出库</h1>
         <motion.button
           whileTap={{ scale: 0.96 }}
-          onClick={() => setScanning(true)}
+          onClick={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
           className="w-full bg-bg-secondary rounded-3xl p-6 flex flex-col items-center gap-3"
         >
           <div className="w-16 h-16 rounded-2xl bg-brand-yellow/20 flex items-center justify-center">
@@ -68,13 +76,8 @@ export default function CheckoutTab() {
           </div>
           <span className="text-sm font-semibold text-text-primary">点击扫码出库</span>
         </motion.button>
-
-        {formError && (
-          <p className="text-red-500 text-xs text-center mt-2">{formError}</p>
-        )}
       </div>
 
-      {/* Records list */}
       <div className="flex-1 overflow-y-auto hide-scrollbar">
         <div className="px-5 pb-2">
           <h2 className="text-sm font-semibold text-text-secondary">出库记录</h2>
@@ -101,30 +104,15 @@ export default function CheckoutTab() {
         )}
       </div>
 
-      {/* Scanner */}
       <ScannerOverlay
         isOpen={scanning}
-        onClose={() => setScanning(false)}
+        onClose={() => { setScanning(false); setScannedItem(null); setFormError(''); }}
         onScanSuccess={handleScan}
+        sheetTitle={scannedItem ? '出库登记' : formError ? '提示' : ''}
+        sheetContent={sheetContent}
+        onSheetClose={() => { setScannedItem(null); setFormError(''); }}
       />
 
-      {/* Form */}
-      <FormSheet
-        isOpen={showForm}
-        onClose={() => { setShowForm(false); setScannedItem(null); }}
-        title="出库登记"
-      >
-        {scannedItem && (
-          <CheckoutForm
-            item={scannedItem}
-            operatorName={operatorName}
-            onSubmit={handleSubmit}
-            onClose={() => { setShowForm(false); setScannedItem(null); }}
-          />
-        )}
-      </FormSheet>
-
-      {/* Detail */}
       <DetailSheet
         isOpen={showDetail}
         onClose={() => { setShowDetail(false); setSelectedRecord(null); }}
