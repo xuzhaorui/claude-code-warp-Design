@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ScanLine, RotateCcw } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import FormSheet from '../components/BottomSheet/FormSheet';
@@ -8,7 +8,7 @@ import BorrowerSelect from '../components/Forms/BorrowerSelect';
 import ReturnForm from '../components/Forms/ReturnForm';
 import ReturnDetail from '../components/Details/ReturnDetail';
 import RecordCard from '../components/Records/RecordCard';
-import { getItemByCode, getBorrowersByItem, getReturnRecords, submitReturn } from '../data/mockData';
+import { getItemByCode, getBorrowersByItem, getReturnRecords, submitReturn, removeReturnRecord } from '../data/mockData';
 
 export default function ReturnTab() {
   const [scanning, setScanning] = useState(false);
@@ -62,6 +62,11 @@ export default function ReturnTab() {
     await loadRecords();
   };
 
+  const handleRemoveRecord = useCallback(async (id) => {
+    setRecords(prev => prev.filter(r => r.id !== id));
+    await removeReturnRecord(id);
+  }, []);
+
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
@@ -86,18 +91,22 @@ export default function ReturnTab() {
         {records.length === 0 ? (
           <p className="text-center text-text-secondary text-sm py-8">暂无归还记录</p>
         ) : (
-          records.map((record, idx) => (
-            <RecordCard
-              key={record.id}
-              icon={RotateCcw}
-              badge={record.returnQty}
-              title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-              subtitle={record.itemName}
-              extra={`外借人：${record.borrower}`}
-              index={idx}
-              onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-            />
-          ))
+          <AnimatePresence mode="popLayout">
+            {records.map((record, idx) => (
+              <RecordCard
+                key={record.id}
+                icon={RotateCcw}
+                badge={record.returnQty}
+                title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
+                subtitle={record.itemName}
+                extra={`外借人：${record.borrower}`}
+                index={idx}
+                onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
+                onSwipeLeft={() => handleRemoveRecord(record.id)}
+                onSwipeRight={() => handleRemoveRecord(record.id)}
+              />
+            ))}
+          </AnimatePresence>
         )}
       </div>
 

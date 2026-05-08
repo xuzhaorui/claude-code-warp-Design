@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ScanLine, ClipboardCheck } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import FormSheet from '../components/BottomSheet/FormSheet';
@@ -7,7 +7,7 @@ import DetailSheet from '../components/BottomSheet/DetailSheet';
 import InventoryCheckForm from '../components/Forms/InventoryCheckForm';
 import InventoryCheckDetail from '../components/Details/InventoryCheckDetail';
 import RecordCard from '../components/Records/RecordCard';
-import { getItemByCode, getInventoryCheckRecords, submitInventoryCheck } from '../data/mockData';
+import { getItemByCode, getInventoryCheckRecords, submitInventoryCheck, removeInventoryCheckRecord } from '../data/mockData';
 
 export default function InventoryTab() {
   const [scanning, setScanning] = useState(false);
@@ -48,6 +48,11 @@ export default function InventoryTab() {
     await loadRecords();
   };
 
+  const handleRemoveRecord = useCallback(async (id) => {
+    setRecords(prev => prev.filter(r => r.id !== id));
+    await removeInventoryCheckRecord(id);
+  }, []);
+
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
@@ -72,18 +77,22 @@ export default function InventoryTab() {
         {records.length === 0 ? (
           <p className="text-center text-text-secondary text-sm py-8">暂无盘点记录</p>
         ) : (
-          records.map((record, idx) => (
-            <RecordCard
-              key={record.id}
-              icon={ClipboardCheck}
-              badge={record.difference > 0 ? `+${record.difference}` : record.difference}
-              title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-              subtitle={record.itemName}
-              extra={`盘点数量：${record.actualQty}`}
-              index={idx}
-              onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-            />
-          ))
+          <AnimatePresence mode="popLayout">
+            {records.map((record, idx) => (
+              <RecordCard
+                key={record.id}
+                icon={ClipboardCheck}
+                badge={record.difference > 0 ? `+${record.difference}` : record.difference}
+                title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
+                subtitle={record.itemName}
+                extra={`盘点数量：${record.actualQty}`}
+                index={idx}
+                onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
+                onSwipeLeft={() => handleRemoveRecord(record.id)}
+                onSwipeRight={() => handleRemoveRecord(record.id)}
+              />
+            ))}
+          </AnimatePresence>
         )}
       </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ScanLine, LogOut } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import FormSheet from '../components/BottomSheet/FormSheet';
@@ -7,7 +7,7 @@ import DetailSheet from '../components/BottomSheet/DetailSheet';
 import CheckoutForm from '../components/Forms/CheckoutForm';
 import CheckoutDetail from '../components/Details/CheckoutDetail';
 import RecordCard from '../components/Records/RecordCard';
-import { getItemByCode, getCheckoutRecords, submitCheckout } from '../data/mockData';
+import { getItemByCode, getCheckoutRecords, submitCheckout, removeCheckoutRecord } from '../data/mockData';
 
 export default function CheckoutTab() {
   const [scanning, setScanning] = useState(false);
@@ -48,6 +48,11 @@ export default function CheckoutTab() {
     await loadRecords();
   };
 
+  const handleRemoveRecord = useCallback(async (id) => {
+    setRecords(prev => prev.filter(r => r.id !== id));
+    await removeCheckoutRecord(id);
+  }, []);
+
   return (
     <div className="h-full flex flex-col bg-bg-main">
       {/* Scan area - 30~40% */}
@@ -77,18 +82,22 @@ export default function CheckoutTab() {
         {records.length === 0 ? (
           <p className="text-center text-text-secondary text-sm py-8">暂无出库记录</p>
         ) : (
-          records.map((record, idx) => (
-            <RecordCard
-              key={record.id}
-              icon={LogOut}
-              badge={record.quantity}
-              title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-              subtitle={record.itemName}
-              extra={record.method === '外销' ? `¥${record.saleTotalPrice.toFixed(2)}` : record.method}
-              index={idx}
-              onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-            />
-          ))
+          <AnimatePresence mode="popLayout">
+            {records.map((record, idx) => (
+              <RecordCard
+                key={record.id}
+                icon={LogOut}
+                badge={record.quantity}
+                title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
+                subtitle={record.itemName}
+                extra={record.method === '外销' ? `¥${record.saleTotalPrice.toFixed(2)}` : record.method}
+                index={idx}
+                onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
+                onSwipeLeft={() => handleRemoveRecord(record.id)}
+                onSwipeRight={() => handleRemoveRecord(record.id)}
+              />
+            ))}
+          </AnimatePresence>
         )}
       </div>
 

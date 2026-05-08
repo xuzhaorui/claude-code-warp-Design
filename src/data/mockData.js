@@ -93,3 +93,18 @@ export async function mockLogin(username, password) {
   if (user) return { id: user.id, username: user.username };
   return { id: 'user-' + Date.now(), username };
 }
+
+export async function removeCheckoutRecord(id) {
+  await delay(100);
+  checkoutRecords = checkoutRecords.filter(r => r.id !== id);
+}
+
+export async function removeReturnRecord(id) {
+  await delay(100);
+  returnRecords = returnRecords.filter(r => r.id !== id);
+}
+
+export async function removeInventoryCheckRecord(id) {
+  await delay(100);
+  inventoryCheckRecords = inventoryCheckRecords.filter(r => r.id !== id);
+}
