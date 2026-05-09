@@ -1,16 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Stepper from './Stepper';
+import BumbleInput from './BumbleInput';
 
 export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClose }) {
-  const [returnQty, setReturnQty] = useState('');
+  const [returnQty, setReturnQty] = useState(1);
   const [remark, setRemark] = useState('');
-  const returnQtyRef = useRef(null);
-  useEffect(() => {
-    const timer = setTimeout(() => returnQtyRef.current?.focus(), 400);
-    return () => clearTimeout(timer);
-  }, []);
 
-  const qty = Number(returnQty) || 0;
+  const qty = returnQty;
   const overQty = qty > borrowRecord.borrowQty;
   const canSubmit = qty > 0 && !overQty;
 
@@ -45,31 +42,23 @@ export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClo
       </div>
 
       <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">归还数量</label>
-        <input
-          ref={returnQtyRef}
-          type="number"
-          min="1"
-          max={borrowRecord.borrowQty}
+        <label className="text-xs font-semibold text-text-secondary mb-2 block">归还数量</label>
+        <Stepper
           value={returnQty}
-          onChange={e => setReturnQty(e.target.value)}
-          placeholder="请输入归还数量"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
+          onChange={setReturnQty}
+          min={1}
+          max={borrowRecord.borrowQty}
         />
         {overQty && (
           <p className="text-red-500 text-xs mt-1">归还数量超过在借数量（在借: {borrowRecord.borrowQty}）</p>
         )}
       </div>
 
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">归还备注（选填）</label>
-        <input
-          value={remark}
-          onChange={e => setRemark(e.target.value)}
-          placeholder="可选填写备注"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
-        />
-      </div>
+      <BumbleInput
+        label="归还备注（选填）"
+        value={remark}
+        onChange={e => setRemark(e.target.value)}
+      />
 
       <motion.button
         whileTap={{ scale: 0.96 }}

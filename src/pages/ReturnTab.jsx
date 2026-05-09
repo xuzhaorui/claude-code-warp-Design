@@ -106,6 +106,7 @@ export default function ReturnTab() {
                 title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
                 subtitle={record.itemName}
                 extra={`外借人：${record.borrower}`}
+                status={record.status}
                 index={idx}
                 onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
                 onSwipeLeft={() => handleRemoveRecord(record.id)}

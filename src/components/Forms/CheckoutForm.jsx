@@ -1,19 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Stepper from './Stepper';
+import BumbleInput from './BumbleInput';
 
 export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) {
-  const [quantity, setQuantity] = useState('');
+  const [quantity, setQuantity] = useState(1);
   const [method, setMethod] = useState('外销');
   const [saleTotalPrice, setSaleTotalPrice] = useState('');
   const [remark, setRemark] = useState('');
   const [confirmLoss, setConfirmLoss] = useState(false);
-  const quantityRef = useRef(null);
-  useEffect(() => {
-    const timer = setTimeout(() => quantityRef.current?.focus(), 400);
-    return () => clearTimeout(timer);
-  }, []);
 
-  const qty = Number(quantity) || 0;
+  const qty = quantity;
   const saleTotal = Number(saleTotalPrice) || 0;
   const saleUnitPrice = qty > 0 ? (saleTotal / qty).toFixed(2) : '0.00';
   const overStock = qty > item.stockQty;
@@ -69,15 +66,12 @@ export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) 
 
       {/* Quantity */}
       <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">出库数量</label>
-        <input
-          ref={quantityRef}
-          type="number"
-          min="1"
+        <label className="text-xs font-semibold text-text-secondary mb-2 block">出库数量</label>
+        <Stepper
           value={quantity}
-          onChange={e => { setQuantity(e.target.value); setConfirmLoss(false); }}
-          placeholder="请输入出库数量"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
+          onChange={(updater) => { setQuantity(updater); setConfirmLoss(false); }}
+          min={1}
+          max={item.stockQty}
         />
         {overStock && (
           <p className="text-red-500 text-xs mt-1">出库数量超过库存数量（库存: {item.stockQty}）</p>
@@ -88,15 +82,11 @@ export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) 
       {method === '外销' && (
         <>
           <div>
-            <label className="text-xs font-semibold text-text-secondary mb-1 block">销售总价</label>
-            <input
+            <BumbleInput
+              label="销售总价"
               type="number"
-              min="0"
-              step="0.01"
               value={saleTotalPrice}
               onChange={e => { setSaleTotalPrice(e.target.value); setConfirmLoss(false); }}
-              placeholder="请输入销售总价"
-              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
             />
           </div>
           <div className="bg-bg-secondary rounded-2xl px-4 py-3">
@@ -121,15 +111,11 @@ export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) 
       )}
 
       {/* Remark */}
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">出库备注（选填）</label>
-        <input
-          value={remark}
-          onChange={e => setRemark(e.target.value)}
-          placeholder="可选填写备注"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
-        />
-      </div>
+      <BumbleInput
+        label="出库备注（选填）"
+        value={remark}
+        onChange={e => setRemark(e.target.value)}
+      />
 
       {/* Submit */}
       <motion.button

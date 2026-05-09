@@ -2,10 +2,32 @@ import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check, X } from 'lucide-react';
 
+const STATUS_COLORS = {
+  '正常': { background: '#C8E6C9', color: '#2E7D32' },
+  '已完成': { background: '#C8E6C9', color: '#2E7D32' },
+  '异常': { background: '#FFCDD2', color: '#C62828' },
+  '亏损': { background: '#FFCDD2', color: '#C62828' },
+  '已撤销': { background: '#FFCDD2', color: '#C62828' },
+  '进行中': { background: '#FFC629', color: '#1A1A1A' },
+  '待处理': { background: '#E5E5E5', color: '#666666' },
+};
+
+function StatusPill({ status }) {
+  const style = STATUS_COLORS[status] ?? { background: '#E5E5E5', color: '#666666' };
+  return (
+    <span
+      className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
+      style={style}
+    >
+      {status}
+    </span>
+  );
+}
+
 const SWIPE_THRESHOLD = 100;
 const SPRING = { type: 'spring', stiffness: 200, damping: 25, mass: 1 };
 
-export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, onClick, onSwipeLeft, onSwipeRight, index = 0 }) {
+export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, status, onClick, onSwipeLeft, onSwipeRight, index = 0 }) {
   const [dismissed, setDismissed] = useState(false);
   const isDragging = useRef(false);
   const hasTriggeredHaptic = useRef({ left: false, right: false });
@@ -113,7 +135,7 @@ export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, 
               {extra && <p className="text-xs text-text-secondary truncate mt-0.5">{extra}</p>}
             </div>
 
-            <ChevronRight size={16} className="text-text-secondary shrink-0" />
+            {status ? <StatusPill status={status} /> : <ChevronRight size={16} className="text-text-secondary shrink-0" />}
           </motion.div>
         </motion.div>
       )}

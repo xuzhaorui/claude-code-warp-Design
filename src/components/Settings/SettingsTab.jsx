@@ -16,21 +16,27 @@ export default function SettingsTab({ onLogout }) {
         <h1 className="text-2xl font-bold text-text-primary">设置</h1>
       </div>
 
-      <div className="flex-1">
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => setShowServerConfig(true)}
-          className="w-full flex items-center gap-3 px-5 py-4 border-b border-gray-100 active:bg-gray-50"
+      <div className="flex-1 px-5">
+        <div
+          className="overflow-hidden rounded-2xl"
+          style={{ gap: 1, background: '#E5E5E5', display: 'flex', flexDirection: 'column' }}
         >
-          <div className="w-10 h-10 rounded-lg bg-bg-secondary flex items-center justify-center">
-            <Server size={20} className="text-action-black" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="text-sm font-bold text-text-primary">服务器配置</p>
-            <p className="text-xs text-text-secondary">管理连接的服务器地址</p>
-          </div>
-          <ChevronRight size={18} className="text-text-secondary" />
-        </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowServerConfig(true)}
+            className="w-full flex items-center gap-3 bg-white active:bg-gray-50"
+            style={{ padding: '14px 16px' }}
+          >
+            <div className="w-10 h-10 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0">
+              <Server size={20} className="text-action-black" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-bold text-text-primary">服务器配置</p>
+              <p className="text-xs text-text-secondary">管理连接的服务器地址</p>
+            </div>
+            <ChevronRight size={18} className="text-text-secondary" />
+          </motion.button>
+        </div>
       </div>
 
       <div className="p-5">

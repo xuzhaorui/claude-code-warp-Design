@@ -94,6 +94,7 @@ export default function CheckoutTab() {
                 title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
                 subtitle={record.itemName}
                 extra={record.method === '外销' ? `¥${record.saleTotalPrice.toFixed(2)}` : record.method}
+                status={record.status}
                 index={idx}
                 onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
                 onSwipeLeft={() => handleRemoveRecord(record.id)}

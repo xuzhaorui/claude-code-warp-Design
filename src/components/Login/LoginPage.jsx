@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { mockLogin } from '../../data/mockData';
+import BumbleInput from '../Forms/BumbleInput';
 
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -37,25 +38,19 @@ export default function LoginPage({ onLogin }) {
       >
         <h1 className="text-2xl font-bold text-text-primary text-center mb-8">登录</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              placeholder="用户名"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm text-text-primary placeholder:text-text-secondary"
-            />
-          </div>
-          <div>
-            <input
-              type="password"
-              placeholder="密码"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm text-text-primary placeholder:text-text-secondary"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <BumbleInput
+            label="用户名"
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+          />
+          <BumbleInput
+            label="密码"
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
 
           {error && (
             <p className="text-red-500 text-xs text-center">{error}</p>

@@ -94,6 +94,7 @@ export default function InventoryTab() {
                 title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
                 subtitle={record.itemName}
                 extra={`盘点数量：${record.actualQty}`}
+                status={record.status}
                 index={idx}
                 onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
                 onSwipeLeft={() => handleRemoveRecord(record.id)}

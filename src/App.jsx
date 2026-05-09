@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SplashScreen } from './components/Splash';
 import LoginPage from './components/Login/LoginPage';
 import AppShell from './pages/AppShell';
+import BumbleInput from './components/Forms/BumbleInput';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -86,25 +87,17 @@ function ServerSetupForm({ onFinish }) {
   };
 
   return (
-    <div className="px-5 space-y-4">
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">服务器名称</label>
-        <input
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="如：公司主服务器"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
-        />
-      </div>
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">IP 地址</label>
-        <input
-          value={url}
-          onChange={e => setUrl(e.target.value)}
-          placeholder="如：192.168.1.100"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
-        />
-      </div>
+    <div className="px-5 pt-2">
+      <BumbleInput
+        label="服务器名称"
+        value={name}
+        onChange={e => setName(e.target.value)}
+      />
+      <BumbleInput
+        label="IP 地址"
+        value={url}
+        onChange={e => setUrl(e.target.value)}
+      />
       <button
         onClick={handleAdd}
         disabled={!name.trim() || !url.trim()}

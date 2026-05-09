@@ -1,19 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Stepper from './Stepper';
+import BumbleInput from './BumbleInput';
 
 export default function InventoryCheckForm({ item, operatorName, onSubmit, onClose }) {
-  const [actualQty, setActualQty] = useState('');
+  const [actualQty, setActualQty] = useState(item.stockQty);
   const [remark, setRemark] = useState('');
-  const actualQtyRef = useRef(null);
-  useEffect(() => {
-    const timer = setTimeout(() => actualQtyRef.current?.focus(), 400);
-    return () => clearTimeout(timer);
-  }, []);
 
   const bookQty = item.stockQty;
-  const actual = Number(actualQty) || 0;
+  const actual = actualQty;
   const difference = actual - bookQty;
-  const canSubmit = actualQty !== '';
+  const canSubmit = true;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -25,7 +22,7 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
       code: item.code,
       spec: item.spec,
       bookQty,
-      actualQty: actual,
+      actualQty: actualQty,
       difference,
       remark,
       operatorId: JSON.parse(localStorage.getItem('currentUser') || '{}').id,
@@ -44,36 +41,27 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
       </div>
 
       <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">盘点真实数量</label>
-        <input
-          ref={actualQtyRef}
-          type="number"
-          min="0"
+        <label className="text-xs font-semibold text-text-secondary mb-2 block">盘点真实数量</label>
+        <Stepper
           value={actualQty}
-          onChange={e => setActualQty(e.target.value)}
-          placeholder="请输入实际盘点数量"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
+          onChange={setActualQty}
+          min={0}
+          max={99999}
         />
       </div>
 
-      {actualQty !== '' && (
-        <div className="bg-bg-secondary rounded-2xl px-4 py-3 flex justify-between items-center">
-          <span className="text-sm text-text-secondary">差值</span>
-          <span className={`text-lg font-bold ${difference > 0 ? 'text-green-600' : difference < 0 ? 'text-red-500' : 'text-text-primary'}`}>
-            {difference > 0 ? `+${difference}` : difference}
-          </span>
-        </div>
-      )}
-
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-1 block">盘点备注（选填）</label>
-        <input
-          value={remark}
-          onChange={e => setRemark(e.target.value)}
-          placeholder="可选填写备注"
-          className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
-        />
+      <div className="bg-bg-secondary rounded-2xl px-4 py-3 flex justify-between items-center">
+        <span className="text-sm text-text-secondary">差值</span>
+        <span className={`text-lg font-bold ${difference > 0 ? 'text-green-600' : difference < 0 ? 'text-red-500' : 'text-text-primary'}`}>
+          {difference > 0 ? `+${difference}` : difference}
+        </span>
       </div>
+
+      <BumbleInput
+        label="盘点备注（选填）"
+        value={remark}
+        onChange={e => setRemark(e.target.value)}
+      />
 
       <motion.button
         whileTap={{ scale: 0.96 }}
