@@ -310,6 +310,272 @@ section .section-subtitle {
 .bezier-container { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
 .bezier-canvas { border: 1px solid #E5E5E5; border-radius: var(--radius-sm); background: #FAFAFA; }
 
+/* ========== Section: Scan Lab ========== */
+.scan-lab-wrapper { display: flex; gap: 32px; flex-wrap: wrap; align-items: center; }
+.scan-viewfinder {
+  width: 300px; height: 300px; position: relative; background: rgba(0,0,0,0.15);
+  border-radius: var(--radius-md); overflow: hidden;
+}
+.scan-laser {
+  position: absolute; left: 10%; right: 10%; height: 2px;
+  background: rgba(255,60,60,0.8);
+  box-shadow: 0 0 8px rgba(255,60,60,0.6), 0 0 20px rgba(255,60,60,0.3);
+  animation: scanLine 2s ease-in-out infinite;
+}
+@keyframes scanLine {
+  0%, 100% { top: 10%; }
+  50% { top: 88%; }
+}
+/* L-shape corners — thick industrial */
+.scan-corner {
+  position: absolute; width: 40px; height: 40px;
+}
+.scan-corner::before, .scan-corner::after {
+  content: ''; position: absolute; background: var(--bumble-yellow); border-radius: 2px;
+}
+.scan-corner::before { width: 40px; height: 6px; }
+.scan-corner::after { width: 6px; height: 40px; }
+.scan-corner.tl { top: 0; left: 0; }
+.scan-corner.tl::before { top: 0; left: 0; }
+.scan-corner.tl::after { top: 0; left: 0; }
+.scan-corner.tr { top: 0; right: 0; }
+.scan-corner.tr::before { top: 0; right: 0; }
+.scan-corner.tr::after { top: 0; right: 0; }
+.scan-corner.bl { bottom: 0; left: 0; }
+.scan-corner.bl::before { bottom: 0; left: 0; }
+.scan-corner.bl::after { bottom: 0; left: 0; }
+.scan-corner.br { bottom: 0; right: 0; }
+.scan-corner.br::before { bottom: 0; right: 0; }
+.scan-corner.br::after { bottom: 0; right: 0; }
+.scan-info { flex: 1; min-width: 200px; }
+.scan-info .info-block { padding: 12px 0; border-bottom: 1px solid #F0F0F0; }
+.scan-info .info-block:last-child { border-bottom: none; }
+.scan-info .info-block .info-label { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.scan-info .info-block .info-val { font-size: 14px; margin-top: 4px; }
+
+/* ========== Section: Feedback System ========== */
+.feedback-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.feedback-card {
+  padding: 32px; background: var(--bg-secondary); border-radius: var(--radius-lg);
+  text-align: center;
+}
+.feedback-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+.feedback-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+.feedback-btn {
+  padding: 12px 28px; border: none; border-radius: var(--radius-pill);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.1s ease;
+}
+.feedback-btn:active { transform: scale(0.96); }
+.feedback-btn.audio-btn { background: var(--action-black); color: #FFF; }
+.feedback-btn.glass-btn { background: rgba(0,0,0,0.7); color: #FFF; border: 1px solid rgba(255,255,255,0.2); }
+/* Frosted glass overlay */
+.glass-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.glass-overlay.open { opacity: 1; pointer-events: auto; }
+.glass-overlay .glass-check { font-size: 48px; color: #4CAF50; margin-bottom: 16px; }
+.glass-overlay .glass-text { color: #FFF; font-size: 20px; font-weight: 700; }
+.glass-overlay .glass-sub { color: rgba(255,255,255,0.6); font-size: 14px; margin-top: 8px; }
+.glass-overlay .glass-close {
+  margin-top: 32px; padding: 10px 24px; background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3); color: #FFF; border-radius: var(--radius-pill);
+  cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s;
+}
+.glass-overlay .glass-close:hover { background: rgba(255,255,255,0.25); }
+
+/* ========== Section: Business List ========== */
+.biz-list { display: flex; flex-direction: column; gap: 8px; max-width: 500px; }
+.biz-item-wrapper {
+  position: relative; overflow: hidden; border-radius: var(--radius-sm);
+  height: 72px;
+}
+.biz-item-bg {
+  position: absolute; inset: 0; display: flex;
+}
+.biz-item-bg .action-left {
+  flex: 1; background: #4CAF50; display: flex; align-items: center;
+  justify-content: center; color: #FFF; font-weight: 700; font-size: 13px;
+}
+.biz-item-bg .action-right {
+  flex: 1; background: #E53935; display: flex; align-items: center;
+  justify-content: center; color: #FFF; font-weight: 700; font-size: 13px;
+}
+.biz-item {
+  position: relative; z-index: 1; display: flex; align-items: center;
+  padding: 12px 16px; background: var(--bg-main); gap: 12px;
+  cursor: grab; user-select: none; touch-action: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: transform 0.15s ease;
+}
+.biz-item .biz-id { font-size: 13px; font-weight: 700; color: var(--text-primary); min-width: 80px; }
+.biz-item .biz-detail { flex: 1; }
+.biz-item .biz-detail .biz-warehouse { font-size: 13px; font-weight: 600; }
+.biz-item .biz-detail .biz-time { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+/* Status Pill */
+.status-pill {
+  display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.3px; white-space: nowrap;
+}
+.status-pill.pending { background: #E5E5E5; color: #666; }
+.status-pill.active { background: var(--bumble-yellow); color: var(--action-black); }
+.status-pill.done { background: #C8E6C9; color: #2E7D32; }
+.status-pill.error { background: #FFCDD2; color: #C62828; }
+
+/* ========== Section: Dark Mode ========== */
+.dark-toggle {
+  padding: 8px 16px; border: 2px solid var(--action-black); background: transparent;
+  border-radius: var(--radius-pill); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease; color: var(--action-black);
+}
+.dark-toggle.active { background: var(--action-black); color: #FFF; }
+/* Dark mode overrides */
+body.dark-mode {
+  --bg-main: #1A1A1A; --bg-secondary: #2A2A2A;
+  --text-primary: #FFFFFF; --text-secondary: #AAAAAA;
+}
+body.dark-mode .top-header { background: #1A1A1A; border-bottom-color: #333; color: #CCC; }
+body.dark-mode .sidebar { background: #1A1A1A; border-right-color: #333; }
+body.dark-mode .sidebar nav a { color: #999; }
+body.dark-mode .sidebar nav a:hover, body.dark-mode .sidebar nav a.active { background: #2A2A2A; color: #FFF; }
+body.dark-mode .top-header .dot { background: var(--bumble-yellow); }
+body.dark-mode section { border-bottom-color: #333; }
+body.dark-mode .color-swatch { border-color: #444; }
+body.dark-mode .color-swatch .swatch-info { background: #2A2A2A; }
+body.dark-mode .color-swatch .swatch-info .name { color: #FFF; }
+body.dark-mode .sel-card { background: #2A2A2A; border-color: #444; }
+body.dark-mode .settings-list { background: #444; }
+body.dark-mode .settings-item { background: #2A2A2A; }
+body.dark-mode .seg-control { background: #2A2A2A; }
+body.dark-mode .tab-bar-demo { background: #1A1A1A; border-top-color: #333; }
+body.dark-mode .shadow-card { background: #2A2A2A; }
+body.dark-mode .biz-item { background: #2A2A2A; }
+body.dark-mode .feedback-card { background: #2A2A2A; }
+body.dark-mode .playground-area { background: #2A2A2A; }
+body.dark-mode .scan-viewfinder { background: rgba(255,255,255,0.05); }
+body.dark-mode .bezier-canvas { background: #2A2A2A; border-color: #444; }
+body.dark-mode .radius-box { background: #2A2A2A; border-color: #555; }
+body.dark-mode .skeleton-card { background: #2A2A2A; }
+body.dark-mode .pattern-annotation { background: #2A2A2A; }
+body.dark-mode .upsell-card { background: #2A2A2A; }
+body.dark-mode .upsell-hero { background: linear-gradient(135deg, #2A2200, #1A1A00); }
+body.dark-mode .upsell-plan { background: #333; border-color: #555; }
+body.dark-mode .drag-bs-panel { background: #2A2A2A; }
+body.dark-mode .drag-bs-demo { background: #333; }
+
+/* ========== Section: Form & Input ========== */
+.form-lab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+@media (max-width: 700px) { .form-lab-grid { grid-template-columns: 1fr; } }
+
+/* Bumble Input */
+.bumble-input-group { position: relative; margin-bottom: 24px; }
+.bumble-input {
+  width: 100%; padding: 22px 16px 6px; font-size: 16px; font-weight: 500;
+  background: #F5F5F5; border: none; border-bottom: 2px solid #D5D5D5;
+  border-radius: 12px; outline: none;
+  color: var(--text-primary); font-family: var(--font-stack);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+}
+.bumble-input:focus {
+  border-bottom-color: var(--bumble-yellow);
+  background: var(--bg-main);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.04), 0 2px 0 0 var(--bumble-yellow);
+}
+.bumble-input-label {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  font-size: 15px; color: var(--text-secondary); pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  transform-origin: left center;
+  line-height: 1;
+}
+.bumble-input:focus + .bumble-input-label,
+.bumble-input.has-value + .bumble-input-label {
+  top: 8px; transform: translateY(0) scale(0.75);
+  font-weight: 700; letter-spacing: 0.5px; color: var(--bumble-yellow);
+}
+/* Focus underline expansion */
+.bumble-input-group .underline {
+  position: absolute; bottom: 0; left: 50%; width: 0; height: 2px;
+  background: var(--bumble-yellow); border-radius: 0 0 12px 12px;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), left 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.bumble-input:focus ~ .underline { width: 100%; left: 0; }
+/* Error state */
+.bumble-input.error {
+  border-bottom-color: #E53935;
+  background: #FFF5F5;
+  box-shadow: inset 0 1px 2px rgba(229,57,53,0.08);
+}
+.bumble-input.error ~ .underline { background: #E53935; width: 100%; left: 0; }
+.bumble-input-group .error-msg {
+  font-size: 12px; color: #E53935; margin-top: 6px; display: none; font-weight: 600;
+}
+.bumble-input.error ~ .error-msg { display: block; }
+/* Error shake — high frequency, small amplitude */
+@keyframes inputShake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-2px); }
+  20% { transform: translateX(2px); }
+  30% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  50% { transform: translateX(-1.5px); }
+  60% { transform: translateX(1.5px); }
+  70% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+  90% { transform: translateX(-0.5px); }
+}
+.bumble-input-group.shake { animation: inputShake 0.3s ease; }
+/* Error red flash on background */
+@keyframes errorFlash {
+  0% { background: #F5F5F5; }
+  30% { background: #FFEBEE; }
+  100% { background: #FFF5F5; }
+}
+.bumble-input.error-flash { animation: errorFlash 0.2s ease; }
+
+/* Stepper — industrial weight */
+.stepper-demo { display: flex; align-items: center; gap: 0; }
+.stepper-btn {
+  width: 48px; height: 48px; min-width: 44px; min-height: 44px;
+  border: none; background: var(--action-black);
+  border-radius: 50%; font-size: 24px; font-weight: 700; cursor: pointer;
+  color: #FFF; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s ease; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.stepper-btn:active, .stepper-btn.pressed { transform: scale(0.9); }
+.stepper-value {
+  width: 80px; height: 52px;
+  font-size: 18px; font-weight: 700; font-family: var(--font-stack); color: var(--text-primary);
+  background: transparent; border: none; outline: none;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.stepper-value::-webkit-inner-spin-button,
+.stepper-value::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+/* Vertical bounce on value change */
+@keyframes stepperBounce {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+  60% { transform: translateY(1px); }
+  100% { transform: translateY(0); }
+}
+.stepper-value.bounce { animation: stepperBounce 0.2s ease; }
+
+/* Dark mode for inputs */
+body.dark-mode .bumble-input { background: #2A2A2A; color: #FFF; border-bottom-color: #555; box-shadow: inset 0 1px 2px rgba(0,0,0,0.15); }
+body.dark-mode .bumble-input:focus { background: #333; box-shadow: inset 0 1px 2px rgba(0,0,0,0.15), 0 2px 0 0 var(--bumble-yellow); }
+body.dark-mode .bumble-input.error { background: #3A1A1A; box-shadow: inset 0 1px 2px rgba(229,57,53,0.12); }
+body.dark-mode .bumble-input:focus { background: #333; }
+body.dark-mode .bumble-input-label { color: #999; }
+body.dark-mode .bumble-input:focus + .bumble-input-label,
+body.dark-mode .bumble-input.has-value + .bumble-input-label { color: var(--bumble-yellow); }
+body.dark-mode .stepper-btn { background: #555; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+body.dark-mode .stepper-btn:active, body.dark-mode .stepper-btn.pressed { background: #888; }
+body.dark-mode .stepper-value { background: transparent; color: #FFF; }
+
 /* ========== Placeholder content for sections ========== */
 .placeholder { padding: 60px 20px; text-align: center; color: var(--text-secondary); background: var(--bg-secondary); border-radius: var(--radius-md); }
 
@@ -437,9 +703,14 @@ section .section-subtitle {
   <nav>
     <a href="#section-1" class="active"><span class="num">1</span> 原子层 Tokens</a>
     <a href="#section-2"><span class="num">2</span> 组件层 Components</a>
-    <a href="#section-3"><span class="num">3</span> 动态属性 Motion</a>
-    <a href="#section-4"><span class="num">4</span> 商业模式 Pattern</a>
-    <a href="#section-5"><span class="num">5</span> 深度交互协议 Advanced</a>
+    <a href="#section-scan-lab"><span class="num">3</span> 扫码实验室 Scan Lab</a>
+    <a href="#section-feedback"><span class="num">4</span> 反馈系统 Feedback</a>
+    <a href="#section-business-list"><span class="num">5</span> 业务列表规范 List</a>
+    <a href="#section-darkmode"><span class="num">6</span> Dark Mode</a>
+    <a href="#section-form-input"><span class="num">7</span> 表单与输入 Input</a>
+    <a href="#section-3"><span class="num">8</span> 动态属性 Motion</a>
+    <a href="#section-4"><span class="num">9</span> 商业模式 Pattern</a>
+    <a href="#section-5"><span class="num">10</span> 深度交互协议 Advanced</a>
   </nav>
 </aside>
 
@@ -649,8 +920,187 @@ section .section-subtitle {
     <button class="bs-trigger" style="width:100%;margin-top:20px" onclick="closeBottomSheet()">了解 Premium+</button>
   </div>
 
+  <!-- ========== NEW: Section 3 — Scan Lab ========== -->
+  <section id="section-scan-lab">
+    <h2>3. 工业扫码实验室 Scan Lab</h2>
+    <p class="section-subtitle">L 型取景框 &bull; 激光扫描线 &bull; 零装饰工业风</p>
+    <div class="scan-lab-wrapper">
+      <div class="scan-viewfinder">
+        <div class="scan-corner tl"></div>
+        <div class="scan-corner tr"></div>
+        <div class="scan-corner bl"></div>
+        <div class="scan-corner br"></div>
+        <div class="scan-laser"></div>
+      </div>
+      <div class="scan-info">
+        <div class="info-block">
+          <div class="info-label">取景框</div>
+          <div class="info-val">四角 L 型黄色转角（6px 线宽），引导视线聚焦扫码区域。无圆角、无渐变——纯粹的工业功能性。</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">激光线</div>
+          <div class="info-val">红色半透明扫描线（rgba(255,60,60)），2px 高度 + 发光 box-shadow，2s 匀速循环。提供实时扫描反馈。</div>
+        </div>
+        <div class="info-block">
+          <div class="info-label">设计原理</div>
+          <div class="info-val">去装饰化、强调功能性。黄色转角 vs 红色激光线形成双重视觉锚点，在嘈杂的仓库环境中确保操作者一眼锁定扫码区域。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== NEW: Section 4 — Feedback System ========== -->
+  <section id="section-feedback">
+    <h2>4. 反馈系统 Feedback</h2>
+    <p class="section-subtitle">零延迟听觉反馈 &bull; 深色毛玻璃视觉遮罩</p>
+    <div class="feedback-grid">
+      <div class="feedback-card">
+        <h4>听觉测试</h4>
+        <p>Web Audio API &mdash; 800Hz 方波蜂鸣，零延迟触发。AudioContext 在页面加载时预创建，消除界面"轻飘飘"感。</p>
+        <button class="feedback-btn audio-btn" onclick="playBeep()">&#9654; 播放蜂鸣</button>
+      </div>
+      <div class="feedback-card">
+        <h4>视觉遮罩</h4>
+        <p>深色毛玻璃遮罩 &mdash; backdrop-filter: blur(20px) + rgba(0,0,0,0.6)。用于扫码成功/异常等即时视觉反馈。</p>
+        <button class="feedback-btn glass-btn" onclick="openGlassOverlay()">&#9672; 显示遮罩</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Frosted Glass Overlay -->
+  <div class="glass-overlay" id="glassOverlay">
+    <div class="glass-check">&#10003;</div>
+    <div class="glass-text">扫码成功</div>
+    <div class="glass-sub">SKU: WH-2024-A00387 &bull; 库位: B-12-03</div>
+    <button class="glass-close" onclick="closeGlassOverlay()">关闭</button>
+  </div>
+
+  <!-- ========== NEW: Section 5 — Business List ========== -->
+  <section id="section-business-list">
+    <h2>5. 业务列表规范 Business List</h2>
+    <p class="section-subtitle">Status Pill 状态标签 &bull; 左右滑动语义底板</p>
+
+    <h3 class="subsection-title">Status Pill 状态标签</h3>
+    <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
+      <span class="status-pill pending">待处理</span>
+      <span class="status-pill active">进行中</span>
+      <span class="status-pill done">已完成</span>
+      <span class="status-pill error">异常</span>
+    </div>
+
+    <h3 class="subsection-title">WMS 任务列表（可左右滑动）</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">向右滑露出"完成"操作，向左滑露出"删除"操作</p>
+    <div class="biz-list" id="bizList">
+      <div class="biz-item-wrapper">
+        <div class="biz-item-bg"><div class="action-left">&#10003; 完成</div><div class="action-right">&#10005; 删除</div></div>
+        <div class="biz-item" data-swipeable>
+          <span class="biz-id">WH-0387</span>
+          <div class="biz-detail"><div class="biz-warehouse">A区入库 &mdash; 3号仓</div><div class="biz-time">2024-05-09 14:32</div></div>
+          <span class="status-pill active">进行中</span>
+        </div>
+      </div>
+      <div class="biz-item-wrapper">
+        <div class="biz-item-bg"><div class="action-left">&#10003; 完成</div><div class="action-right">&#10005; 删除</div></div>
+        <div class="biz-item" data-swipeable>
+          <span class="biz-id">WH-0388</span>
+          <div class="biz-detail"><div class="biz-warehouse">B区出库 &mdash; 7号仓</div><div class="biz-time">2024-05-09 13:15</div></div>
+          <span class="status-pill pending">待处理</span>
+        </div>
+      </div>
+      <div class="biz-item-wrapper">
+        <div class="biz-item-bg"><div class="action-left">&#10003; 完成</div><div class="action-right">&#10005; 删除</div></div>
+        <div class="biz-item" data-swipeable>
+          <span class="biz-id">WH-0389</span>
+          <div class="biz-detail"><div class="biz-warehouse">C区盘点 &mdash; 2号仓</div><div class="biz-time">2024-05-09 11:08</div></div>
+          <span class="status-pill done">已完成</span>
+        </div>
+      </div>
+      <div class="biz-item-wrapper">
+        <div class="biz-item-bg"><div class="action-left">&#10003; 完成</div><div class="action-right">&#10005; 删除</div></div>
+        <div class="biz-item" data-swipeable>
+          <span class="biz-id">WH-0390</span>
+          <div class="biz-detail"><div class="biz-warehouse">D区调拨 &mdash; 5号仓</div><div class="biz-time">2024-05-09 09:45</div></div>
+          <span class="status-pill error">异常</span>
+        </div>
+      </div>
+      <div class="biz-item-wrapper">
+        <div class="biz-item-bg"><div class="action-left">&#10003; 完成</div><div class="action-right">&#10005; 删除</div></div>
+        <div class="biz-item" data-swipeable>
+          <span class="biz-id">WH-0391</span>
+          <div class="biz-detail"><div class="biz-warehouse">A区退货 &mdash; 1号仓</div><div class="biz-time">2024-05-08 17:22</div></div>
+          <span class="status-pill active">进行中</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== NEW: Section 6 — Dark Mode ========== -->
+  <section id="section-darkmode">
+    <h2>6. 视觉对比 Dark Mode</h2>
+    <p class="section-subtitle">Action Color (#1A1A1A) 主导的沉浸式界面 &mdash; 品牌色成为唯一视觉锚点</p>
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:24px">
+      <button class="dark-toggle" id="darkToggleBtn" onclick="toggleDarkMode()">
+        &#9790; 切换 Dark Mode
+      </button>
+      <span style="font-size:12px;color:var(--text-secondary)">点击切换整页主题</span>
+    </div>
+    <div style="padding:24px;background:var(--bg-secondary);border-radius:var(--radius-lg);max-width:500px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px">Dark Mode 设计原理</div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+        <div>&#8226; Action Color <code style="background:var(--action-black);color:#FFF;padding:2px 6px;border-radius:4px">#1A1A1A</code> 从操作色变为背景色</div>
+        <div>&#8226; Bumble Yellow <code style="background:var(--bumble-yellow);color:var(--action-black);padding:2px 6px;border-radius:4px">#FFC629</code> 成为唯一高亮锚点</div>
+        <div>&#8226; 毛玻璃遮罩在深色下视觉重量感更强</div>
+        <div>&#8226; 激光扫描线在深色背景对比度显著提升</div>
+        <div>&#8226; Status Pill 颜色不变，依靠语义色维持信息可读性</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== NEW: Section 7 — Form & Input ========== -->
+  <section id="section-form-input">
+    <h2>7. 表单与输入系统 Form &amp; Input</h2>
+    <p class="section-subtitle">聚焦动效 &bull; 物理步进器 &bull; 表单校验 &bull; Dark Mode 自适应</p>
+
+    <div class="form-lab-grid">
+      <div>
+        <h3 class="subsection-title">输入框实验室</h3>
+        <div class="bumble-input-group" id="inputGroup1">
+          <input class="bumble-input" id="inputSKU" type="text" oninput="inputHasValue(this)" placeholder=" ">
+          <label class="bumble-input-label" for="inputSKU">SKU 编号</label>
+          <div class="underline"></div>
+          <div class="error-msg">请输入有效的 SKU 编号（格式：WH-XXXX）</div>
+        </div>
+        <div class="bumble-input-group" id="inputGroup2">
+          <input class="bumble-input" id="inputLoc" type="text" oninput="inputHasValue(this)" placeholder=" ">
+          <label class="bumble-input-label" for="inputLoc">库位编号</label>
+          <div class="underline"></div>
+          <div class="error-msg">库位格式错误（例：A-12-03）</div>
+        </div>
+        <button class="motion-btn primary" onclick="simulateError()" style="margin-top:8px">模拟报错</button>
+        <button class="motion-btn secondary" onclick="clearErrors()" style="margin-top:8px;margin-left:8px">清除</button>
+        <p style="font-size:11px;color:var(--text-secondary);margin-top:12px">聚焦时下划线从中心向两侧扩张（黄色），报错时高频小振幅抖动 + 红色下划线</p>
+      </div>
+      <div>
+        <h3 class="subsection-title">数量调节器 Stepper</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">长按加速 &mdash; 按住不放，速度指数级递增。模拟物理压感。</p>
+        <div class="stepper-demo" style="margin-bottom:20px">
+          <button class="stepper-btn" id="stepperMinus" onmousedown="stepperStart(-1)" onmouseup="stepperStop()" onmouseleave="stepperStop()" ontouchstart="stepperStart(-1)" ontouchend="stepperStop()">&minus;</button>
+          <input class="stepper-value" id="stepperVal" type="number" value="24" inputmode="numeric" onblur="stepperBlur()" onkeydown="if(event.key==='Enter')this.blur()">
+          <button class="stepper-btn" id="stepperPlus" onmousedown="stepperStart(1)" onmouseup="stepperStop()" onmouseleave="stepperStop()" ontouchstart="stepperStart(1)" ontouchend="stepperStop()">+</button>
+        </div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+          <div>&#8226; 18px 等宽字体值域 &mdash; 确保数字在视觉重心居中</div>
+          <div>&#8226; 点击反馈：<code>scale(0.94)</code> + 黑底反白</div>
+          <div>&#8226; 长按加速：首次延迟 500ms，之后间隔从 200ms 指数递减至 30ms</div>
+          <div>&#8226; WMS 场景：快速调节大批量入库数量</div>
+        </div>
+        <div style="margin-top:16px;font-size:12px;color:var(--text-secondary)" id="stepperSpeed">当前速率：正常</div>
+      </div>
+    </div>
+  </section>
+
   <section id="section-3">
-    <h2>3. 动态属性 Motion</h2>
+    <h2>8. 动态属性 Motion</h2>
     <p class="section-subtitle">Transition curves, tap feedback, loading states</p>
 
     <!-- Tap Feedback Buttons -->
@@ -697,7 +1147,7 @@ section .section-subtitle {
   </section>
 
   <section id="section-4">
-    <h2>4. 商业模式布局 Pattern</h2>
+    <h2>9. 商业模式布局 Pattern</h2>
     <p class="section-subtitle">Information hierarchy: benefit &rarr; plans &rarr; action</p>
 
     <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start">
@@ -748,7 +1198,7 @@ section .section-subtitle {
   </section>
 
   <section id="section-5">
-    <h2>5. 深度交互协议 Advanced</h2>
+    <h2>10. 深度交互协议 Advanced</h2>
     <p class="section-subtitle">Spring playground, gesture simulation, swipe &amp; snap</p>
 
     <!-- Spring Playground -->
@@ -827,6 +1277,158 @@ section .section-subtitle {
 </main>
 
 <script>
+// ========== Web Audio — Zero-latency beep ==========
+let audioCtx;
+window.addEventListener('load', () => {
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+});
+function playBeep() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.value = 800;
+  gain.gain.value = 0.3;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+  osc.stop(audioCtx.currentTime + 0.12);
+}
+
+// ========== Frosted Glass Overlay ==========
+function openGlassOverlay() {
+  document.getElementById('glassOverlay').classList.add('open');
+}
+function closeGlassOverlay() {
+  document.getElementById('glassOverlay').classList.remove('open');
+}
+
+// ========== Dark Mode Toggle ==========
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  const btn = document.getElementById('darkToggleBtn');
+  btn.classList.toggle('active');
+  btn.innerHTML = document.body.classList.contains('dark-mode') ? '&#9788; 切换 Light Mode' : '&#9790; 切换 Dark Mode';
+}
+
+// ========== Business List Swipe ==========
+(function() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const items = document.querySelectorAll('[data-swipeable]');
+    items.forEach(item => {
+      let startX = 0, currentX = 0, isDragging = false;
+      item.addEventListener('mousedown', e => { startX = e.clientX; isDragging = true; item.style.transition = 'none'; });
+      item.addEventListener('touchstart', e => { startX = e.touches[0].clientX; isDragging = true; item.style.transition = 'none'; }, { passive: true });
+      const onMove = (clientX) => {
+        if (!isDragging) return;
+        currentX = clientX - startX;
+        const maxSwipe = 80;
+        if (currentX > maxSwipe) currentX = maxSwipe + (currentX - maxSwipe) * 0.2;
+        if (currentX < -maxSwipe) currentX = -maxSwipe + (currentX + maxSwipe) * 0.2;
+        item.style.transform = 'translateX(' + currentX + 'px)';
+      };
+      window.addEventListener('mousemove', e => onMove(e.clientX));
+      window.addEventListener('touchmove', e => onMove(e.touches[0].clientX));
+      const onEnd = () => {
+        if (!isDragging) return;
+        isDragging = false;
+        item.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+        if (Math.abs(currentX) < 40) {
+          item.style.transform = 'translateX(0)';
+        }
+        currentX = 0;
+      };
+      window.addEventListener('mouseup', onEnd);
+      window.addEventListener('touchend', onEnd);
+    });
+  });
+})();
+
+// ========== Form: Input Validation & Shake ==========
+function inputHasValue(el) {
+  el.classList.toggle('has-value', el.value.length > 0);
+}
+function simulateError() {
+  const groups = [document.getElementById('inputGroup1'), document.getElementById('inputGroup2')];
+  groups.forEach(g => {
+    const input = g.querySelector('.bumble-input');
+    input.classList.add('error', 'error-flash');
+    g.classList.add('shake');
+    g.addEventListener('animationend', () => g.classList.remove('shake'), { once: true });
+    input.addEventListener('animationend', function handler(e) {
+      if (e.animationName === 'errorFlash') {
+        input.classList.remove('error-flash');
+        input.removeEventListener('animationend', handler);
+      }
+    });
+  });
+}
+function clearErrors() {
+  document.querySelectorAll('.bumble-input.error').forEach(i => {
+    i.classList.remove('error', 'error-flash');
+    i.style.background = '';
+  });
+}
+
+// ========== Stepper with Long-press Acceleration ==========
+let stepperVal = 24;
+const STEPPER_DEFAULT = 1;
+let stepperInterval = null;
+let stepperTimeout = null;
+let stepperTick = 0;
+function updateStepperDisplay() {
+  const el = document.getElementById('stepperVal');
+  el.value = stepperVal;
+  el.classList.remove('bounce');
+  void el.offsetWidth;
+  el.classList.add('bounce');
+}
+function stepperBlur() {
+  const el = document.getElementById('stepperVal');
+  const v = parseInt(el.value, 10);
+  if (isNaN(v) || el.value.trim() === '') {
+    stepperVal = STEPPER_DEFAULT;
+  } else {
+    stepperVal = Math.max(0, v);
+  }
+  el.value = stepperVal;
+}
+function stepperTickAction(dir) {
+  stepperVal = Math.max(0, stepperVal + dir);
+  updateStepperDisplay();
+  stepperTick++;
+  const speed = Math.max(30, 200 * Math.pow(0.88, stepperTick));
+  const label = speed < 50 ? '极速' : speed < 100 ? '快速' : speed < 150 ? '加速中' : '正常';
+  document.getElementById('stepperSpeed').textContent = '当前速率：' + label + ' (' + Math.round(speed) + 'ms)';
+  clearInterval(stepperInterval);
+  stepperInterval = setInterval(() => stepperTickAction(dir), speed);
+}
+function stepperStart(dir) {
+  // Sync from manual input first
+  const el = document.getElementById('stepperVal');
+  const v = parseInt(el.value, 10);
+  if (!isNaN(v)) stepperVal = Math.max(0, v);
+  const btn = dir > 0 ? document.getElementById('stepperPlus') : document.getElementById('stepperMinus');
+  btn.classList.add('pressed');
+  stepperTick = 0;
+  stepperVal += dir;
+  if (stepperVal < 0) stepperVal = 0;
+  updateStepperDisplay();
+  // Start acceleration after 500ms hold
+  stepperTimeout = setTimeout(() => {
+    stepperInterval = setInterval(() => stepperTickAction(dir), 200);
+  }, 500);
+}
+function stepperStop() {
+  document.getElementById('stepperPlus').classList.remove('pressed');
+  document.getElementById('stepperMinus').classList.remove('pressed');
+  clearTimeout(stepperTimeout);
+  clearInterval(stepperInterval);
+  document.getElementById('stepperSpeed').textContent = '当前速率：正常';
+}
+
 // ========== Bottom Sheet ==========
 function openBottomSheet() {
   document.getElementById('bsOverlay').classList.add('open');
