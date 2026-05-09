@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bumble Design System</title>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --bumble-yellow: #FFC629;
+  --action-black: #1A1A1A;
+  --bg-main: #FFFFFF;
+  --bg-secondary: #F2F2F2;
+  --text-primary: #222222;
+  --text-secondary: #757575;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 50px;
+  --font-stack: 'Inter', 'Gilroy', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sidebar-width: 260px;
+  --header-height: 56px;
+}
+
+/* ========== Reset & Base ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--font-stack);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* ========== Sticky Header ========== */
+.top-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: var(--bg-main);
+  border-bottom: 1px solid #E5E5E5;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  z-index: 100;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+.top-header .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--bumble-yellow); margin-right: 10px; }
+
+/* ========== Sidebar Navigation ========== */
+.sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  background: var(--bg-main);
+  border-right: 1px solid #E5E5E5;
+  padding: 24px 0;
+  overflow-y: auto;
+  z-index: 90;
+}
+.sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; }
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.sidebar nav a:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.sidebar nav a.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: 700;
+  border-left-color: var(--bumble-yellow);
+}
+.sidebar nav a .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  margin-right: 10px;
+  color: var(--text-secondary);
+}
+.sidebar nav a.active .num { background: var(--bumble-yellow); color: var(--action-black); }
+
+/* ========== Main Content ========== */
+main {
+  margin-left: var(--sidebar-width);
+  margin-top: var(--header-height);
+  padding: 40px 48px 80px;
+  max-width: 960px;
+}
+section { padding: 32px 0 48px; border-bottom: 1px solid #EEEEEE; }
+section:last-child { border-bottom: none; }
+section h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+section .section-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+/* ========== Utility ========== */
+.demo-grid { display: grid; gap: 16px; }
+.demo-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.demo-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.demo-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.demo-label { font-size: 12px; color: var(--text-secondary); margin-top: 8px; text-align: center; }
+.subsection-title { font-size: 16px; font-weight: 700; margin: 24px 0 16px; color: var(--text-primary); }
+
+/* ========== Section 1: Tokens ========== */
+.token-colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
+.color-swatch {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid #E5E5E5;
+  transition: transform 0.2s ease;
+}
+.color-swatch:hover { transform: translateY(-2px); }
+.color-swatch .swatch-fill { height: 80px; display: flex; align-items: flex-end; padding: 8px 12px; }
+.color-swatch .swatch-info { padding: 10px 12px; background: var(--bg-main); }
+.color-swatch .swatch-info .name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.color-swatch .swatch-info .hex { font-size: 11px; color: var(--text-secondary); font-family: monospace; }
+.radius-showcase { display: flex; gap: 20px; align-items: flex-end; }
+.radius-box {
+  width: 100px; height: 100px; background: var(--bg-secondary); border: 2px solid #D5D5D5;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  transition: transform 0.2s ease;
+}
+.radius-box:hover { transform: scale(1.05); }
+.radius-box .val { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.radius-box .usage { font-size: 10px; color: var(--text-secondary); margin-top: 4px; text-align: center; }
+.shadow-showcase { display: flex; gap: 24px; align-items: center; }
+.shadow-card {
+  width: 140px; height: 90px; background: var(--bg-main); border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  transition: transform 0.2s ease;
+}
+.shadow-card:hover { transform: translateY(-4px); }
+.shadow-card .level { font-size: 13px; font-weight: 700; }
+.shadow-card .val { font-size: 10px; color: var(--text-secondary); font-family: monospace; margin-top: 4px; }
+.typo-sample { padding: 20px 0; border-bottom: 1px solid #F0F0F0; }
+.typo-sample:last-child { border-bottom: none; }
+.typo-sample .sample-text { margin-bottom: 4px; }
+.typo-sample .sample-meta { font-size: 12px; color: var(--text-secondary); }
+
+/* ========== Section 2: Components ========== */
+.component-demo { margin-bottom: 40px; }
+.component-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+
+/* Bottom Sheet */
+.bs-trigger {
+  padding: 12px 28px; background: var(--action-black); color: #FFF; border: none; border-radius: var(--radius-pill);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.15s ease;
+}
+.bs-trigger:active { transform: scale(0.97); }
+.bs-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.bs-overlay.open { opacity: 1; pointer-events: auto; }
+.bs-panel {
+  position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-main);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0; z-index: 201;
+  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  padding: 16px 24px 32px; max-height: 60vh;
+}
+.bs-overlay.open + .bs-panel, .bs-panel.open { transform: translateY(0); }
+.bs-handle { width: 40px; height: 4px; background: #D5D5D5; border-radius: 2px; margin: 0 auto 20px; }
+.bs-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary); }
+
+/* Selection Cards */
+.sel-cards { display: flex; gap: 12px; }
+.sel-card {
+  width: 120px; padding: 16px 12px; background: var(--bg-main); border: 2px solid #E5E5E5;
+  border-radius: var(--radius-md); cursor: pointer; position: relative; text-align: center;
+  transition: all 0.25s ease;
+}
+.sel-card.selected { border-color: var(--bumble-yellow); box-shadow: 0 4px 16px rgba(255,198,41,0.2); }
+.sel-card .radio {
+  width: 20px; height: 20px; border: 2px solid #D5D5D5; border-radius: 50%;
+  margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
+}
+.sel-card.selected .radio { border-color: var(--bumble-yellow); }
+.sel-card.selected .radio::after { content: ''; width: 10px; height: 10px; background: var(--bumble-yellow); border-radius: 50%; }
+.sel-card .price { font-size: 20px; font-weight: 700; }
+.sel-card .duration { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+.sel-card .badge {
+  position: absolute; top: -8px; right: -8px; background: var(--action-black); color: #FFF;
+  font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.5px;
+}
+
+/* Settings List */
+.settings-list { display: flex; flex-direction: column; gap: 1px; background: #E5E5E5; border-radius: var(--radius-md); overflow: hidden; width: 340px; }
+.settings-item {
+  display: flex; align-items: center; justify-content: space-between; padding: 14px 16px;
+  background: var(--bg-main);
+}
+.settings-item .info { flex: 1; }
+.settings-item .info .title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.settings-item .info .subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+/* Toggle Switch */
+.toggle {
+  width: 44px; height: 24px; background: #D5D5D5; border-radius: 12px; position: relative;
+  cursor: pointer; transition: background 0.2s ease; flex-shrink: 0;
+}
+.toggle.on { background: var(--action-black); }
+.toggle .knob {
+  position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #FFF;
+  border-radius: 50%; transition: transform 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.toggle.on .knob { transform: translateX(20px); }
+.chevron { color: var(--text-secondary); font-size: 18px; flex-shrink: 0; }
+
+/* Segmented Control */
+.seg-control {
+  display: inline-flex; background: var(--bg-secondary); border-radius: var(--radius-pill);
+  padding: 3px; position: relative;
+}
+.seg-control .seg-pill {
+  position: absolute; top: 3px; left: 3px; height: calc(100% - 6px);
+  background: var(--action-black); border-radius: var(--radius-pill);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
+  z-index: 0;
+}
+.seg-control button {
+  position: relative; z-index: 1; padding: 8px 20px; border: none; background: none;
+  font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer;
+  transition: color 0.2s ease; border-radius: var(--radius-pill);
+}
+.seg-control button.active { color: #FFF; }
+
+/* Tab Bar */
+.tab-bar-demo {
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 8px 0 4px; background: var(--bg-main); border-top: 1px solid #E5E5E5;
+  width: 340px; margin-top: 16px;
+}
+.tab-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+  border: none; background: none; padding: 4px 12px;
+}
+.tab-item .tab-icon { font-size: 22px; color: var(--text-secondary); transition: color 0.2s; }
+.tab-item .tab-label { font-size: 10px; color: var(--text-secondary); font-weight: 500; transition: color 0.2s; }
+.tab-item.active .tab-icon { color: var(--action-black); font-weight: 900; }
+.tab-item.active .tab-label { color: var(--action-black); font-weight: 700; }
+
+/* Discovery Card */
+.discovery-card {
+  width: 240px; height: 320px; border-radius: var(--radius-md); overflow: hidden; position: relative;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.discovery-card img { width: 100%; height: 100%; object-fit: cover; }
+.discovery-card .overlay {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 16px;
+  display: flex; align-items: flex-end;
+}
+.discovery-card .overlay .name { color: #FFF; font-size: 18px; font-weight: 700; }
+.discovery-card .overlay .age { color: rgba(255,255,255,0.85); font-weight: 400; margin-left: 6px; }
+
+/* ========== Section 3: Motion ========== */
+.motion-btn {
+  padding: 12px 28px; border: none; border-radius: var(--radius-pill);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.motion-btn:active { transform: scale(0.98); }
+.motion-btn.primary { background: var(--action-black); color: #FFF; }
+.motion-btn.secondary { background: var(--bg-main); color: var(--action-black); border: 2px solid var(--action-black); }
+.motion-btn.yellow { background: var(--bumble-yellow); color: var(--action-black); }
+
+/* Skeleton Loading */
+.skeleton-card {
+  width: 300px; background: var(--bg-main); border-radius: var(--radius-md); overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.skeleton-bar {
+  height: 14px; background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.04) 75%);
+  background-size: 200% 100%; border-radius: 6px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Bezier Canvas */
+.bezier-container { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; }
+.bezier-canvas { border: 1px solid #E5E5E5; border-radius: var(--radius-sm); background: #FAFAFA; }
+
+/* ========== Placeholder content for sections ========== */
+.placeholder { padding: 60px 20px; text-align: center; color: var(--text-secondary); background: var(--bg-secondary); border-radius: var(--radius-md); }
+
+/* ========== Section 5: Advanced Playground ========== */
+.playground-area { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 32px; margin-bottom: 32px; }
+.slider-group { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+.slider-row { display: flex; align-items: center; gap: 12px; }
+.slider-row label { font-size: 13px; font-weight: 600; width: 100px; flex-shrink: 0; }
+.slider-row input[type="range"] { flex: 1; accent-color: var(--bumble-yellow); }
+.slider-row .slider-val { font-size: 13px; font-family: monospace; color: var(--text-secondary); width: 40px; text-align: right; }
+.spring-box {
+  width: 80px; height: 80px; background: var(--action-black); border-radius: var(--radius-md);
+  position: relative; left: 0; top: 0;
+}
+.spring-track { height: 100px; background: #E5E5E5; border-radius: var(--radius-sm); position: relative; overflow: hidden; margin-top: 16px; }
+.spring-track .spring-ball {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 40px; height: 40px; background: var(--bumble-yellow); border-radius: 50%;
+}
+.copy-btn {
+  padding: 10px 20px; background: var(--action-black); color: #FFF; border: none;
+  border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: transform 0.15s ease; margin-top: 12px;
+}
+.copy-btn:active { transform: scale(0.97); }
+
+/* Draggable Bottom Sheet Demo */
+.drag-bs-demo {
+  width: 320px; height: 280px; background: #E8E8E8; border-radius: var(--radius-lg);
+  position: relative; overflow: hidden;
+}
+.drag-bs-panel {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+  background: var(--bg-main); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  cursor: grab; user-select: none; touch-action: none;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+}
+.drag-bs-panel .drag-handle { width: 36px; height: 4px; background: #D5D5D5; border-radius: 2px; margin: 10px auto 16px; }
+.drag-bs-panel .drag-info { padding: 0 20px; font-size: 13px; color: var(--text-secondary); }
+.drag-bs-panel .drag-info .metric { font-family: monospace; font-weight: 700; color: var(--action-black); }
+
+/* Swipe Cards */
+.swipe-container {
+  width: 360px; height: 200px; overflow: hidden; position: relative;
+  background: var(--bg-secondary); border-radius: var(--radius-md);
+}
+.swipe-track {
+  display: flex; gap: 12px; position: absolute; top: 20px; left: 20px;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: grab; user-select: none; touch-action: none;
+}
+.swipe-card {
+  width: 100px; height: 140px; background: var(--bg-main); border-radius: var(--radius-md);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700;
+  color: var(--text-secondary);
+}
+.swipe-card:nth-child(odd) { border-top: 3px solid var(--bumble-yellow); }
+.swipe-card:nth-child(even) { border-top: 3px solid var(--action-black); }
+
+/* ========== Section 4: Business Pattern ========== */
+.upsell-card {
+  background: var(--bg-main); border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1); max-width: 380px;
+}
+.upsell-hero {
+  padding: 32px 24px; background: linear-gradient(135deg, #FFF8E1, #FFFDE7);
+  text-align: center;
+}
+.upsell-hero .benefit-tag {
+  display: inline-block; padding: 4px 14px; background: var(--bumble-yellow);
+  border-radius: var(--radius-pill); font-size: 11px; font-weight: 700; margin-bottom: 12px;
+}
+.upsell-hero h3 { font-size: 22px; font-weight: 700; line-height: 1.4; }
+.upsell-hero .stat { font-size: 36px; font-weight: 700; color: var(--bumble-yellow); margin: 8px 0; }
+.upsell-hero .stat-desc { font-size: 13px; color: var(--text-secondary); }
+.upsell-plans { padding: 20px 16px; display: flex; gap: 10px; }
+.upsell-plan {
+  flex: 1; padding: 16px 10px; border: 2px solid #E5E5E5; border-radius: var(--radius-md);
+  text-align: center; cursor: pointer; transition: all 0.25s ease; position: relative;
+}
+.upsell-plan.recommended { border-color: var(--bumble-yellow); box-shadow: 0 4px 16px rgba(255,198,41,0.15); }
+.upsell-plan .plan-badge {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--bumble-yellow); font-size: 9px; font-weight: 700; padding: 3px 10px;
+  border-radius: 10px; white-space: nowrap;
+}
+.upsell-plan .plan-name { font-size: 14px; font-weight: 700; }
+.upsell-plan .plan-price { font-size: 20px; font-weight: 700; margin: 6px 0; }
+.upsell-plan .plan-period { font-size: 11px; color: var(--text-secondary); }
+.upsell-plan .plan-save { font-size: 11px; color: #4CAF50; font-weight: 600; margin-top: 4px; }
+.upsell-action { padding: 0 24px 24px; }
+.upsell-action button {
+  width: 100%; padding: 14px; background: var(--action-black); color: #FFF; border: none;
+  border-radius: var(--radius-pill); font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.upsell-action button:active { transform: scale(0.98); }
+
+.pattern-annotation {
+  max-width: 380px; margin-top: 20px; padding: 16px; background: var(--bg-secondary);
+  border-radius: var(--radius-md); border-left: 3px solid var(--bumble-yellow);
+}
+.pattern-annotation .anno-row {
+  display: flex; align-items: center; gap: 8px; padding: 6px 0;
+  font-size: 13px; color: var(--text-secondary);
+}
+.pattern-annotation .anno-row .anno-num {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--action-black);
+  color: #FFF; font-size: 10px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Sticky Header -->
+<header class="top-header">
+  <span class="dot"></span>
+  Bumble Core Vibe &mdash; Design System 3.0
+</header>
+
+<!-- Sidebar Navigation -->
+<aside class="sidebar">
+  <nav>
+    <a href="#section-1" class="active"><span class="num">1</span> 原子层 Tokens</a>
+    <a href="#section-2"><span class="num">2</span> 组件层 Components</a>
+    <a href="#section-3"><span class="num">3</span> 动态属性 Motion</a>
+    <a href="#section-4"><span class="num">4</span> 商业模式 Pattern</a>
+    <a href="#section-5"><span class="num">5</span> 深度交互协议 Advanced</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<main>
+
+  <section id="section-1">
+    <h2>1. 原子层 Tokens</h2>
+    <p class="section-subtitle">Brand colors, typography, corner radii, and elevation</p>
+
+    <!-- Color Palette -->
+    <h3 class="subsection-title">Color Palette</h3>
+    <div class="token-colors">
+      <div class="color-swatch">
+        <div class="swatch-fill" style="background:#FFC629"><span style="color:#1A1A1A;font-size:11px;font-weight:600">Brand</span></div>
+        <div class="swatch-info"><div class="name">Bumble Yellow</div><div class="hex">#FFC629</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-fill" style="background:#1A1A1A"><span style="color:#FFFFFF;font-size:11px;font-weight:600">Action</span></div>
+        <div class="swatch-info"><div class="name">Solid Black</div><div class="hex">#1A1A1A</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-fill" style="background:#FFFFFF;border-bottom:1px solid #E5E5E5"><span style="color:#222222;font-size:11px;font-weight:600">Main BG</span></div>
+        <div class="swatch-info"><div class="name">Background Main</div><div class="hex">#FFFFFF</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-fill" style="background:#F2F2F2"><span style="color:#222222;font-size:11px;font-weight:600">Secondary</span></div>
+        <div class="swatch-info"><div class="name">Background Secondary</div><div class="hex">#F2F2F2</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-fill" style="background:#222222"><span style="color:#FFFFFF;font-size:11px;font-weight:600">Primary</span></div>
+        <div class="swatch-info"><div class="name">Text Primary</div><div class="hex">#222222</div></div>
+      </div>
+      <div class="color-swatch">
+        <div class="swatch-fill" style="background:#757575"><span style="color:#FFFFFF;font-size:11px;font-weight:600">Secondary</span></div>
+        <div class="swatch-info"><div class="name">Text Secondary</div><div class="hex">#757575</div></div>
+      </div>
+    </div>
+
+    <!-- Typography -->
+    <h3 class="subsection-title">Typography</h3>
+    <div class="typo-sample">
+      <div class="sample-text" style="font-size:28px;font-weight:700">Bumble Design System</div>
+      <div class="sample-meta">Bold 700 &mdash; 主标题 / Heading</div>
+    </div>
+    <div class="typo-sample">
+      <div class="sample-text" style="font-size:16px;font-weight:500">探索附近的人，开始一段新的对话</div>
+      <div class="sample-meta">Medium 500 &mdash; 正文 / Body</div>
+    </div>
+    <div class="typo-sample">
+      <div class="sample-text" style="font-size:12px;font-weight:600;letter-spacing:2px">PREMIUM+&ensp;&bull;&ensp;EXCLUSIVE</div>
+      <div class="sample-meta">Semi-Bold 600 + Wide Tracking &mdash; 标签 / Label</div>
+    </div>
+
+    <!-- Corner Radii -->
+    <h3 class="subsection-title">Corner Radius</h3>
+    <div class="radius-showcase">
+      <div class="radius-box" style="border-radius:8px">
+        <span class="val">8px</span>
+        <span class="usage">列表项、小图片</span>
+      </div>
+      <div class="radius-box" style="border-radius:16px">
+        <span class="val">16px</span>
+        <span class="usage">人像卡片</span>
+      </div>
+      <div class="radius-box" style="border-radius:24px">
+        <span class="val">24px</span>
+        <span class="usage">功能卡片/弹窗</span>
+      </div>
+      <div class="radius-box" style="border-radius:50px">
+        <span class="val">Pill</span>
+        <span class="usage">按钮/分段控制器</span>
+      </div>
+    </div>
+
+    <!-- Elevation -->
+    <h3 class="subsection-title">Elevation / Shadows</h3>
+    <div class="shadow-showcase">
+      <div class="shadow-card" style="box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+        <span class="level">Small</span>
+        <span class="val">0 2px 8px</span>
+      </div>
+      <div class="shadow-card" style="box-shadow:0 8px 24px rgba(0,0,0,0.1)">
+        <span class="level">Medium</span>
+        <span class="val">0 8px 24px</span>
+      </div>
+      <div class="shadow-card" style="box-shadow:0 20px 25px -5px rgba(0,0,0,0.1)">
+        <span class="level">Large</span>
+        <span class="val">0 20px 25px</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="section-2">
+    <h2>2. 组件层 Components</h2>
+    <p class="section-subtitle">Interactive prototypes — click, toggle, and switch to see them in action</p>
+
+    <!-- A. Bottom Sheet -->
+    <div class="component-demo">
+      <h3 class="subsection-title">A. Bottom Sheet / Modal</h3>
+      <button class="bs-trigger" onclick="openBottomSheet()">打开底部抽屉</button>
+    </div>
+
+    <!-- B. Selection Cards -->
+    <div class="component-demo">
+      <h3 class="subsection-title">B. Selection Cards</h3>
+      <div class="sel-cards">
+        <div class="sel-card" onclick="selectCard(this)">
+          <div class="radio"></div>
+          <div class="price">¥68</div>
+          <div class="duration">1 周</div>
+        </div>
+        <div class="sel-card selected" onclick="selectCard(this)">
+          <div class="badge">最热门</div>
+          <div class="radio"></div>
+          <div class="price">¥198</div>
+          <div class="duration">1 个月</div>
+        </div>
+        <div class="sel-card" onclick="selectCard(this)">
+          <div class="radio"></div>
+          <div class="price">¥488</div>
+          <div class="duration">3 个月</div>
+        </div>
+        <div class="sel-card" onclick="selectCard(this)">
+          <div class="radio"></div>
+          <div class="price">¥888</div>
+          <div class="duration">永久</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C. Settings List -->
+    <div class="component-demo">
+      <h3 class="subsection-title">C. Settings List</h3>
+      <div class="settings-list">
+        <div class="settings-item">
+          <div class="info"><div class="title">消息通知</div><div class="subtitle">接收新匹配和消息推送</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
+        </div>
+        <div class="settings-item">
+          <div class="info"><div class="title">隐身模式</div><div class="subtitle">浏览他人时不被发现</div></div>
+          <div class="toggle" onclick="this.classList.toggle('on')"><div class="knob"></div></div>
+        </div>
+        <div class="settings-item">
+          <div class="info"><div class="title">账户设置</div><div class="subtitle">管理邮箱、密码和绑定</div></div>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- D. Segmented Control -->
+    <div class="component-demo">
+      <h3 class="subsection-title">D. Segmented Control</h3>
+      <div class="seg-control" id="segCtrl">
+        <div class="seg-pill" id="segPill"></div>
+        <button class="active" onclick="switchSeg(this, 0)">推荐</button>
+        <button onclick="switchSeg(this, 1)">附近</button>
+        <button onclick="switchSeg(this, 2)">最新</button>
+      </div>
+    </div>
+
+    <!-- E. Tab Bar -->
+    <div class="component-demo">
+      <h3 class="subsection-title">E. Bottom Tab Bar</h3>
+      <div class="tab-bar-demo">
+        <button class="tab-item active" onclick="switchTab(this)">
+          <span class="tab-icon">◉</span><span class="tab-label">探索</span>
+        </button>
+        <button class="tab-item" onclick="switchTab(this)">
+          <span class="tab-icon">○</span><span class="tab-label">匹配</span>
+        </button>
+        <button class="tab-item" onclick="switchTab(this)">
+          <span class="tab-icon">○</span><span class="tab-label">消息</span>
+        </button>
+        <button class="tab-item" onclick="switchTab(this)">
+          <span class="tab-icon">○</span><span class="tab-label">我的</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- F. Discovery Card -->
+    <div class="component-demo">
+      <h3 class="subsection-title">F. Discovery Card</h3>
+      <div class="discovery-card">
+        <img src="https://picsum.photos/seed/bumble-ds/480/640" alt="Discovery profile photo">
+        <div class="overlay">
+          <span class="name">Sophia</span><span class="age">26</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Sheet Overlay & Panel -->
+  <div class="bs-overlay" id="bsOverlay" onclick="closeBottomSheet()"></div>
+  <div class="bs-panel" id="bsPanel">
+    <div class="bs-handle"></div>
+    <button class="bs-close" onclick="closeBottomSheet()">&times;</button>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:12px">Premium+ 特权</h3>
+    <p style="color:var(--text-secondary);font-size:14px;line-height:1.7;margin-bottom:20px">
+      解锁无限喜欢、查看谁喜欢了你、隐身模式等独家功能。提升你的匹配体验，让每一次连接都更有价值。
+    </p>
+    <div style="display:flex;gap:8px;flex-direction:column">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0"><span style="color:var(--bumble-yellow);font-size:18px">&#9733;</span><span style="font-size:14px;font-weight:500">查看谁喜欢了你</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0"><span style="color:var(--bumble-yellow);font-size:18px">&#9733;</span><span style="font-size:14px;font-weight:500">无限喜欢</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0"><span style="color:var(--bumble-yellow);font-size:18px">&#9733;</span><span style="font-size:14px;font-weight:500">隐身模式</span></div>
+    </div>
+    <button class="bs-trigger" style="width:100%;margin-top:20px" onclick="closeBottomSheet()">了解 Premium+</button>
+  </div>
+
+  <section id="section-3">
+    <h2>3. 动态属性 Motion</h2>
+    <p class="section-subtitle">Transition curves, tap feedback, loading states</p>
+
+    <!-- Tap Feedback Buttons -->
+    <div class="component-demo">
+      <h3 class="subsection-title">Tap Feedback</h3>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">点击按钮查看 0.98x 缩放反馈</p>
+      <div class="component-row">
+        <button class="motion-btn primary">Primary 按钮</button>
+        <button class="motion-btn secondary">Secondary 按钮</button>
+        <button class="motion-btn yellow">Yellow 强调</button>
+      </div>
+    </div>
+
+    <!-- Skeleton Loading -->
+    <div class="component-demo">
+      <h3 class="subsection-title">Skeleton Loading (Pulse)</h3>
+      <div class="skeleton-card">
+        <div style="height:160px;background:linear-gradient(90deg,rgba(0,0,0,0.04) 25%,rgba(0,0,0,0.12) 50%,rgba(0,0,0,0.04) 75%);background-size:200% 100%;animation:pulse 1.5s ease-in-out infinite"></div>
+        <div style="padding:16px">
+          <div class="skeleton-bar" style="width:60%;height:18px;margin-bottom:10px"></div>
+          <div class="skeleton-bar" style="width:90%;margin-bottom:8px"></div>
+          <div class="skeleton-bar" style="width:75%;margin-bottom:8px"></div>
+          <div class="skeleton-bar" style="width:40%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bezier Curve -->
+    <div class="component-demo">
+      <h3 class="subsection-title">Easing Curve: cubic-bezier(0.4, 0, 0.2, 1)</h3>
+      <div class="bezier-container">
+        <canvas id="bezierCanvas" class="bezier-canvas" width="280" height="200"></canvas>
+        <div>
+          <button class="motion-btn primary" onclick="playBezierBall()" style="margin-bottom:12px">播放动画</button>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.8">
+            <div><strong>曲线:</strong> cubic-bezier(0.4, 0, 0.2, 1)</div>
+            <div><strong>用途:</strong> 大多数 UI 过渡</div>
+            <div><strong>Spring 默认:</strong></div>
+            <div>stiffness: 200 / damping: 25 / mass: 1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="section-4">
+    <h2>4. 商业模式布局 Pattern</h2>
+    <p class="section-subtitle">Information hierarchy: benefit &rarr; plans &rarr; action</p>
+
+    <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start">
+      <div class="upsell-card">
+        <!-- Top: Benefit -->
+        <div class="upsell-hero">
+          <div class="benefit-tag">PREMIUM+</div>
+          <h3>解锁你的<br>超能力</h3>
+          <div class="stat">10x</div>
+          <div class="stat-desc">浏览量提升 &bull; 无限喜欢 &bull; 查看谁喜欢了你</div>
+        </div>
+        <!-- Middle: Plans -->
+        <div class="upsell-plans">
+          <div class="upsell-plan" onclick="this.parentElement.querySelectorAll('.upsell-plan').forEach(p=>p.classList.remove('recommended'));this.classList.add('recommended')">
+            <div class="plan-name">Basic</div>
+            <div class="plan-price">¥68</div>
+            <div class="plan-period">/周</div>
+          </div>
+          <div class="upsell-plan recommended" onclick="this.parentElement.querySelectorAll('.upsell-plan').forEach(p=>p.classList.remove('recommended'));this.classList.add('recommended')">
+            <div class="plan-badge">最划算</div>
+            <div class="plan-name">Premium</div>
+            <div class="plan-price">¥198</div>
+            <div class="plan-period">/月</div>
+            <div class="plan-save">省 42%</div>
+          </div>
+          <div class="upsell-plan" onclick="this.parentElement.querySelectorAll('.upsell-plan').forEach(p=>p.classList.remove('recommended'));this.classList.add('recommended')">
+            <div class="plan-name">Premium+</div>
+            <div class="plan-price">¥488</div>
+            <div class="plan-period">/3月</div>
+            <div class="plan-save">省 56%</div>
+          </div>
+        </div>
+        <!-- Bottom: Action -->
+        <div class="upsell-action">
+          <button>立即订阅</button>
+        </div>
+      </div>
+
+      <!-- Annotation -->
+      <div class="pattern-annotation">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">信息层级拆解</div>
+        <div class="anno-row"><span class="anno-num">1</span> 顶部：利益点 — 用大字数字(10x)吸引注意力</div>
+        <div class="anno-row"><span class="anno-num">2</span> 中间：方案选择 — 多档位对比，突出推荐项</div>
+        <div class="anno-row"><span class="anno-num">3</span> 底部：行动点 — 全宽 CTA 按钮，降低决策成本</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text-secondary)">点击不同方案可切换选中状态</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="section-5">
+    <h2>5. 深度交互协议 Advanced</h2>
+    <p class="section-subtitle">Spring playground, gesture simulation, swipe &amp; snap</p>
+
+    <!-- Spring Playground -->
+    <div class="component-demo">
+      <h3 class="subsection-title">Spring Playground</h3>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">拖动滑块调整参数，点击"播放"查看弹簧效果</p>
+      <div class="playground-area">
+        <div style="display:flex;gap:40px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <div class="slider-group">
+              <div class="slider-row">
+                <label>stiffness</label>
+                <input type="range" id="springStiffness" min="50" max="500" value="200" oninput="updateSliderVal(this)">
+                <span class="slider-val" id="val-stiffness">200</span>
+              </div>
+              <div class="slider-row">
+                <label>damping</label>
+                <input type="range" id="springDamping" min="5" max="50" value="25" oninput="updateSliderVal(this)">
+                <span class="slider-val" id="val-damping">25</span>
+              </div>
+              <div class="slider-row">
+                <label>mass</label>
+                <input type="range" id="springMass" min="5" max="30" value="10" oninput="updateSliderVal(this)">
+                <span class="slider-val" id="val-mass">1.0</span>
+              </div>
+            </div>
+            <button class="motion-btn primary" onclick="playSpring()" style="margin-right:8px">播放</button>
+            <button class="copy-btn" onclick="copySpringParams()">复制参数</button>
+          </div>
+          <div style="flex:1;min-width:260px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div class="spring-track" style="width:100%;height:120px">
+              <div class="spring-ball" id="springBall"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:8px" id="springStatus">点击"播放"查看弹簧动画</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draggable Bottom Sheet Demo -->
+    <div class="component-demo">
+      <h3 class="subsection-title">Gesture Dismissal (Bottom Sheet 拖拽)</h3>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">向下拖拽面板超过 150px 或快速滑动，面板将关闭</p>
+      <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start">
+        <div class="drag-bs-demo" id="dragBsDemo">
+          <div class="drag-bs-panel" id="dragBsPanel">
+            <div class="drag-handle"></div>
+            <div class="drag-info">
+              <div style="font-size:14px;font-weight:700;margin-bottom:8px">可拖拽面板</div>
+              <div>位移 y: <span class="metric" id="dragY">0</span>px</div>
+              <div>速度 vy: <span class="metric" id="dragVy">0</span>px/s</div>
+            </div>
+          </div>
+        </div>
+        <button class="motion-btn secondary" onclick="resetDragPanel()">重置面板</button>
+      </div>
+    </div>
+
+    <!-- Swipe & Snap -->
+    <div class="component-demo">
+      <h3 class="subsection-title">Swipe &amp; Snap (横向滑动吸附)</h3>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">横向拖拽卡片，释放时自动吸附到最近的卡片中心 (dragElastic: 0.2)</p>
+      <div class="swipe-container" id="swipeContainer">
+        <div class="swipe-track" id="swipeTrack">
+          <div class="swipe-card">Card 1</div>
+          <div class="swipe-card">Card 2</div>
+          <div class="swipe-card">Card 3</div>
+          <div class="swipe-card">Card 4</div>
+          <div class="swipe-card">Card 5</div>
+          <div class="swipe-card">Card 6</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ========== Bottom Sheet ==========
+function openBottomSheet() {
+  document.getElementById('bsOverlay').classList.add('open');
+  document.getElementById('bsPanel').classList.add('open');
+}
+function closeBottomSheet() {
+  document.getElementById('bsOverlay').classList.remove('open');
+  document.getElementById('bsPanel').classList.remove('open');
+}
+
+// ========== Selection Cards ==========
+function selectCard(card) {
+  document.querySelectorAll('.sel-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+// ========== Segmented Control ==========
+function switchSeg(btn, index) {
+  const ctrl = document.getElementById('segCtrl');
+  const pill = document.getElementById('segPill');
+  const buttons = ctrl.querySelectorAll('button');
+  buttons.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const rect = btn.getBoundingClientRect();
+  const ctrlRect = ctrl.getBoundingClientRect();
+  pill.style.width = rect.width + 'px';
+  pill.style.transform = 'translateX(' + (rect.left - ctrlRect.left - 3) + 'px)';
+}
+// init pill position
+window.addEventListener('load', () => {
+  const firstBtn = document.querySelector('#segCtrl button.active');
+  if (firstBtn) switchSeg(firstBtn, 0);
+});
+
+// ========== Tab Bar ==========
+function switchTab(tab) {
+  document.querySelectorAll('.tab-bar-demo .tab-item').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+}
+
+// ========== Bezier Curve Drawing ==========
+function drawBezierCurve() {
+  const canvas = document.getElementById('bezierCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const pad = 30;
+  ctx.clearRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#E5E5E5'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h - pad); ctx.lineTo(w - pad, h - pad); ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = '#999'; ctx.font = '10px sans-serif';
+  ctx.fillText('time', w - pad - 20, h - pad + 16);
+  ctx.fillText('val', pad - 20, pad + 4);
+
+  // Cubic bezier (0.4, 0, 0.2, 1) mapped to canvas
+  const p0 = { x: pad, y: h - pad };
+  const p1 = { x: pad + (w - 2 * pad) * 0.4, y: h - pad - (h - 2 * pad) * 0.0 };
+  const p2 = { x: pad + (w - 2 * pad) * 0.2, y: h - pad - (h - 2 * pad) * 1.0 };
+  const p3 = { x: w - pad, y: pad };
+
+  // Diagonal reference
+  ctx.strokeStyle = '#D5D5D5'; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(pad, h - pad); ctx.lineTo(w - pad, pad); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Bezier curve
+  ctx.strokeStyle = '#FFC629'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(p0.x, p0.y);
+  ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+  ctx.stroke();
+
+  // Control points
+  [{ p: p1 }, { p: p2 }].forEach(({ p }) => {
+    ctx.fillStyle = '#1A1A1A'; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+  });
+}
+drawBezierCurve();
+
+// Animated ball along bezier
+let bezierAnimId = null;
+function playBezierBall() {
+  const canvas = document.getElementById('bezierCanvas');
+  if (!canvas) return;
+  if (bezierAnimId) cancelAnimationFrame(bezierAnimId);
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height, pad = 30;
+  const startX = w - pad + 30, startY = pad;
+  const endX = startX + 50, endY = h - pad;
+  let t = 0;
+  function animate() {
+    drawBezierCurve();
+    const progress = Math.min(t, 1);
+    // Eased x, y (using bezier curve position)
+    const ease = bezierPoint(0.4, 0, 0.2, 1, progress);
+    const x = startX;
+    const y = startY + (endY - startY) * ease;
+    ctx.fillStyle = '#1A1A1A'; ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFC629'; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+    t += 0.012;
+    if (t <= 1.05) bezierAnimId = requestAnimationFrame(animate);
+  }
+  animate();
+}
+function bezierPoint(x1, y1, x2, y2, t) {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  function sampleX(t) { return ((ax * t + bx) * t + cx) * t; }
+  function sampleY(t) { return ((ay * t + by) * t + cy) * t; }
+  function sampleXDerivative(t) { return (3 * ax * t + 2 * bx) * t + cx; }
+  function solveX(x) { let t2 = x; for (let i = 0; i < 8; i++) { const xEst = sampleX(t2) - x; if (Math.abs(xEst) < 1e-6) break; t2 -= xEst / sampleXDerivative(t2); } return t2; }
+  return sampleY(solveX(t));
+}
+
+// ========== Spring Playground ==========
+function updateSliderVal(el) {
+  const id = el.id;
+  const val = parseFloat(el.value);
+  if (id === 'springMass') {
+    document.getElementById('val-mass').textContent = (val / 10).toFixed(1);
+  } else if (id === 'springStiffness') {
+    document.getElementById('val-stiffness').textContent = val;
+  } else if (id === 'springDamping') {
+    document.getElementById('val-damping').textContent = val;
+  }
+}
+
+let springAnimId = null;
+function playSpring() {
+  if (springAnimId) cancelAnimationFrame(springAnimId);
+  const ball = document.getElementById('springBall');
+  const status = document.getElementById('springStatus');
+  const k = parseFloat(document.getElementById('springStiffness').value);
+  const d = parseFloat(document.getElementById('springDamping').value);
+  const m = parseFloat(document.getElementById('springMass').value) / 10;
+  // Spring physics: x'' = -k/m * x - d/m * x'
+  let x = 100; // displacement from center
+  let v = 0;
+  const dt = 0.016;
+  const track = ball.parentElement;
+  const centerX = track.offsetWidth / 2 - 20;
+  const centerY = track.offsetHeight / 2 - 20;
+  let frame = 0;
+  status.textContent = '动画播放中...';
+  function step() {
+    const a = (-k * x - d * v) / m;
+    v += a * dt;
+    x += v * dt;
+    ball.style.left = (centerX + x) + 'px';
+    ball.style.top = centerY + 'px';
+    frame++;
+    if (frame < 300 && (Math.abs(x) > 0.5 || Math.abs(v) > 0.5)) {
+      springAnimId = requestAnimationFrame(step);
+    } else {
+      ball.style.left = centerX + 'px';
+      status.textContent = '动画完成 (stiffness:' + k + ' damping:' + d + ' mass:' + m.toFixed(1) + ')';
+    }
+  }
+  step();
+}
+
+function copySpringParams() {
+  const k = document.getElementById('springStiffness').value;
+  const d = document.getElementById('springDamping').value;
+  const m = (parseFloat(document.getElementById('springMass').value) / 10).toFixed(1);
+  const text = 'stiffness: ' + k + ', damping: ' + d + ', mass: ' + m;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = '已复制!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  });
+}
+
+// ========== Draggable Bottom Sheet ==========
+(function() {
+  const panel = document.getElementById('dragBsPanel');
+  if (!panel) return;
+  let isDragging = false, startY = 0, currentY = 0, lastY = 0, lastTime = 0, velocity = 0;
+  const threshold = 150, velocityThreshold = 500;
+
+  function onStart(e) {
+    isDragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    lastY = startY; lastTime = Date.now();
+    panel.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    currentY = Math.max(0, y - startY);
+    // Apply elastic resistance past threshold
+    const displayY = currentY > threshold ? threshold + (currentY - threshold) * 0.3 : currentY;
+    panel.style.transform = 'translateY(' + displayY + 'px)';
+    const now = Date.now();
+    const dt = now - lastTime;
+    if (dt > 0) velocity = (y - lastY) / dt * 1000;
+    lastY = y; lastTime = now;
+    document.getElementById('dragY').textContent = Math.round(currentY);
+    document.getElementById('dragVy').textContent = Math.round(velocity);
+  }
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    panel.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+    if (currentY > threshold || velocity > velocityThreshold) {
+      panel.style.transform = 'translateY(300px)';
+      panel.style.opacity = '0.5';
+    } else {
+      panel.style.transform = 'translateY(0)';
+    }
+    currentY = 0;
+  }
+  panel.addEventListener('mousedown', onStart);
+  panel.addEventListener('touchstart', onStart, { passive: true });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+})();
+
+function resetDragPanel() {
+  const panel = document.getElementById('dragBsPanel');
+  panel.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1)';
+  panel.style.transform = 'translateY(0)';
+  panel.style.opacity = '1';
+  document.getElementById('dragY').textContent = '0';
+  document.getElementById('dragVy').textContent = '0';
+}
+
+// ========== Swipe & Snap ==========
+(function() {
+  const track = document.getElementById('swipeTrack');
+  const container = document.getElementById('swipeContainer');
+  if (!track || !container) return;
+  const cardWidth = 112; // 100px card + 12px gap
+  const maxOffset = 0;
+  const minOffset = -(cardWidth * 5); // 6 cards, last visible
+  let isDragging = false, startX = 0, offsetX = 0, currentOffset = 0;
+  let lastX = 0, lastTime = 0, velocity = 0;
+
+  track.style.transform = 'translateX(0px)';
+
+  function onStart(e) {
+    isDragging = true;
+    startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentOffset;
+    lastX = startX; lastTime = Date.now();
+    track.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!isDragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    currentOffset = x - startX;
+    // Elastic bounds
+    if (currentOffset > maxOffset) currentOffset = maxOffset + (currentOffset - maxOffset) * 0.2;
+    if (currentOffset < minOffset) currentOffset = minOffset + (currentOffset - minOffset) * 0.2;
+    track.style.transform = 'translateX(' + currentOffset + 'px)';
+    const now = Date.now();
+    const dt = now - lastTime;
+    if (dt > 0) velocity = (x - lastX) / dt * 1000;
+    lastX = x; lastTime = now;
+  }
+  function onEnd() {
+    if (!isDragging) return;
+    isDragging = false;
+    // Add velocity to offset
+    currentOffset += velocity * 0.2;
+    // Snap to nearest card
+    let snapped = Math.round(currentOffset / cardWidth) * cardWidth;
+    snapped = Math.min(maxOffset, Math.max(minOffset, snapped));
+    currentOffset = snapped;
+    track.style.transition = 'transform 0.4s cubic-bezier(0.4,0,0.2,1)';
+    track.style.transform = 'translateX(' + currentOffset + 'px)';
+  }
+  container.addEventListener('mousedown', onStart);
+  container.addEventListener('touchstart', onStart, { passive: true });
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('mouseup', onEnd);
+  window.addEventListener('touchend', onEnd);
+})();
+
+// ========== IntersectionObserver for Nav Highlighting ==========
+(function() {
+  const sections = document.querySelectorAll('section[id^="section-"]');
+  const navLinks = document.querySelectorAll('.sidebar nav a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+})();
+</script>
+
+<footer style="margin-left:var(--sidebar-width);margin-top:var(--header-height);padding:40px 48px 32px;text-align:center;border-top:1px solid #E5E5E5">
+  <p style="font-size:12px;color:var(--text-secondary)">Based on Design.md &mdash; Bumble Core Vibe Design System 3.0</p>
+  <p style="font-size:11px;color:#BDBDBD;margin-top:4px">Generated with Claude Code &bull; HTML is the new Markdown</p>
+</footer>
+
+</body>
+</html>
