@@ -576,6 +576,112 @@ body.dark-mode .stepper-btn { background: #555; box-shadow: 0 2px 6px rgba(0,0,0
 body.dark-mode .stepper-btn:active, body.dark-mode .stepper-btn.pressed { background: #888; }
 body.dark-mode .stepper-value { background: transparent; color: #FFF; }
 
+/* ========== Section §C: Detail Info Card ========== */
+.detail-tab-bar { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.detail-tab {
+  padding: 7px 18px; border: 2px solid #E5E5E5; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600; cursor: pointer; background: var(--bg-main);
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.detail-tab.active { border-color: var(--bumble-yellow); color: var(--action-black); background: #FFFBEC; }
+.detail-demo-wrapper { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+.detail-phone {
+  width: 300px; flex-shrink: 0; background: var(--bg-secondary);
+  border-radius: var(--radius-lg); padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* ── Hero Card: Image-1 vertical layout, 3 color variants ── */
+.hero-card {
+  border-radius: var(--radius-lg); padding: 22px 22px 18px;
+  display: flex; flex-direction: column;
+}
+/* Color variants */
+.hero-card.hero-yellow { background: var(--bumble-yellow); }
+.hero-card.hero-black  { background: var(--action-black); }
+.hero-card.hero-white  { background: #fff; border: 1.5px solid #E5E5E5; }
+/* Badge (top-left pill) — map to record type */
+.hero-badge {
+  display: inline-block; padding: 6px 14px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 800; letter-spacing: 0.3px;
+  align-self: flex-start; margin-bottom: 20px;
+}
+.hero-yellow .hero-badge { background: var(--action-black); color: var(--bumble-yellow); }
+.hero-black  .hero-badge { background: var(--bumble-yellow); color: var(--action-black); }
+.hero-white  .hero-badge { background: var(--action-black); color: #fff; }
+/* Primary metric (quantity / difference) */
+.hero-quantity {
+  font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -2px; margin-bottom: 6px;
+}
+.hero-yellow .hero-quantity, .hero-white .hero-quantity { color: var(--action-black); }
+.hero-black  .hero-quantity { color: #fff; }
+/* Difference semantic color — overrides the above, applies on top */
+.hero-quantity.q-neg { color: #C62828; }
+.hero-quantity.q-pos { color: #2E7D32; }
+/* Context subtitle */
+.hero-context { font-size: 14px; font-weight: 500; margin-bottom: 20px; }
+.hero-yellow .hero-context, .hero-white .hero-context { color: rgba(0,0,0,0.5); }
+.hero-black  .hero-context { color: rgba(255,255,255,0.5); }
+/* Cost price row (bottom separator) */
+.hero-cost-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-top: 14px; border-top-style: solid; border-top-width: 1px;
+}
+.hero-yellow .hero-cost-row, .hero-white .hero-cost-row { border-top-color: rgba(0,0,0,0.1); }
+.hero-black  .hero-cost-row { border-top-color: rgba(255,255,255,0.12); }
+.hero-cost-label { font-size: 12px; font-weight: 600; }
+.hero-yellow .hero-cost-label, .hero-white .hero-cost-label { color: rgba(0,0,0,0.42); }
+.hero-black  .hero-cost-label { color: rgba(255,255,255,0.4); }
+.hero-cost-value { font-size: 22px; font-weight: 800; }
+.hero-yellow .hero-cost-value, .hero-white .hero-cost-value { color: var(--action-black); }
+.hero-black  .hero-cost-value { color: var(--bumble-yellow); }
+/* Loss sub-line (盘点黑色卡片用) */
+.hero-loss-sub { font-size: 12px; font-weight: 600; margin-top: 2px; }
+.hero-black  .hero-loss-sub { color: rgba(255,255,255,0.55); }
+.hero-white  .hero-loss-sub { color: rgba(0,0,0,0.42); }
+
+/* ── Three-color showcase grid ── */
+.hero-showcase { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+.hero-showcase .hero-card { min-width: 0; }
+
+/* ── Info Group Card: Image-2 style ── */
+.info-group {
+  background: #fff; border-radius: var(--radius-lg); padding: 20px 22px;
+}
+.info-group-title {
+  font-size: 18px; font-weight: 800; color: var(--action-black);
+  line-height: 1.3; margin-bottom: 16px;
+}
+/* Item row */
+.info-item { display: flex; align-items: center; gap: 14px; padding: 9px 0; }
+/* Black circle icon */
+.info-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--action-black); color: #fff; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+/* Goods info: value only (no label) */
+.info-val-only { font-size: 17px; font-weight: 700; color: var(--action-black); }
+/* Other info: label + value stacked */
+.info-labeled { flex: 1; min-width: 0; }
+.info-labeled .il-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 1px; }
+.info-labeled .il-value { font-size: 17px; font-weight: 700; color: var(--action-black); }
+.info-labeled .il-value.iv-big  { font-size: 20px; }
+.info-labeled .il-value.iv-pos  { color: #2E7D32; }
+.info-labeled .il-value.iv-neg  { color: #C62828; }
+
+/* Detail panel toggle */
+.detail-panel { display: none; }
+.detail-panel.active { display: flex; flex-direction: column; gap: 10px; }
+/* Annotation */
+.spec-annotation { flex: 1; min-width: 200px; }
+.spec-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F0F0F0; font-size: 13px; align-items: flex-start; }
+.spec-row:last-child { border-bottom: none; }
+.spec-row .spec-num { width: 22px; height: 22px; border-radius: 50%; background: var(--action-black); color: #FFF; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.spec-key { font-weight: 700; margin-bottom: 2px; }
+.spec-val { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
 /* ========== Placeholder content for sections ========== */
 .placeholder { padding: 60px 20px; text-align: center; color: var(--text-secondary); background: var(--bg-secondary); border-radius: var(--radius-md); }
 
@@ -711,6 +817,7 @@ body.dark-mode .stepper-value { background: transparent; color: #FFF; }
     <a href="#section-3"><span class="num">8</span> 动态属性 Motion</a>
     <a href="#section-4"><span class="num">9</span> 商业模式 Pattern</a>
     <a href="#section-5"><span class="num">10</span> 深度交互协议 Advanced</a>
+    <a href="#section-detail-card"><span class="num">C</span> 详情信息卡 Detail Card</a>
   </nav>
 </aside>
 
@@ -1274,6 +1381,330 @@ body.dark-mode .stepper-value { background: transparent; color: #FFF; }
     </div>
   </section>
 
+  <!-- ========== Section §C: Detail Info Card ========== -->
+  <section id="section-detail-card">
+    <h2>C. 详情信息卡 Detail Info Card</h2>
+    <p class="section-subtitle">英雄指标卡（统一黄色底）&bull; 顶部徽章标识类型 &bull; 信息分组卡（圆形图标+值）&bull; 盘点差值语义色仅作用于数字</p>
+
+    <!-- 三页英雄卡 showcase（统一黄色） -->
+    <div class="hero-showcase">
+      <div class="hero-card hero-yellow">
+        <span class="hero-badge">出库记录</span>
+        <div class="hero-quantity">24</div>
+        <div class="hero-context">件 · 外销</div>
+        <div class="hero-cost-row">
+          <span class="hero-cost-label">成本单价</span>
+          <span class="hero-cost-value">¥2.50</span>
+        </div>
+      </div>
+      <div class="hero-card hero-yellow">
+        <span class="hero-badge">盘点记录</span>
+        <div class="hero-quantity q-neg">−3</div>
+        <div class="hero-context">件短缺</div>
+        <div class="hero-cost-row">
+          <span class="hero-cost-label">成本单价</span>
+          <span class="hero-cost-value">¥2.50</span>
+        </div>
+      </div>
+      <div class="hero-card hero-yellow">
+        <span class="hero-badge">归还记录</span>
+        <div class="hero-quantity">12</div>
+        <div class="hero-context">件 · 已归还</div>
+        <div class="hero-cost-row">
+          <span class="hero-cost-label">外借人</span>
+          <span class="hero-cost-value" style="font-size:17px">李四</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="detail-tab-bar">
+      <button class="detail-tab active" onclick="switchDetailTab('checkout')">出库详情</button>
+      <button class="detail-tab" onclick="switchDetailTab('return')">归还详情</button>
+      <button class="detail-tab" onclick="switchDetailTab('inventory')">盘点详情</button>
+    </div>
+
+    <div class="detail-demo-wrapper">
+      <!-- Phone mockup container -->
+      <div class="detail-phone" id="detailPhone">
+
+        <!-- === 出库详情 === -->
+        <div class="detail-panel active" id="dp-checkout">
+          <!-- Hero Card: 黄色 — 正常出库 -->
+          <div class="hero-card hero-yellow">
+            <span class="hero-badge">出库记录 · 正常</span>
+            <div class="hero-quantity">24</div>
+            <div class="hero-context">件 · 外销</div>
+            <div class="hero-cost-row">
+              <span class="hero-cost-label">成本单价</span>
+              <span class="hero-cost-value">¥2.50</span>
+            </div>
+          </div>
+          <!-- 货物信息 (icon + value only, no labels) -->
+          <div class="info-group">
+            <div class="info-group-title">货物信息</div>
+            <div class="info-item">
+              <div class="info-icon">📦</div>
+              <span class="info-val-only">不锈钢螺丝</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🏢</div>
+              <span class="info-val-only">A区仓库</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">#</div>
+              <span class="info-val-only">WH-001</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">📐</div>
+              <span class="info-val-only">M6×20mm</span>
+            </div>
+          </div>
+          <!-- 金额信息 (icon + label + value) -->
+          <div class="info-group">
+            <div class="info-group-title">金额信息</div>
+            <div class="info-item">
+              <div class="info-icon">💰</div>
+              <div class="info-labeled">
+                <div class="il-label">销售总价</div>
+                <div class="il-value">¥72.00</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">📈</div>
+              <div class="info-labeled">
+                <div class="il-label">销售单价</div>
+                <div class="il-value iv-pos">¥3.00 ↑</div>
+              </div>
+            </div>
+          </div>
+          <!-- 操作信息 (icon + label + value) -->
+          <div class="info-group">
+            <div class="info-group-title">操作信息</div>
+            <div class="info-item">
+              <div class="info-icon">👤</div>
+              <div class="info-labeled">
+                <div class="il-label">操作人</div>
+                <div class="il-value">张三</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🕐</div>
+              <div class="info-labeled">
+                <div class="il-label">出库时间</div>
+                <div class="il-value">2024-05-09 14:32</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- === 归还详情 === -->
+        <div class="detail-panel" id="dp-return">
+          <!-- Hero Card: 黄色 — 已归还 -->
+          <div class="hero-card hero-yellow">
+            <span class="hero-badge">归还记录 · 已归还</span>
+            <div class="hero-quantity">12</div>
+            <div class="hero-context">件 · 已归还</div>
+            <div class="hero-cost-row">
+              <span class="hero-cost-label">外借人</span>
+              <span class="hero-cost-value" style="font-size:17px">李四</span>
+            </div>
+          </div>
+          <!-- 货物信息 (icon + value only) -->
+          <div class="info-group">
+            <div class="info-group-title">货物信息</div>
+            <div class="info-item">
+              <div class="info-icon">📦</div>
+              <span class="info-val-only">液压扳手</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🏢</div>
+              <span class="info-val-only">B区仓库</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">#</div>
+              <span class="info-val-only">WH-088</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">📐</div>
+              <span class="info-val-only">12寸</span>
+            </div>
+          </div>
+          <!-- 操作信息 (icon + label + value) -->
+          <div class="info-group">
+            <div class="info-group-title">操作信息</div>
+            <div class="info-item">
+              <div class="info-icon">👤</div>
+              <div class="info-labeled">
+                <div class="il-label">操作人</div>
+                <div class="il-value">张三</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🕐</div>
+              <div class="info-labeled">
+                <div class="il-label">归还时间</div>
+                <div class="il-value">2024-05-09 16:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- === 盘点详情 === -->
+        <div class="detail-panel" id="dp-inventory">
+          <!-- Hero Card: 黄色 — 亏损（差值数字用红色，卡片底色统一黄色） -->
+          <div class="hero-card hero-yellow">
+            <span class="hero-badge">盘点记录 · 亏损</span>
+            <div class="hero-quantity q-neg">−3</div>
+            <div class="hero-context">件短缺</div>
+            <div class="hero-cost-row">
+              <div>
+                <span class="hero-cost-label">成本单价</span>
+                <div class="hero-loss-sub">损失 ¥7.50</div>
+              </div>
+              <span class="hero-cost-value">¥2.50</span>
+            </div>
+          </div>
+          <!-- 盘点数据 (icon + label + value) -->
+          <div class="info-group">
+            <div class="info-group-title">盘点数据</div>
+            <div class="info-item">
+              <div class="info-icon">📊</div>
+              <div class="info-labeled">
+                <div class="il-label">账面库存</div>
+                <div class="il-value">100 件</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🔢</div>
+              <div class="info-labeled">
+                <div class="il-label">实盘数量</div>
+                <div class="il-value">97 件</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">⚖️</div>
+              <div class="info-labeled">
+                <div class="il-label">差值</div>
+                <div class="il-value iv-neg">−3 件</div>
+              </div>
+            </div>
+          </div>
+          <!-- 货物信息 (icon + value only) -->
+          <div class="info-group">
+            <div class="info-group-title">货物信息</div>
+            <div class="info-item">
+              <div class="info-icon">📦</div>
+              <span class="info-val-only">不锈钢螺丝</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🏢</div>
+              <span class="info-val-only">A区仓库</span>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">#</div>
+              <span class="info-val-only">WH-001</span>
+            </div>
+          </div>
+          <!-- 操作信息 (icon + label + value) -->
+          <div class="info-group">
+            <div class="info-group-title">操作信息</div>
+            <div class="info-item">
+              <div class="info-icon">👤</div>
+              <div class="info-labeled">
+                <div class="il-label">操作人</div>
+                <div class="il-value">张三</div>
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-icon">🕐</div>
+              <div class="info-labeled">
+                <div class="il-label">盘点时间</div>
+                <div class="il-value">2024-05-09 11:08</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /detail-phone -->
+
+      <!-- Design annotations -->
+      <div class="spec-annotation">
+        <h3 class="subsection-title">设计规范</h3>
+
+        <div class="spec-row">
+          <span class="spec-num">1</span>
+          <div>
+            <div class="spec-key">英雄卡配色（统一黄色）</div>
+            <div class="spec-val">
+              出库、归还、盘点三页英雄卡背景统一使用 <code>hero-yellow</code>（<code>--bumble-yellow #FFC629</code>）。<br>
+              徽章：黑底黄字（<code>.hero-yellow .hero-badge</code> 已在 CSS 中定义）。<br>
+              数值、副文本、border-top 颜色均继承黄色卡规则，无需覆盖。
+            </div>
+          </div>
+        </div>
+
+        <div class="spec-row">
+          <span class="spec-num">2</span>
+          <div>
+            <div class="spec-key">英雄卡垂直结构</div>
+            <div class="spec-val">
+              ① 顶部徽章 <code>.hero-badge</code>：记录类型+状态，11px font-800，<code>align-self: flex-start</code>，圆角胶囊，mb 20px。<br>
+              ② 主数值 <code>.hero-quantity</code>：56px font-800 letter-spacing -2px，mb 6px。<br>
+              ③ 副文本 <code>.hero-context</code>：14px font-500，mb 20px。<br>
+              ④ 底部分隔行 <code>.hero-cost-row</code>：左=成本单价标签，右=金额 22px bold；border-top 分隔。
+            </div>
+          </div>
+        </div>
+
+        <div class="spec-row">
+          <span class="spec-num">3</span>
+          <div>
+            <div class="spec-key">差值语义色（盘点）</div>
+            <div class="spec-val">
+              主数值追加 <code>.q-neg</code>（<code>#C62828</code>）/ <code>.q-pos</code>（<code>#2E7D32</code>）覆盖默认色。<br>
+              盘点亏损 → 黑色英雄卡；盈余 → 黄色；库存相符 → 白色。<br>
+              盘点黑卡 cost-row 左侧加 <code>.hero-loss-sub</code>（损失金额小字）。
+            </div>
+          </div>
+        </div>
+
+        <div class="spec-row">
+          <span class="spec-num">4</span>
+          <div>
+            <div class="spec-key">信息分组卡 Info Group</div>
+            <div class="spec-val">
+              标题 <code>.info-group-title</code>：18px font-800，mb 16px。<br>
+              图标 <code>.info-icon</code>：44px 圆形，黑底白图标，flex-shrink: 0，font-size 18px。<br>
+              <b>货物信息</b>（无标签）：<code>.info-val-only</code>，17px font-700，仅显示值，不显示字段名。<br>
+              <b>其他分组</b>（有标签）：<code>.info-labeled</code>，il-label 12px 灰，il-value 17px bold；<code>.iv-pos/.iv-neg</code> 语义色。
+            </div>
+          </div>
+        </div>
+
+        <div class="spec-row">
+          <span class="spec-num">5</span>
+          <div>
+            <div class="spec-key">各页细节差异</div>
+            <div class="spec-val">
+              <b>出库</b>：黄色英雄卡，cost-row = 成本单价；信息组：货物 + 金额（含销售单价对比色）+ 操作。<br>
+              <b>归还</b>：黄色英雄卡，cost-row 右侧 = 外借人姓名（17px，适应长名）；信息组：货物 + 操作（无金额）。<br>
+              <b>盘点</b>：黄色英雄卡（统一），差值数字颜色语义化（<code>.q-neg/.q-pos</code>）；cost-row 左侧加 <code>.hero-loss-sub</code> 损失金额；信息组：盘点数据 + 货物 + 操作。
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding:14px 16px;background:var(--bg-secondary);border-radius:var(--radius-md);border-left:3px solid var(--bumble-yellow)">
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px">Framer Motion</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.7">
+            详情页通过 DetailSheet 打开，本身无需额外动画。<br>
+            各 info-group 卡片用 <code>initial={{opacity:0, y:8}} animate={{opacity:1, y:0}}</code> 错开 delay（0.05s × index）入场。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <script>
@@ -1303,6 +1734,17 @@ function openGlassOverlay() {
 }
 function closeGlassOverlay() {
   document.getElementById('glassOverlay').classList.remove('open');
+}
+
+// ========== §C Detail Info Card Tab Switch ==========
+function switchDetailTab(name) {
+  document.querySelectorAll('.detail-tab').forEach((t, i) => {
+    const names = ['checkout', 'return', 'inventory'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.detail-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'dp-' + name);
+  });
 }
 
 // ========== Dark Mode Toggle ==========

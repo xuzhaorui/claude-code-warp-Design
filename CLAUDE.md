@@ -28,6 +28,22 @@ When building or modifying any UI component, follow this decision tree:
 
 All animation/motion parameters must follow Design.md exactly — never invent values.
 
+## UI Task Planning (UI 任务规划)
+When planning UI building, refactoring, or visual modification tasks, the task-plan skill MUST produce an HTML plan file instead of a markdown plan:
+
+1. **Output**: `plans/{name}.html` — a single self-contained HTML file (inline CSS/JS, no external deps except CDN fonts)
+2. **Component Mapping Table**: Explicit mapping of `design-system.html §X component → src/components/Y.jsx` with change type (New/Modify/Delete)
+3. **Page Composition Views**: Rendered HTML+CSS mockups showing multiple components composed into full pages, with toggle between "current" and "planned" states
+4. **Interactive State Diagram**: HTML+CSS+JS flowchart showing state transitions (idle → focused → error → loading), clickable to reveal component variations, connected with CSS arrows
+5. **Execution Steps**: ACTION/GATE/NEXT format embedded in styled HTML cards, with visual GATE checks (screenshot/mocking comparisons where applicable)
+6. **Design tokens**: Use same CSS variables as design-system.html (--bumble-yellow, --action-black, etc.)
+
+7. **Mapping Completeness (映射完整性)**: Before writing §1, read `design-system.html` to identify the exact `§X` section number for each component. Every component that will be Modified or Created MUST appear in the table with a verified section reference. Section numbers must not be inferred from memory — they must be read from the file.
+8. **Composition Coverage (组合覆盖)**: §2 must include one composition view per app tab/page that contains a modified component. Composition must render at 375px mobile width with phone frame border, using design-system.html CSS tokens.
+9. **Interaction Diagram Type (交互图类型)**: §3 uses one of two diagram types — choose based on task nature: (a) **State Machine**: for component state transitions (idle → focused → error → loading → disabled); (b) **Execution Flowchart**: for sequential workflows with branch points (Step → Gate? → continue or rollback). Label the chosen type at the top of the diagram.
+
+Layout structure is determined by the task-plan skill based on task complexity. Non-UI tasks continue to use standard `.md` plan format.
+
 ## Architecture
 - `src/App.jsx` — Splash → Auth → AppShell entry point
 - `src/pages/` — Tab pages (CheckoutTab, ReturnTab, InventoryTab, AppShell)
