@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockLogin } from '../../data/mockData';
+import { login, setAuthSession, getAuthSession } from '../../api/auth';
 import BumbleInput from '../Forms/BumbleInput';
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage({ onLogin, onSessionExpired }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,19 +14,26 @@ export default function LoginPage({ onLogin }) {
     setError('');
     setLoading(true);
     try {
-      const user = await mockLogin(username, password);
-      if (user) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        onLogin(user);
+      const session = await login(username, password, false);
+      if (session) {
+        setAuthSession(session);
+        onLogin({ id: session.username, username: session.username, profile: session.profile });
       } else {
-        setError('登录失败，请重试');
+        setError('用户名或密码错误');
       }
-    } catch {
-      setError('登录失败，请重试');
+    } catch (error) {
+      setError(error.message || '登录失败，请重试');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session) {
+      onLogin({ id: session.username, username: session.username, profile: session.profile });
+    }
+  }, []);
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-8 bg-brand-yellow">

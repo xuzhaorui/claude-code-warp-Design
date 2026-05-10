@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SplashScreen } from './components/Splash';
 import LoginPage from './components/Login/LoginPage';
 import AppShell from './pages/AppShell';
 import BumbleInput from './components/Forms/BumbleInput';
+import { setAuthExpiredHandler, handleAuthExpired, isAuthenticated, clearAuthSession } from './api/auth';
+import { setApiBaseUrl } from './api/config';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -33,19 +35,51 @@ function AuthFlow() {
     } catch { return false; }
   })();
 
-  if (!hasServer && !user) {
-    return <SetupFlow onLogin={(u) => setUser(u)} />;
-  }
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      clearAuthSession();
+      setUser(null);
+    };
 
-  if (!user) {
+    const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+    if (servers.length > 0) {
+      const activeServerId = localStorage.getItem('activeServer');
+      const activeServer = servers.find(s => s.id === activeServerId);
+      if (activeServer) {
+        setApiBaseUrl(activeServer.url);
+      }
+    }
+
+    setAuthExpiredHandler(handleSessionExpired);
+
+    if (!isAuthenticated()) {
+      return;
+    }
+
+    if (!hasServer && !user) {
+      return <SetupFlow onLogin={(u) => setUser(u)} />;
+    }
+
+    if (!user) {
+      return (
+        <div className="h-screen">
+          <LoginPage onLogin={(u) => setUser(u)} onSessionExpired={handleAuthExpired} />
+        </div>
+      );
+    }
+
+    return <AppShell onLogout={() => { handleAuthExpired(); setUser(null); }} />;
+  }, []);
+
+  if (!isAuthenticated()) {
     return (
       <div className="h-screen">
-        <LoginPage onLogin={(u) => setUser(u)} />
+        <LoginPage onLogin={(u) => setUser(u)} onSessionExpired={handleAuthExpired} />
       </div>
     );
   }
 
-  return <AppShell onLogout={() => setUser(null)} />;
+  return <AppShell onLogout={() => { handleAuthExpired(); setUser(null); }} />;
 }
 
 function SetupFlow({ onLogin }) {
