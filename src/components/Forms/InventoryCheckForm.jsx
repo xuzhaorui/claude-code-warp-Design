@@ -21,6 +21,7 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
       warehouse: item.warehouse,
       code: item.code,
       spec: item.spec,
+      costPrice: item.costPrice,
       bookQty,
       actualQty: actualQty,
       difference,

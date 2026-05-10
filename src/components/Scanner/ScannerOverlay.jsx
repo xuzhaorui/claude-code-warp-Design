@@ -62,7 +62,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     try {
       scanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        { fps: 10, qrbox: { width: 320, height: 320 } },
         (decodedText) => {
           if (!mountedRef.current || scanningRef.current) return;
           scanningRef.current = true;
@@ -93,7 +93,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
         scannerRef.current = scanner;
         await scanner.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          { fps: 10, qrbox: { width: 320, height: 320 } },
           (decodedText) => {
             if (!active || scanningRef.current) return;
             scanningRef.current = true;
@@ -152,7 +152,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 bg-black z-[60] flex flex-col"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex flex-col"
         >
           {/* Camera view with blur on scan */}
           <div className={`flex-1 relative transition-all duration-300 ${scanned ? 'blur-[5px] brightness-50' : ''}`}>
@@ -166,7 +166,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                 </div>
               ) : (
                 <div className="relative">
-                  <div id="seamless-scanner" className="w-64 h-64 rounded-2xl overflow-hidden" />
+                  <div id="seamless-scanner" className="w-80 h-80 rounded-2xl overflow-hidden" />
                   {/* L-shaped corner brackets */}
                   <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-0 left-0 w-10 h-10">
@@ -197,7 +197,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                         boxShadow: '0 0 8px rgba(255,60,60,0.6), 0 0 20px rgba(255,60,60,0.3)',
                       }}
                       animate={{ top: ['0%', '95%', '0%'] }}
-                      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                     />
                   )}
                 </div>

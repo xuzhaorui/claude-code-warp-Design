@@ -25,9 +25,9 @@ let returnRecords = [
 ];
 
 let inventoryCheckRecords = [
-  { id: 'ic-1', itemId: 'item-1', itemName: '笔记本电脑', warehouse: 'A仓', code: 'IT-001', spec: '14寸/16GB/512GB', bookQty: 25, actualQty: 24, difference: -1, remark: '少一台', operatorId: 'user-1', operatorName: '张三', time: '2026-05-07 08:00:00' },
-  { id: 'ic-2', itemId: 'item-3', itemName: '无线鼠标', warehouse: 'B仓', code: 'IT-003', spec: '蓝牙/静音', bookQty: 150, actualQty: 150, difference: 0, remark: '', operatorId: 'user-1', operatorName: '张三', time: '2026-05-06 08:00:00' },
-  { id: 'ic-3', itemId: 'item-5', itemName: 'USB-C 数据线', warehouse: 'C仓', code: 'IT-005', spec: '1.5米/100W', bookQty: 500, actualQty: 495, difference: -5, remark: '损耗', operatorId: 'user-2', operatorName: '李四', time: '2026-05-05 08:00:00' },
+  { id: 'ic-1', itemId: 'item-1', itemName: '笔记本电脑', warehouse: 'A仓', code: 'IT-001', spec: '14寸/16GB/512GB', costPrice: 4500, bookQty: 25, actualQty: 24, difference: -1, remark: '少一台', operatorId: 'user-1', operatorName: '张三', time: '2026-05-07 08:00:00' },
+  { id: 'ic-2', itemId: 'item-3', itemName: '无线鼠标', warehouse: 'B仓', code: 'IT-003', spec: '蓝牙/静音', costPrice: 85, bookQty: 150, actualQty: 150, difference: 0, remark: '', operatorId: 'user-1', operatorName: '张三', time: '2026-05-06 08:00:00' },
+  { id: 'ic-3', itemId: 'item-5', itemName: 'USB-C 数据线', warehouse: 'C仓', code: 'IT-005', spec: '1.5米/100W', costPrice: 25, bookQty: 500, actualQty: 495, difference: -5, remark: '损耗', operatorId: 'user-2', operatorName: '李四', time: '2026-05-05 08:00:00' },
 ];
 
 const mockUsers = [

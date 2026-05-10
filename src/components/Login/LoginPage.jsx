@@ -29,7 +29,7 @@ export default function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="h-full flex flex-col items-center justify-center px-8 bg-bg-secondary">
+    <div className="h-full flex flex-col items-center justify-center px-8 bg-brand-yellow">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,7 +53,7 @@ export default function LoginPage({ onLogin }) {
           />
 
           {error && (
-            <p className="text-red-500 text-xs text-center">{error}</p>
+            <p className="text-action-black text-xs text-center font-semibold">{error}</p>
           )}
 
           <motion.button

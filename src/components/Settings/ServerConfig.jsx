@@ -112,7 +112,7 @@ export default function ServerConfig({ onBack }) {
                 onClick={e => { e.stopPropagation(); setShowDeleteConfirm(server.id); }}
                 className="p-2 active:bg-gray-100 rounded-full"
               >
-                <Trash2 size={16} className="text-red-400" />
+                <Trash2 size={16} className="text-text-secondary" />
               </button>
             </motion.div>
           ))
@@ -180,7 +180,7 @@ export default function ServerConfig({ onBack }) {
               </button>
               <button
                 onClick={() => handleDelete(showDeleteConfirm)}
-                className="flex-1 py-3 bg-red-500 text-white rounded-full text-sm font-semibold"
+                className="flex-1 py-3 bg-action-black text-white rounded-full text-sm font-semibold"
               >
                 删除
               </button>

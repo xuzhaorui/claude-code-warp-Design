@@ -27,15 +27,18 @@ export default function Stepper({ value, onChange, min = 1, max = 9999 }) {
     clearTimeout(intervalTimer.current);
   };
 
+  const btnClass = 'w-12 h-12 rounded-full bg-action-black text-white flex items-center justify-center text-2xl font-bold select-none border-none cursor-pointer';
+  const btnStyle = { boxShadow: '0 2px 6px rgba(0,0,0,0.2)', touchAction: 'none' };
+
   return (
     <div className="flex items-center">
       <motion.button
-        whileTap={{ scale: 0.94 }}
+        whileTap={{ scale: 0.9 }}
         onPointerDown={() => startHold(-1)}
         onPointerUp={stopHold}
         onPointerLeave={stopHold}
-        className="w-12 h-12 rounded-l-2xl bg-bg-secondary flex items-center justify-center text-xl font-bold select-none border-none cursor-pointer"
-        style={{ touchAction: 'none' }}
+        className={btnClass}
+        style={btnStyle}
       >
         −
       </motion.button>
@@ -43,16 +46,16 @@ export default function Stepper({ value, onChange, min = 1, max = 9999 }) {
         type="number"
         value={value}
         onChange={e => onChange(() => Math.max(min, Math.min(max, Number(e.target.value) || min)))}
-        className="w-16 h-12 text-center text-lg font-bold bg-white border-y border-gray-100"
-        style={{ fontVariantNumeric: 'tabular-nums', boxShadow: 'none', outline: 'none' }}
+        className="w-20 h-12 text-center text-lg font-bold bg-transparent border-none"
+        style={{ fontVariantNumeric: 'tabular-nums', outline: 'none' }}
       />
       <motion.button
-        whileTap={{ scale: 0.94 }}
+        whileTap={{ scale: 0.9 }}
         onPointerDown={() => startHold(1)}
         onPointerUp={stopHold}
         onPointerLeave={stopHold}
-        className="w-12 h-12 rounded-r-2xl bg-bg-secondary flex items-center justify-center text-xl font-bold select-none border-none cursor-pointer"
-        style={{ touchAction: 'none' }}
+        className={btnClass}
+        style={btnStyle}
       >
         +
       </motion.button>

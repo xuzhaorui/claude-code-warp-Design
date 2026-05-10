@@ -6,6 +6,7 @@ import DetailSheet from '../components/BottomSheet/DetailSheet';
 import CheckoutForm from '../components/Forms/CheckoutForm';
 import CheckoutDetail from '../components/Details/CheckoutDetail';
 import RecordCard from '../components/Records/RecordCard';
+import PullToRefresh from '../components/Shared/PullToRefresh';
 import { getItemByCode, getCheckoutRecords, submitCheckout, removeCheckoutRecord } from '../data/mockData';
 
 export default function CheckoutTab() {
@@ -15,6 +16,7 @@ export default function CheckoutTab() {
   const [scannedItem, setScannedItem] = useState(null);
   const [records, setRecords] = useState([]);
   const [formError, setFormError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadRecords = useCallback(async () => {
     const data = await getCheckoutRecords();
@@ -40,6 +42,7 @@ export default function CheckoutTab() {
 
   const handleSubmit = async (record) => {
     await submitCheckout(record);
+    setScanning(false);
     setScannedItem(null);
     await loadRecords();
   };
@@ -48,6 +51,12 @@ export default function CheckoutTab() {
     setRecords(prev => prev.filter(r => r.id !== id));
     await removeCheckoutRecord(id);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadRecords();
+    setIsRefreshing(false);
+  }, [loadRecords]);
 
   const sheetContent = scannedItem ? (
     <CheckoutForm
@@ -69,41 +78,48 @@ export default function CheckoutTab() {
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
-          className="w-full bg-bg-secondary rounded-3xl p-6 flex flex-col items-center gap-3"
+          className="w-full bg-brand-yellow rounded-3xl p-6 flex flex-col items-center gap-3"
         >
-          <div className="w-16 h-16 rounded-2xl bg-brand-yellow/20 flex items-center justify-center">
-            <ScanLine size={32} className="text-brand-yellow" />
+          <div className="w-20 h-20 rounded-3xl bg-white/30 flex items-center justify-center">
+            <ScanLine size={36} className="text-action-black" />
           </div>
-          <span className="text-sm font-semibold text-text-primary">点击扫码出库</span>
+          <span className="text-base font-bold text-action-black">点击扫码出库</span>
         </motion.button>
       </div>
 
-      <div className="flex-1 overflow-y-auto hide-scrollbar">
-        <div className="px-5 pb-2">
-          <h2 className="text-sm font-semibold text-text-secondary">出库记录</h2>
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        className="flex-1 overflow-y-auto hide-scrollbar"
+      >
+        <div className="px-5 pb-2 flex items-center gap-2.5">
+          <div className="w-1 h-5 rounded-full bg-brand-yellow" />
+          <h2 className="text-sm font-bold text-text-primary">出库记录</h2>
         </div>
         {records.length === 0 ? (
           <p className="text-center text-text-secondary text-sm py-8">暂无出库记录</p>
         ) : (
-          <AnimatePresence mode="popLayout">
-            {records.map((record, idx) => (
-              <RecordCard
-                key={record.id}
-                icon={LogOut}
-                badge={record.quantity}
-                title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-                subtitle={record.itemName}
-                extra={record.method === '外销' ? `¥${record.saleTotalPrice.toFixed(2)}` : record.method}
-                status={record.status}
-                index={idx}
-                onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-                onSwipeLeft={() => handleRemoveRecord(record.id)}
-                onSwipeRight={() => handleRemoveRecord(record.id)}
-              />
-            ))}
-          </AnimatePresence>
+          <div className="px-5 flex flex-col gap-2">
+            <AnimatePresence mode="popLayout">
+              {records.map((record, idx) => (
+                <RecordCard
+                  key={record.id}
+                  icon={LogOut}
+                  badge={record.quantity}
+                  title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
+                  subtitle={record.itemName}
+                  extra={record.method === '外销' ? `¥${record.saleTotalPrice.toFixed(2)}` : record.method}
+                  status={record.status}
+                  index={idx}
+                  onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
+                  onSwipeLeft={() => handleRemoveRecord(record.id)}
+                  onSwipeRight={() => handleRemoveRecord(record.id)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         )}
-      </div>
+      </PullToRefresh>
 
       <ScannerOverlay
         isOpen={scanning}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, LogOut, Server } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import ServerConfig from './ServerConfig';
 
 export default function SettingsTab({ onLogout }) {
@@ -16,34 +16,25 @@ export default function SettingsTab({ onLogout }) {
         <h1 className="text-2xl font-bold text-text-primary">设置</h1>
       </div>
 
-      <div className="flex-1 px-5">
-        <div
-          className="overflow-hidden rounded-2xl"
-          style={{ gap: 1, background: '#E5E5E5', display: 'flex', flexDirection: 'column' }}
+      <div className="flex-1 px-5 flex flex-col gap-2">
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowServerConfig(true)}
+          className="w-full flex items-center justify-between bg-white rounded-2xl px-4 py-3.5 border border-gray-100 active:bg-gray-50"
         >
-          <motion.button
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowServerConfig(true)}
-            className="w-full flex items-center gap-3 bg-white active:bg-gray-50"
-            style={{ padding: '14px 16px' }}
-          >
-            <div className="w-10 h-10 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0">
-              <Server size={20} className="text-action-black" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-bold text-text-primary">服务器配置</p>
-              <p className="text-xs text-text-secondary">管理连接的服务器地址</p>
-            </div>
-            <ChevronRight size={18} className="text-text-secondary" />
-          </motion.button>
-        </div>
+          <div className="text-left">
+            <p className="text-sm font-bold text-text-primary">服务器配置</p>
+            <p className="text-xs text-text-secondary mt-0.5">管理连接的服务器地址</p>
+          </div>
+          <ChevronRight size={18} className="text-text-secondary flex-shrink-0" />
+        </motion.button>
       </div>
 
-      <div className="p-5">
+      <div className="p-5 flex justify-center">
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onLogout}
-          className="w-full py-3.5 border border-red-200 text-red-500 font-semibold rounded-full text-sm"
+          className="text-sm font-semibold text-text-secondary"
         >
           退出登录
         </motion.button>

@@ -30,7 +30,6 @@ input, textarea, select {
 
 input:focus, textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-brand-yellow);
 }
 
 .bumble-input {
@@ -50,6 +49,50 @@ input:focus, textarea:focus {
   background: #FFFFFF;
   box-shadow: none;
 }
+
+/* §7 Error state */
+.bumble-input.error {
+  border-bottom-color: #1A1A1A;
+  background: #F5F5F5;
+  box-shadow: none;
+}
+.bumble-input.error-flash { animation: errorFlash 0.2s ease; }
+@keyframes errorFlash {
+  0%   { background: #F5F5F5; }
+  30%  { background: #EFEFEF; }
+  100% { background: #F5F5F5; }
+}
+
+/* §7 Underline expansion */
+.bumble-input-underline {
+  position: absolute; bottom: 0; left: 50%; width: 0; height: 2px;
+  background: #FFC629; border-radius: 0 0 12px 12px;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), left 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.bumble-input:focus ~ .bumble-input-underline { width: 100%; left: 0; }
+.bumble-input.error ~ .bumble-input-underline { background: #1A1A1A; width: 100%; left: 0; }
+
+/* §7 Shake animation */
+@keyframes inputShake {
+  0%,100% { transform: translateX(0); }
+  10%      { transform: translateX(-2px); }
+  20%      { transform: translateX(2px); }
+  30%      { transform: translateX(-2px); }
+  40%      { transform: translateX(2px); }
+  50%      { transform: translateX(-1.5px); }
+  60%      { transform: translateX(1.5px); }
+  70%      { transform: translateX(-1px); }
+  80%      { transform: translateX(1px); }
+  90%      { transform: translateX(-0.5px); }
+}
+.bumble-input-group.shake { animation: inputShake 0.3s ease; }
+
+/* §7 Error message */
+.bumble-error-msg {
+  font-size: 12px; color: #1A1A1A; margin-top: 6px;
+  display: none; font-weight: 600;
+}
+.bumble-input.error ~ .bumble-error-msg { display: block; }
 .bumble-label {
   position: absolute;
   left: 16px;

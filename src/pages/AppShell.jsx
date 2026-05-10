@@ -47,7 +47,7 @@ export default function AppShell({ onLogout }) {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className="flex-1 flex flex-col items-center py-2 pt-3 relative"
+                className="flex-1 flex flex-col items-center py-2 pt-3"
               >
                 <Icon
                   size={22}
@@ -58,13 +58,6 @@ export default function AppShell({ onLogout }) {
                 <span className={`text-[10px] mt-1 ${isActive ? 'text-action-black font-semibold' : 'text-text-secondary'}`}>
                   {tab.label}
                 </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="tab-indicator"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-yellow"
-                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                  />
-                )}
               </button>
             );
           })}

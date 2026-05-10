@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Stepper from './Stepper';
 import BumbleInput from './BumbleInput';
 
@@ -52,14 +52,22 @@ export default function CheckoutForm({ item, operatorName, onSubmit, onClose }) 
       </div>
 
       {/* Method selector */}
-      <div className="bg-bg-secondary rounded-full p-1 flex">
+      <div className="relative bg-bg-secondary rounded-full p-[3px] flex">
         {['外销', '外借'].map(m => (
           <button
             key={m}
             onClick={() => { setMethod(m); setConfirmLoss(false); }}
-            className={`flex-1 py-2 text-sm font-semibold rounded-full transition-colors ${method === m ? 'bg-action-black text-white' : 'text-text-secondary'}`}
+            className="relative flex-1 py-2 text-sm font-semibold z-10 rounded-full text-center"
+            style={{ color: method === m ? '#fff' : '#757575' }}
           >
-            {m}
+            {method === m && (
+              <motion.div
+                layoutId="method-seg-pill"
+                className="absolute inset-0 bg-action-black rounded-full"
+                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              />
+            )}
+            <span className="relative z-10">{m}</span>
           </button>
         ))}
       </div>

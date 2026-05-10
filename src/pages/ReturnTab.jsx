@@ -7,6 +7,7 @@ import BorrowerSelect from '../components/Forms/BorrowerSelect';
 import ReturnForm from '../components/Forms/ReturnForm';
 import ReturnDetail from '../components/Details/ReturnDetail';
 import RecordCard from '../components/Records/RecordCard';
+import PullToRefresh from '../components/Shared/PullToRefresh';
 import { getItemByCode, getBorrowersByItem, getReturnRecords, submitReturn, removeReturnRecord } from '../data/mockData';
 
 export default function ReturnTab() {
@@ -17,6 +18,7 @@ export default function ReturnTab() {
   const [selectedBorrower, setSelectedBorrower] = useState(null);
   const [records, setRecords] = useState([]);
   const [scanError, setScanError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadRecords = useCallback(async () => {
     const data = await getReturnRecords();
@@ -47,6 +49,7 @@ export default function ReturnTab() {
 
   const handleSubmitReturn = async (record) => {
     await submitReturn(record);
+    setScanning(false);
     setBorrowers([]);
     setSelectedBorrower(null);
     await loadRecords();
@@ -56,6 +59,12 @@ export default function ReturnTab() {
     setRecords(prev => prev.filter(r => r.id !== id));
     await removeReturnRecord(id);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadRecords();
+    setIsRefreshing(false);
+  }, [loadRecords]);
 
   const sheetTitle = selectedBorrower ? '归还登记' : borrowers.length > 0 ? '选择外借人' : scanError ? '提示' : '';
 
@@ -81,41 +90,48 @@ export default function ReturnTab() {
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
-          className="w-full bg-bg-secondary rounded-3xl p-6 flex flex-col items-center gap-3"
+          className="w-full bg-brand-yellow rounded-3xl p-6 flex flex-col items-center gap-3"
         >
-          <div className="w-16 h-16 rounded-2xl bg-brand-yellow/20 flex items-center justify-center">
-            <ScanLine size={32} className="text-brand-yellow" />
+          <div className="w-20 h-20 rounded-3xl bg-white/30 flex items-center justify-center">
+            <ScanLine size={36} className="text-action-black" />
           </div>
-          <span className="text-sm font-semibold text-text-primary">点击扫码归还</span>
+          <span className="text-base font-bold text-action-black">点击扫码归还</span>
         </motion.button>
       </div>
 
-      <div className="flex-1 overflow-y-auto hide-scrollbar">
-        <div className="px-5 pb-2">
-          <h2 className="text-sm font-semibold text-text-secondary">归还记录</h2>
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        className="flex-1 overflow-y-auto hide-scrollbar"
+      >
+        <div className="px-5 pb-2 flex items-center gap-2.5">
+          <div className="w-1 h-5 rounded-full bg-brand-yellow" />
+          <h2 className="text-sm font-bold text-text-primary">归还记录</h2>
         </div>
         {records.length === 0 ? (
           <p className="text-center text-text-secondary text-sm py-8">暂无归还记录</p>
         ) : (
-          <AnimatePresence mode="popLayout">
-            {records.map((record, idx) => (
-              <RecordCard
-                key={record.id}
-                icon={RotateCcw}
-                badge={record.returnQty}
-                title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-                subtitle={record.itemName}
-                extra={`外借人：${record.borrower}`}
-                status={record.status}
-                index={idx}
-                onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-                onSwipeLeft={() => handleRemoveRecord(record.id)}
-                onSwipeRight={() => handleRemoveRecord(record.id)}
-              />
-            ))}
-          </AnimatePresence>
+          <div className="px-5 flex flex-col gap-2">
+            <AnimatePresence mode="popLayout">
+              {records.map((record, idx) => (
+                <RecordCard
+                  key={record.id}
+                  icon={RotateCcw}
+                  badge={record.returnQty}
+                  title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
+                  subtitle={record.itemName}
+                  extra={`外借人：${record.borrower}`}
+                  status={record.status}
+                  index={idx}
+                  onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
+                  onSwipeLeft={() => handleRemoveRecord(record.id)}
+                  onSwipeRight={() => handleRemoveRecord(record.id)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         )}
-      </div>
+      </PullToRefresh>
 
       <ScannerOverlay
         isOpen={scanning}

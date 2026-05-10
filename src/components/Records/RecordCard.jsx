@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check, X } from 'lucide-react';
 
 const STATUS_COLORS = {
-  '正常': { background: '#C8E6C9', color: '#2E7D32' },
-  '已完成': { background: '#C8E6C9', color: '#2E7D32' },
-  '异常': { background: '#FFCDD2', color: '#C62828' },
-  '亏损': { background: '#FFCDD2', color: '#C62828' },
-  '已撤销': { background: '#FFCDD2', color: '#C62828' },
+  '正常':   { background: '#FFC629', color: '#1A1A1A' },
+  '已完成': { background: '#FFC629', color: '#1A1A1A' },
+  '异常':   { background: '#1A1A1A', color: '#FFFFFF' },
+  '亏损':   { background: '#1A1A1A', color: '#FFFFFF' },
+  '已撤销': { background: '#E5E5E5', color: '#1A1A1A' },
   '进行中': { background: '#FFC629', color: '#1A1A1A' },
   '待处理': { background: '#E5E5E5', color: '#666666' },
 };
@@ -93,15 +93,15 @@ export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, 
           animate={{ opacity: 1, y: 0 }}
           exit={{ x: exitX, opacity: 0, transition: { duration: 0.25 } }}
           transition={{ delay: index * 0.05, duration: 0.25 }}
-          className="relative overflow-hidden border-b border-gray-100"
+          className="relative overflow-hidden rounded-2xl border border-gray-100"
         >
           {/* Right swipe underlay (confirm) */}
-          <div className="absolute inset-0 bg-brand-yellow flex items-center justify-start pl-5">
-            <Check size={24} className="text-action-black" strokeWidth={3} />
+          <div className="absolute inset-0 flex items-center justify-start pl-5" style={{ background: '#FFC629' }}>
+            <Check size={24} strokeWidth={3} style={{ color: '#1A1A1A' }} />
           </div>
 
           {/* Left swipe underlay (cancel/exception) */}
-          <div className="absolute inset-0 bg-red-500 flex items-center justify-end pr-5">
+          <div className="absolute inset-0 flex items-center justify-end pr-5" style={{ background: '#1A1A1A' }}>
             <X size={24} className="text-white" strokeWidth={3} />
           </div>
 
