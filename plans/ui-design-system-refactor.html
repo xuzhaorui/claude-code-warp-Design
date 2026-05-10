@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan: UI Design System Refactor</title>
+<style>
+:root {
+  --bumble-yellow: #FFC629;
+  --action-black: #1A1A1A;
+  --bg-main: #FFFFFF;
+  --bg-secondary: #F2F2F2;
+  --text-primary: #222222;
+  --text-secondary: #757575;
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 50px;
+  --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --sidebar-width: 220px;
+  --header-height: 52px;
+  --green-confirm: #4CAF50;
+  --red-exception: #E53935;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; scroll-behavior: smooth; }
+body { font-family: var(--font-stack); background: var(--bg-main); color: var(--text-primary); line-height: 1.6; }
+
+/* Header */
+.plan-header {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--header-height);
+  background: var(--action-black); color: #fff;
+  display: flex; align-items: center; padding: 0 24px; z-index: 100;
+  gap: 12px;
+}
+.plan-header .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bumble-yellow); flex-shrink: 0; }
+.plan-header .title { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
+.plan-header .badge { margin-left: auto; font-size: 11px; background: rgba(255,255,255,0.12); padding: 3px 10px; border-radius: 20px; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; top: var(--header-height); left: 0;
+  width: var(--sidebar-width); height: calc(100vh - var(--header-height));
+  background: var(--bg-main); border-right: 1px solid #E5E5E5;
+  padding: 20px 0; overflow-y: auto; z-index: 90;
+}
+.sidebar nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+.sidebar nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: var(--radius-sm);
+  text-decoration: none; color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.sidebar nav a:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.sidebar nav a.active { background: var(--bg-secondary); color: var(--text-primary); font-weight: 700; border-left-color: var(--bumble-yellow); }
+.sidebar nav a .num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--bg-secondary); font-size: 10px; font-weight: 700;
+  color: var(--text-secondary); flex-shrink: 0;
+}
+.sidebar nav a.active .num { background: var(--bumble-yellow); color: var(--action-black); }
+.sidebar-group-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; color: var(--text-secondary); padding: 14px 24px 6px; text-transform: uppercase; }
+
+/* Main */
+main { margin-left: var(--sidebar-width); margin-top: var(--header-height); padding: 36px 44px 80px; max-width: 960px; }
+section { padding: 28px 0 44px; border-bottom: 1px solid #EEEEEE; }
+section:last-child { border-bottom: none; }
+section h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+.section-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 28px; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--action-black); color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; }
+thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+thead th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+tbody tr:nth-child(even) { background: var(--bg-secondary); }
+tbody td { padding: 10px 14px; border-bottom: 1px solid #F0F0F0; vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+.tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.tag-modify { background: #FFF3CD; color: #7C5300; }
+.tag-verify { background: #D4EDDA; color: #155724; }
+.section-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--bg-secondary); border-radius: var(--radius-sm); padding: 2px 8px; font-size: 12px; font-weight: 700; color: var(--action-black); }
+.section-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bumble-yellow); }
+.file-path { font-family: monospace; font-size: 11px; color: var(--text-secondary); }
+.gap-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+
+/* Composition views */
+.comp-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.comp-tab {
+  padding: 7px 16px; border: 2px solid #E5E5E5; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 600; cursor: pointer; background: var(--bg-main);
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.comp-tab.active { border-color: var(--bumble-yellow); color: var(--action-black); background: #FFFBEC; }
+.comp-panel { display: none; }
+.comp-panel.active { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+
+/* Phone frame */
+.phone-frame {
+  width: 200px; flex-shrink: 0;
+}
+.phone-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-align: center; letter-spacing: 0.5px; text-transform: uppercase; }
+.phone-body {
+  width: 200px; border: 3px solid var(--action-black);
+  border-radius: 28px; overflow: hidden;
+  background: #F5F5F5; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+}
+.phone-screen { width: 100%; background: #fff; padding: 12px 10px; min-height: 280px; }
+
+/* Mini component previews */
+.mini-seg { display: flex; background: var(--bg-secondary); border-radius: 50px; padding: 3px; margin-bottom: 10px; }
+.mini-seg-btn { flex: 1; padding: 6px 0; border: none; border-radius: 50px; font-size: 10px; font-weight: 700; cursor: default; }
+.mini-seg-btn.before { background: none; color: var(--text-secondary); }
+.mini-seg-btn.before.active { background: var(--action-black); color: #fff; }
+.mini-seg-pill { position: relative; }
+.mini-seg-btn.after { background: none; color: var(--text-secondary); position: relative; z-index: 1; }
+.mini-seg-btn.after.active { color: #fff; }
+.mini-pill-indicator { position: absolute; top: 3px; left: 3px; bottom: 3px; width: calc(50% - 3px); background: var(--action-black); border-radius: 50px; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+
+.mini-stepper-before { display: flex; align-items: center; margin-bottom: 10px; }
+.mini-stepper-btn-before { width: 36px; height: 36px; background: var(--bg-secondary); font-size: 18px; font-weight: 700; border: none; cursor: default; color: var(--text-primary); display: flex; align-items: center; justify-content: center; }
+.mini-stepper-btn-before:first-child { border-radius: 14px 0 0 14px; }
+.mini-stepper-btn-before:last-child { border-radius: 0 14px 14px 0; }
+.mini-stepper-val { width: 44px; height: 36px; text-align: center; font-size: 14px; font-weight: 700; background: #fff; border-top: 1px solid #eee; border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
+
+.mini-stepper-after { display: flex; align-items: center; gap: 0; margin-bottom: 10px; }
+.mini-stepper-btn-after { width: 36px; height: 36px; border-radius: 50%; background: var(--action-black); font-size: 18px; font-weight: 700; border: none; cursor: default; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.mini-stepper-val-after { width: 44px; height: 36px; text-align: center; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+.mini-record { background: #fff; border-bottom: 1px solid #F0F0F0; padding: 10px 12px; display: flex; align-items: center; gap: 10px; position: relative; overflow: hidden; }
+.mini-record-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.mini-record-text { flex: 1; }
+.mini-record-title { font-size: 11px; font-weight: 700; }
+.mini-record-sub { font-size: 10px; color: var(--text-secondary); }
+.mini-pill { display: inline-block; padding: 2px 8px; border-radius: 50px; font-size: 9px; font-weight: 700; }
+.mini-pill-yellow { background: var(--bumble-yellow); color: var(--action-black); }
+.mini-pill-green { background: #C8E6C9; color: #2E7D32; }
+.mini-swipe-before { display: flex; height: 52px; border-radius: 8px; overflow: hidden; margin-bottom: 6px; position: relative; }
+.mini-swipe-after { display: flex; height: 52px; border-radius: 8px; overflow: hidden; margin-bottom: 6px; position: relative; }
+.mini-swipe-left-before { position: absolute; left: 0; width: 50%; height: 100%; background: var(--bumble-yellow); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--action-black); }
+.mini-swipe-right-before { position: absolute; right: 0; width: 50%; height: 100%; background: #E53935; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+.mini-swipe-left-after { position: absolute; left: 0; width: 50%; height: 100%; background: var(--green-confirm); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+.mini-swipe-right-after { position: absolute; right: 0; width: 50%; height: 100%; background: var(--red-exception); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; }
+.mini-item-overlay { position: absolute; inset: 0; background: #fff; z-index: 2; display: flex; align-items: center; padding: 0 12px; gap: 8px; }
+
+.mini-settings-before { border-radius: 12px; overflow: hidden; margin-bottom: 8px; border: 1px solid #E5E5E5; }
+.mini-settings-item-before { background: #fff; padding: 10px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #F0F0F0; }
+.mini-settings-item-before:last-child { border-bottom: none; }
+.mini-settings-icon { width: 28px; height: 28px; border-radius: 8px; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.mini-settings-text { flex: 1; font-size: 10px; font-weight: 700; }
+.mini-settings-chevron { color: var(--text-secondary); font-size: 12px; }
+
+.mini-settings-after { display: flex; flex-direction: column; gap: 1px; background: #E5E5E5; border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+.mini-settings-item-after { background: #fff; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+.mini-settings-label { font-size: 10px; font-weight: 700; }
+
+.comp-annotation { flex: 1; min-width: 200px; }
+.comp-annotation h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.diff-item { display: flex; gap: 8px; margin-bottom: 12px; font-size: 12px; }
+.diff-before { color: #C62828; }
+.diff-after { color: #2E7D32; }
+.diff-arrow { color: var(--text-secondary); }
+
+/* Flowchart */
+.flowchart { overflow-x: auto; padding: 8px 0 24px; }
+.flowchart-inner { display: flex; align-items: flex-start; gap: 0; min-width: max-content; position: relative; padding-top: 16px; }
+.fc-col { display: flex; flex-direction: column; align-items: center; }
+.fc-node {
+  width: 120px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--action-black); color: #fff; font-size: 11px; font-weight: 700;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+  border: 2px solid transparent; user-select: none;
+}
+.fc-node:hover { border-color: var(--bumble-yellow); transform: translateY(-2px); }
+.fc-node.selected { border-color: var(--bumble-yellow); background: #2A2A2A; }
+.fc-node .fc-num { font-size: 9px; color: var(--bumble-yellow); margin-bottom: 2px; }
+.fc-gate {
+  width: 80px; height: 40px; background: var(--bumble-yellow); color: var(--action-black);
+  font-size: 9px; font-weight: 700; text-align: center; display: flex; align-items: center;
+  justify-content: center; margin-top: 8px; cursor: default;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.fc-arrow { display: flex; align-items: center; width: 28px; margin-top: 22px; }
+.fc-arrow-line { flex: 1; height: 2px; background: #D5D5D5; }
+.fc-arrow-head { width: 0; height: 0; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 7px solid #D5D5D5; }
+.fc-detail {
+  margin-top: 24px; display: none; background: var(--bg-secondary);
+  border-radius: var(--radius-md); padding: 16px 20px; border-left: 4px solid var(--bumble-yellow);
+}
+.fc-detail.show { display: block; }
+.fc-detail-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.fc-detail-body { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+.fc-detail-body code { background: #fff; border: 1px solid #D5D5D5; border-radius: 4px; padding: 1px 5px; font-size: 11px; font-family: monospace; }
+.fc-pass { color: var(--green-confirm); font-weight: 700; }
+.fc-fail { color: var(--red-exception); font-weight: 700; }
+
+/* Step cards */
+.step-card {
+  background: var(--bg-secondary); border-radius: var(--radius-md);
+  margin-bottom: 20px; overflow: hidden; border: 1px solid #E8E8E8;
+}
+.step-header {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  background: #fff; border-bottom: 1px solid #EEEEEE; cursor: pointer;
+}
+.step-header .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--action-black); color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step-header .step-num.done { background: var(--green-confirm); }
+.step-header .step-title { font-size: 14px; font-weight: 700; flex: 1; }
+.step-header .step-status { font-size: 11px; color: var(--text-secondary); }
+.step-header .step-section { font-size: 10px; background: var(--bg-secondary); padding: 2px 8px; border-radius: 10px; font-weight: 700; color: var(--text-secondary); }
+.step-body { padding: 18px; display: none; }
+.step-card.open .step-body { display: block; }
+.step-section-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.8px; text-transform: uppercase; margin: 14px 0 6px; }
+.step-section-label:first-child { margin-top: 0; }
+.code-block {
+  background: #1E1E1E; color: #D4D4D4; border-radius: var(--radius-sm);
+  padding: 12px 14px; font-size: 11px; font-family: monospace; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-all; margin-bottom: 8px; overflow-x: auto;
+}
+.code-block .hl { color: var(--bumble-yellow); }
+.code-block .add { color: #9CDCFE; }
+.code-block .remove { color: #F48771; text-decoration: line-through; opacity: 0.7; }
+.code-block .comment { color: #6A9955; }
+.gate-check { background: #FFFDE7; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; font-family: monospace; border-left: 3px solid var(--bumble-yellow); margin-bottom: 8px; }
+.gate-check .gate-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: var(--text-secondary); margin-bottom: 4px; }
+.next-block { background: #fff; border: 1px solid #E5E5E5; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; margin-top: 8px; }
+.next-block .next-row { display: flex; gap: 8px; padding: 4px 0; }
+.next-block .next-icon-pass { color: var(--green-confirm); font-weight: 700; width: 40px; flex-shrink: 0; }
+.next-block .next-icon-fail { color: var(--red-exception); font-weight: 700; width: 40px; flex-shrink: 0; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; }
+.checkbox-row input[type="checkbox"] { accent-color: var(--bumble-yellow); width: 16px; height: 16px; }
+.checkbox-row label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<header class="plan-header">
+  <span class="dot"></span>
+  <span class="title">Plan: UI Design System Refactor — WMS App</span>
+  <span class="badge">10 步骤 · 10 文件</span>
+</header>
+
+<aside class="sidebar">
+  <div class="sidebar-group-label">导航</div>
+  <nav>
+    <a href="#mapping" class="active"><span class="num">§1</span> 组件映射表</a>
+    <a href="#composition"><span class="num">§2</span> 页面组合视图</a>
+    <a href="#flowchart"><span class="num">§3</span> 执行流程图</a>
+    <a href="#steps"><span class="num">§4</span> 执行步骤</a>
+  </nav>
+</aside>
+
+<main>
+
+<!-- ══════════════════════════════════════════════
+     §1 COMPONENT MAPPING TABLE
+══════════════════════════════════════════════ -->
+<section id="mapping">
+  <h2>§1 组件映射表</h2>
+  <p class="section-sub">每行均通过读取 design-system.html 确认 §X 编号，通过读取 src/ 确认文件路径。Change Type: <strong>Modify</strong> = 修改现有文件，<strong>Verify</strong> = 已对齐，仅确认。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>design-system.html §</th>
+        <th>组件名称</th>
+        <th>目标文件</th>
+        <th>变更类型</th>
+        <th>偏差说明</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§7 表单与输入</span></td>
+        <td><strong>index.css</strong></td>
+        <td class="file-path">src/index.css</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">缺少：<code>.bumble-input.error</code> 红色下划线状态；<code>@keyframes inputShake</code>；<code>.bumble-input-group.shake</code>；<code>.bumble-input.error-flash</code>；<code>.underline</code> 伪元素扩展动画。当前 <code>input:focus</code> 有错误的 box-shadow ring。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§7 表单与输入</span></td>
+        <td><strong>BumbleInput</strong></td>
+        <td class="file-path">src/components/Forms/BumbleInput.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">缺少 <code>error</code>、<code>errorMsg</code> props；无 shake 触发逻辑；无 <code>.underline</code> 元素；无错误状态视觉。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§7 表单与输入</span></td>
+        <td><strong>Stepper</strong></td>
+        <td class="file-path">src/components/Forms/Stepper.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前：<code>rounded-l/r-2xl</code> 半圆角 + <code>bg-bg-secondary</code> 灰色。规范：<code>rounded-full</code> 圆形 + <code>bg-action-black</code> + <code>box-shadow: 0 2px 6px rgba(0,0,0,0.2)</code> + <code>whileTap: scale(0.9)</code>（当前 0.94）。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§5 业务列表</span></td>
+        <td><strong>RecordCard</strong></td>
+        <td class="file-path">src/components/Records/RecordCard.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">右滑底板：<code>bg-brand-yellow</code>（黄）→ 应为 <code>#4CAF50</code>（绿 = 确认完成）。规范左绿右红：左 = 完成 ✓，右 = 异常/删除 ✗。StatusPill 颜色已对齐，无需修改。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§2D Segmented Control</span></td>
+        <td><strong>CheckoutForm (mode switcher)</strong></td>
+        <td class="file-path">src/components/Forms/CheckoutForm.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前：无 animated pill，用 <code>transition-colors</code> CSS 切换按钮背景。规范：<code>seg-pill</code> 动画滑块，用 Framer Motion <code>layoutId</code> 实现物理弹簧滑动。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§2C Settings List</span></td>
+        <td><strong>SettingsTab</strong></td>
+        <td class="file-path">src/components/Settings/SettingsTab.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前：每项有 40px 图标容器 + 文字 + chevron，使用 <code>style</code> 内联 gap/background。规范 §2C：纯文字 title/subtitle + chevron/toggle，无图标，间距靠 <code>gap: 1px; background: #E5E5E5</code> 实现分割线。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§2E Tab Bar</span></td>
+        <td><strong>AppShell (tab bar)</strong></td>
+        <td class="file-path">src/pages/AppShell.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前有额外黄色圆点 indicator（<code>layoutId="tab-indicator"</code>），规范 §2E 无此元素。Active 状态：icon <code>color: action-black, strokeWidth 2.5</code> + label <code>font-weight 700</code>——已对齐，仅需移除圆点。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§2A Bottom Sheet</span></td>
+        <td><strong>FormSheet / DetailSheet</strong></td>
+        <td class="file-path">src/components/BottomSheet/FormSheet.jsx, DetailSheet.jsx</td>
+        <td><span class="tag tag-verify">Verify</span></td>
+        <td>
+          <div class="gap-desc">已对齐：handle <code>w-10 h-1</code> = 40px×4px ✓；<code>rounded-t-3xl</code> = 24px ✓；spring <code>stiffness:200 damping:25 mass:1</code> ✓；dragElastic:0.15 ✓。无需修改。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§C 详情信息卡</span></td>
+        <td><strong>CheckoutDetail</strong></td>
+        <td class="file-path">src/components/Details/CheckoutDetail.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前：纯 label/value 行列，无视觉层级，无英雄卡。目标：英雄卡（数量+成本单价黄底黑字）+ 货物信息/金额信息/操作信息三个 InfoGroup 卡，Framer Motion 错开入场动画。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§C 详情信息卡</span></td>
+        <td><strong>ReturnDetail</strong></td>
+        <td class="file-path">src/components/Details/ReturnDetail.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前：纯 label/value 行列。目标：英雄卡（归还数量+外借人黄底黑字）+ 货物信息/操作信息两个 InfoGroup，无金额分组（归还无成本场景）。</div>
+        </td>
+      </tr>
+      <tr>
+        <td><span class="section-badge"><span class="dot"></span>§C 详情信息卡</span></td>
+        <td><strong>InventoryCheckDetail</strong></td>
+        <td class="file-path">src/components/Details/InventoryCheckDetail.jsx</td>
+        <td><span class="tag tag-modify">Modify</span></td>
+        <td>
+          <div class="gap-desc">当前：差值只有 text-color 区分，无层级。目标：英雄卡（差值语义色数字+成本单价+损失金额）+ 盘点数据/货物信息/操作信息三个 InfoGroup。</div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     §2 PAGE COMPOSITION VIEWS
+══════════════════════════════════════════════ -->
+<section id="composition">
+  <h2>§2 页面组合视图</h2>
+  <p class="section-sub">375px 手机框架渲染，每个包含修改组件的 Tab 各一个视图。点击 Tab 切换，点击 Current/Planned 对比差异。</p>
+
+  <div class="comp-tabs">
+    <button class="comp-tab active" onclick="switchCompTab('checkout')">出库 Tab</button>
+    <button class="comp-tab" onclick="switchCompTab('records')">记录列表</button>
+    <button class="comp-tab" onclick="switchCompTab('settings')">设置 Tab</button>
+    <button class="comp-tab" onclick="switchCompTab('shell')">底部导航栏</button>
+    <button class="comp-tab" onclick="switchCompTab('detail')">详情页 §C</button>
+  </div>
+
+  <!-- 出库 Tab -->
+  <div class="comp-panel active" id="panel-checkout">
+    <div class="phone-frame">
+      <div class="phone-label">Current</div>
+      <div class="phone-body">
+        <div class="phone-screen">
+          <!-- Seg control before -->
+          <div style="margin-bottom:10px">
+            <div style="font-size:9px;color:#999;margin-bottom:4px">出库方式</div>
+            <div class="mini-seg">
+              <button class="mini-seg-btn before active">外销</button>
+              <button class="mini-seg-btn before">外借</button>
+            </div>
+          </div>
+          <!-- Stepper before -->
+          <div style="font-size:9px;color:#999;margin-bottom:4px">出库数量</div>
+          <div class="mini-stepper-before">
+            <button class="mini-stepper-btn-before">−</button>
+            <div class="mini-stepper-val">24</div>
+            <button class="mini-stepper-btn-before">+</button>
+          </div>
+          <!-- Input before -->
+          <div style="background:#F5F5F5;border-bottom:2px solid #D5D5D5;border-radius:10px;padding:14px 10px 4px;margin-bottom:10px;position:relative">
+            <div style="font-size:9px;color:#999;position:absolute;top:4px;left:10px">金额合计</div>
+            <div style="font-size:13px;font-weight:600">¥1,200.00</div>
+          </div>
+          <div style="height:36px;background:#1A1A1A;border-radius:50px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;margin-top:8px">确认出库</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-label">Planned</div>
+      <div class="phone-body">
+        <div class="phone-screen">
+          <!-- Seg control after (with pill) -->
+          <div style="margin-bottom:10px">
+            <div style="font-size:9px;color:#999;margin-bottom:4px">出库方式</div>
+            <div class="mini-seg" style="position:relative">
+              <div class="mini-pill-indicator"></div>
+              <button class="mini-seg-btn after active" style="color:#fff">外销</button>
+              <button class="mini-seg-btn after">外借</button>
+            </div>
+          </div>
+          <!-- Stepper after (black circles) -->
+          <div style="font-size:9px;color:#999;margin-bottom:4px">出库数量</div>
+          <div class="mini-stepper-after">
+            <button class="mini-stepper-btn-after">−</button>
+            <div class="mini-stepper-val-after">24</div>
+            <button class="mini-stepper-btn-after">+</button>
+          </div>
+          <!-- Input (same visual, but now supports error state) -->
+          <div style="background:#F5F5F5;border-bottom:2px solid #FFC629;border-radius:10px;padding:14px 10px 4px;margin-bottom:10px;position:relative">
+            <div style="font-size:9px;color:#FFC629;font-weight:700;position:absolute;top:4px;left:10px">金额合计</div>
+            <div style="font-size:13px;font-weight:600">¥1,200.00</div>
+          </div>
+          <div style="height:36px;background:#1A1A1A;border-radius:50px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;margin-top:8px">确认出库</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-annotation">
+      <h4>出库 Tab 变更点</h4>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">Segmented Control (§2D)</div>
+          <div class="diff-before">✗ Before: 按钮直接切换 background color (CSS transition)</div>
+          <div class="diff-after">✓ After: Framer Motion layoutId 物理弹簧滑块，pill 滑动动画</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">Stepper (§7)</div>
+          <div class="diff-before">✗ Before: 半圆角灰色按钮 (rounded-l/r-2xl, bg-secondary)</div>
+          <div class="diff-after">✓ After: 全圆形黑底白字 (rounded-full, bg-action-black, shadow)</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">BumbleInput (§7)</div>
+          <div class="diff-before">✗ Before: 无 error 状态，无 shake，无 underline 扩展</div>
+          <div class="diff-after">✓ After: error prop → 红色下划线 + shake动画 + 错误消息</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 记录列表 -->
+  <div class="comp-panel" id="panel-records">
+    <div class="phone-frame">
+      <div class="phone-label">Current (右滑底板)</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:8px">
+          <div class="mini-swipe-before" style="border-radius:8px;overflow:hidden;margin-bottom:8px">
+            <div class="mini-swipe-left-before">✓ 确认</div>
+            <div class="mini-swipe-right-before">✗ 异常</div>
+            <div class="mini-item-overlay">
+              <div class="mini-record-icon">📦</div>
+              <div class="mini-record-text">
+                <div class="mini-record-title">WH-0387</div>
+                <div class="mini-record-sub">A区出库 2024-05-09</div>
+              </div>
+              <span class="mini-pill mini-pill-yellow">进行中</span>
+            </div>
+          </div>
+          <div style="font-size:9px;color:#E53935;padding:4px 8px">右滑底板 = 黄色 ← 不符合 §5</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-label">Planned (右滑底板)</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:8px">
+          <div class="mini-swipe-after" style="border-radius:8px;overflow:hidden;margin-bottom:8px">
+            <div class="mini-swipe-left-after">✓ 完成</div>
+            <div class="mini-swipe-right-after">✗ 删除</div>
+            <div class="mini-item-overlay">
+              <div class="mini-record-icon">📦</div>
+              <div class="mini-record-text">
+                <div class="mini-record-title">WH-0387</div>
+                <div class="mini-record-sub">A区出库 2024-05-09</div>
+              </div>
+              <span class="mini-pill mini-pill-green">进行中</span>
+            </div>
+          </div>
+          <div style="font-size:9px;color:#2E7D32;padding:4px 8px">左=绿色确认，右=红色删除 ← 符合 §5</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-annotation">
+      <h4>RecordCard 变更点</h4>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">右滑底板颜色 (§5)</div>
+          <div class="diff-before">✗ Before: bg-brand-yellow (#FFC629) → 语义不明确</div>
+          <div class="diff-after">✓ After: #4CAF50 绿色 → 语义清晰"完成确认"</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">左滑底板颜色</div>
+          <div class="diff-before">已正确：#E53935 / red-500 对应"异常/删除"</div>
+          <div class="diff-after">✓ 保持不变</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-top:8px;padding:8px;background:var(--bg-secondary);border-radius:8px">
+        StatusPill 颜色已与 §5 对齐（进行中=黄色，已完成=绿色，待处理=灰色，异常=红色），无需修改。
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置 Tab -->
+  <div class="comp-panel" id="panel-settings">
+    <div class="phone-frame">
+      <div class="phone-label">Current</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:10px 8px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px">设置</div>
+          <div class="mini-settings-before">
+            <div class="mini-settings-item-before">
+              <div class="mini-settings-icon">🖥</div>
+              <div class="mini-settings-text">服务器配置<br><span style="font-size:9px;color:#999">管理连接的服务器地址</span></div>
+              <div class="mini-settings-chevron">›</div>
+            </div>
+          </div>
+          <div style="border:1px solid #FFCDD2;border-radius:50px;padding:8px;text-align:center;color:#E53935;font-size:10px;font-weight:700">退出登录</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-label">Planned</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:10px 8px">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px">设置</div>
+          <div class="mini-settings-after">
+            <div class="mini-settings-item-after">
+              <div>
+                <div class="mini-settings-label">服务器配置</div>
+                <div style="font-size:9px;color:#999">管理连接的服务器地址</div>
+              </div>
+              <span style="color:#999;font-size:12px">›</span>
+            </div>
+          </div>
+          <div style="border:1px solid #FFCDD2;border-radius:50px;padding:8px;text-align:center;color:#E53935;font-size:10px;font-weight:700">退出登录</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-annotation">
+      <h4>设置 Tab 变更点</h4>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">Settings List (§2C)</div>
+          <div class="diff-before">✗ Before: 每项有 40px 图标容器，用 style 内联 gap+background</div>
+          <div class="diff-after">✓ After: 纯文字 title/subtitle，gap:1px + bg:#E5E5E5 作分割线，无图标，Tailwind only</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 详情页 §C -->
+  <div class="comp-panel" id="panel-detail">
+    <div class="phone-frame">
+      <div class="phone-label">Current</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:8px">
+          <div style="font-size:9px;font-weight:700;color:#999;margin-bottom:6px">出库记录</div>
+          <div style="background:#F2F2F2;border-radius:8px;padding:8px;margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee"><span style="font-size:9px;color:#999">货物名称</span><span style="font-size:9px;font-weight:600">不锈钢螺丝</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee"><span style="font-size:9px;color:#999">出库数量</span><span style="font-size:9px;font-weight:600">24</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee"><span style="font-size:9px;color:#999">成本单价</span><span style="font-size:9px;font-weight:600">¥2.50</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="font-size:9px;color:#999">销售总价</span><span style="font-size:9px;font-weight:600">¥72.00</span></div>
+          </div>
+          <div style="font-size:8px;color:#E53935;padding:2px 4px">← 所有字段等权重，无视觉层级</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-label">Planned (§C)</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:8px;background:#F2F2F2;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:8px;font-weight:700;color:#999;letter-spacing:0.5px;text-transform:uppercase">出库记录</span>
+            <span style="background:#FFC629;color:#1A1A1A;font-size:8px;font-weight:700;padding:2px 7px;border-radius:20px">正常</span>
+          </div>
+          <!-- Hero Card -->
+          <div style="background:#FFC629;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:0">
+            <div style="flex:1">
+              <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(0,0,0,0.45);text-transform:uppercase">出库数量</div>
+              <div style="font-size:30px;font-weight:700;color:#1A1A1A;line-height:1;margin:2px 0">24</div>
+              <div style="font-size:9px;color:rgba(0,0,0,0.5)">件 · 外销</div>
+            </div>
+            <div style="width:1px;background:rgba(0,0,0,0.12);align-self:stretch;margin:2px 12px;flex-shrink:0"></div>
+            <div>
+              <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:rgba(0,0,0,0.45);text-transform:uppercase">成本单价</div>
+              <div style="font-size:16px;font-weight:700;color:#1A1A1A;margin:2px 0">¥2.50</div>
+              <div style="font-size:8px;color:rgba(0,0,0,0.5)">每件成本</div>
+            </div>
+          </div>
+          <!-- Info Group -->
+          <div style="background:#fff;border-radius:10px;overflow:hidden">
+            <div style="font-size:8px;font-weight:700;letter-spacing:1px;color:#999;padding:7px 10px 4px;text-transform:uppercase">金额信息</div>
+            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-top:1px solid #F2F2F2"><span style="font-size:9px;color:#999">销售总价</span><span style="font-size:10px;font-weight:700;color:#1A1A1A">¥72.00</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-top:1px solid #F2F2F2"><span style="font-size:9px;color:#999">销售单价</span><span style="font-size:9px;font-weight:700;color:#2E7D32">¥3.00 ↑</span></div>
+          </div>
+          <div style="font-size:8px;color:#2E7D32;padding:2px 4px">← 数量+成本突出，金额语义色</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-annotation">
+      <h4>详情页 §C 变更点</h4>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">英雄卡 (§C-1)</div>
+          <div class="diff-before">✗ Before: 所有字段等权重的 label/value 行，成本单价和数量淹没在其中</div>
+          <div class="diff-after">✓ After: 黄底黑字英雄卡，数量 44px + 成本单价 22px 双指标突出</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">信息分组 (§C-2)</div>
+          <div class="diff-before">✗ Before: 所有字段单列平铺，无分组无标题</div>
+          <div class="diff-after">✓ After: 货物信息 / 金额信息 / 操作信息 三组 InfoGroup 卡片，错开入场动画</div>
+        </div>
+      </div>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">差值语义 (§C-3，盘点)</div>
+          <div class="diff-before">✗ Before: 差值仅 text-color，隐藏在平行行中</div>
+          <div class="diff-after">✓ After: 英雄卡主数值差值语义色 + 损失金额计算显示</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部导航栏 -->
+  <div class="comp-panel" id="panel-shell">
+    <div class="phone-frame">
+      <div class="phone-label">Current</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:0">
+          <div style="height:220px;background:#F5F5F5;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px">页面内容</div>
+          <div style="border-top:1px solid #F0F0F0;display:flex;padding:8px 0 4px;background:#fff;position:relative">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px">📤</div>
+              <div style="font-size:8px;font-weight:700;color:#1A1A1A">出库</div>
+              <div style="width:4px;height:4px;border-radius:50%;background:#FFC629;position:absolute;top:2px;left:13%"></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px;color:#999">↩</div>
+              <div style="font-size:8px;color:#999">归还</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px;color:#999">📋</div>
+              <div style="font-size:8px;color:#999">盘点</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px;color:#999">⚙</div>
+              <div style="font-size:8px;color:#999">设置</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-label">Planned</div>
+      <div class="phone-body">
+        <div class="phone-screen" style="padding:0">
+          <div style="height:220px;background:#F5F5F5;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px">页面内容</div>
+          <div style="border-top:1px solid #F0F0F0;display:flex;padding:8px 0 4px;background:#fff">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px">📤</div>
+              <div style="font-size:8px;font-weight:700;color:#1A1A1A">出库</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px;color:#999">↩</div>
+              <div style="font-size:8px;color:#999">归还</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px;color:#999">📋</div>
+              <div style="font-size:8px;color:#999">盘点</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <div style="font-size:16px;color:#999">⚙</div>
+              <div style="font-size:8px;color:#999">设置</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="comp-annotation">
+      <h4>Tab Bar 变更点</h4>
+      <div class="diff-item">
+        <div>
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">移除 yellow dot indicator (§2E)</div>
+          <div class="diff-before">✗ Before: active tab 顶部有 <code>layoutId="tab-indicator"</code> 黄色圆点，§2E 规范中无此元素</div>
+          <div class="diff-after">✓ After: active 状态仅靠 icon/label 颜色+字重区分，符合 §2E</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     §3 EXECUTION FLOWCHART (Type B)
+══════════════════════════════════════════════ -->
+<section id="flowchart">
+  <h2>§3 执行流程图</h2>
+  <p class="section-sub"><strong>Type B — Execution Flowchart</strong>：顺序工作流，每个组件修改步骤独立，Gate 通过后进入下一步。点击节点查看 ACTION/GATE 摘要。</p>
+
+  <div class="flowchart">
+    <div class="flowchart-inner" id="flowchartInner">
+      <!-- Step 1 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(1)">
+          <div class="fc-num">Step 1</div>
+          index.css<br>错误状态
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 2 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(2)">
+          <div class="fc-num">Step 2</div>
+          BumbleInput<br>error prop
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 3 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(3)">
+          <div class="fc-num">Step 3</div>
+          Stepper<br>圆形黑底
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 4 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(4)">
+          <div class="fc-num">Step 4</div>
+          RecordCard<br>绿色底板
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 5 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(5)">
+          <div class="fc-num">Step 5</div>
+          CheckoutForm<br>Seg Control
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 6 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(6)">
+          <div class="fc-num">Step 6</div>
+          SettingsTab<br>列表结构
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 7 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(7)">
+          <div class="fc-num">Step 7</div>
+          AppShell<br>移除圆点
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 8 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(8)">
+          <div class="fc-num">Step 8</div>
+          CheckoutDetail<br>英雄卡
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 9 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(9)">
+          <div class="fc-num">Step 9</div>
+          ReturnDetail<br>英雄卡
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+      <div class="fc-arrow"><div class="fc-arrow-line"></div><div class="fc-arrow-head"></div></div>
+      <!-- Step 10 -->
+      <div class="fc-col">
+        <div class="fc-node" onclick="showFcDetail(10)">
+          <div class="fc-num">Step 10</div>
+          InventoryDetail<br>英雄卡
+        </div>
+        <div class="fc-gate">GATE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fc-detail" id="fcDetail">
+    <div class="fc-detail-title" id="fcDetailTitle"></div>
+    <div class="fc-detail-body" id="fcDetailBody"></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     §4 EXECUTION STEPS
+══════════════════════════════════════════════ -->
+<section id="steps">
+  <h2>§4 执行步骤</h2>
+  <p class="section-sub">ACTION/GATE/NEXT 格式，点击步骤卡片展开详情。所有步骤独立执行，Gate 失败 → 修复当前文件后重试，不影响其他步骤。</p>
+
+  <!-- Step 1 -->
+  <div class="step-card" id="step1">
+    <div class="step-header" onclick="toggleStep('step1')">
+      <div class="step-num">1</div>
+      <div class="step-title">修复 index.css — 添加 BumbleInput 错误/动画样式</div>
+      <div class="step-section">§7 Input</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb1"><label for="cb1">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">编辑 <code>src/index.css</code>，在 <code>.bumble-input:focus</code> 块之后添加以下内容：</p>
+      <div class="code-block"><span class="comment">/* 修复：移除错误的 focus ring（改由 border-bottom 处理）*/</span>
+input:focus, textarea:focus {
+  <span class="remove">box-shadow: 0 0 0 2px var(--color-brand-yellow);</span>
+  outline: none;
+}
+
+<span class="add">/* §7 Error state */
+.bumble-input.error {
+  border-bottom-color: #E53935;
+  background: #FFF5F5;
+  box-shadow: inset 0 1px 2px rgba(229,57,53,0.08);
+}
+.bumble-input.error-flash { animation: errorFlash 0.2s ease; }
+@keyframes errorFlash {
+  0%   { background: #F5F5F5; }
+  30%  { background: #FFEBEE; }
+  100% { background: #FFF5F5; }
+}
+
+/* §7 Underline expansion */
+.bumble-input-underline {
+  position: absolute; bottom: 0; left: 50%; width: 0; height: 2px;
+  background: #FFC629; border-radius: 0 0 12px 12px;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), left 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.bumble-input:focus ~ .bumble-input-underline { width: 100%; left: 0; }
+.bumble-input.error ~ .bumble-input-underline { background: #E53935; width: 100%; left: 0; }
+
+/* §7 Shake animation */
+@keyframes inputShake {
+  0%,100% { transform: translateX(0); }
+  10%      { transform: translateX(-2px); }
+  20%      { transform: translateX(2px); }
+  30%      { transform: translateX(-2px); }
+  40%      { transform: translateX(2px); }
+  50%      { transform: translateX(-1.5px); }
+  60%      { transform: translateX(1.5px); }
+  70%      { transform: translateX(-1px); }
+  80%      { transform: translateX(1px); }
+  90%      { transform: translateX(-0.5px); }
+}
+.bumble-input-group.shake { animation: inputShake 0.3s ease; }
+/* Error message */
+.bumble-error-msg {
+  font-size: 12px; color: #E53935; margin-top: 6px;
+  display: none; font-weight: 600;
+}
+.bumble-input.error ~ .bumble-error-msg { display: block; }</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\index.css" -Pattern "inputShake|errorFlash|bumble-input-underline"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期输出</div>
+        3 条匹配，每行包含对应 class/keyframe 名称。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">额外验证</div>
+        grep "box-shadow: 0 0 0 2px" src/index.css 预期：0 条匹配（已删除错误 ring）。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 2</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 重新读取 src/index.css，确认添加位置在 <code>.hide-scrollbar</code> 之前，重新追加并重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-card" id="step2">
+    <div class="step-header" onclick="toggleStep('step2')">
+      <div class="step-num">2</div>
+      <div class="step-title">重构 BumbleInput — 添加 error/errorMsg props 和 shake 逻辑</div>
+      <div class="step-section">§7 Input</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb2"><label for="cb2">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">将 <code>src/components/Forms/BumbleInput.jsx</code> 完整替换为：</p>
+      <div class="code-block">import { useRef, useEffect } from 'react';
+
+export default function BumbleInput({
+  label, value, onChange, type = 'text',
+  <span class="add">error = false, errorMsg = '',</span>
+  className = ''
+}) {
+  <span class="add">const groupRef = useRef(null);
+
+  useEffect(() => {
+    if (!error || !groupRef.current) return;
+    groupRef.current.classList.add('shake');
+    const timer = setTimeout(() => groupRef.current?.classList.remove('shake'), 300);
+    return () => clearTimeout(timer);
+  }, [error]);</span>
+
+  return (
+    <span class="add">&lt;div ref={groupRef} className={`bumble-input-group relative mb-6 ${className}`}&gt;</span>
+      &lt;input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder=" "
+        className={`bumble-input w-full <span class="add">${error ? 'error' : ''}</span>`}
+      /&gt;
+      &lt;label className="bumble-label"&gt;{label}&lt;/label&gt;
+      <span class="add">&lt;div className="bumble-input-underline" /&gt;
+      {errorMsg &amp;&amp; (
+        &lt;p className="bumble-error-msg"&gt;{errorMsg}&lt;/p&gt;
+      )}</span>
+    &lt;/div&gt;
+  );
+}</div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Forms\BumbleInput.jsx" -Pattern "error|errorMsg|groupRef|shake"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        至少 4 条匹配，分别含 error prop、errorMsg prop、groupRef 声明、shake class 操作。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        在 LoginPage 的 BumbleInput 上触发错误时，下划线变红 + 输入框抖动 + 错误消息显示。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 3</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取当前文件，检查 useEffect 依赖数组是否包含 [error]，shake class 移除 timer 是否正确清理，修复后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-card" id="step3">
+    <div class="step-header" onclick="toggleStep('step3')">
+      <div class="step-num">3</div>
+      <div class="step-title">重构 Stepper — 圆形黑色按钮，匹配 §7 工业步进器规范</div>
+      <div class="step-section">§7 Stepper</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb3"><label for="cb3">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">编辑 <code>src/components/Forms/Stepper.jsx</code>，修改两个按钮的 className 和 whileTap：</p>
+      <div class="code-block"><span class="comment">/* 改动1：两个 motion.button 的 className */</span>
+<span class="remove">className="w-12 h-12 rounded-l-2xl bg-bg-secondary flex items-center justify-center text-xl font-bold select-none border-none cursor-pointer"</span>
+<span class="add">className="w-12 h-12 rounded-full bg-action-black text-white flex items-center justify-center text-2xl font-bold select-none border-none cursor-pointer"
+style={{ boxShadow: '0 2px 6px rgba(0,0,0,0.2)', touchAction: 'none' }}</span>
+
+<span class="comment">/* 改动2：whileTap scale */</span>
+<span class="remove">whileTap={{ scale: 0.94 }}</span>
+<span class="add">whileTap={{ scale: 0.9 }}</span>
+
+<span class="comment">/* 改动3：value input 样式 */</span>
+<span class="remove">className="w-16 h-12 text-center text-lg font-bold bg-white border-y border-gray-100"</span>
+<span class="add">className="w-20 h-12 text-center text-lg font-bold bg-transparent border-none"
+style={{ fontVariantNumeric: 'tabular-nums', outline: 'none' }}</span>
+
+<span class="comment">/* 移除原来的 rounded-r-2xl 按钮，改为与 − 按钮相同的 rounded-full 样式 */</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Forms\Stepper.jsx" -Pattern "rounded-full|bg-action-black|0\.9"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        3 条匹配（rounded-full × 2 buttons + bg-action-black + scale 0.9）。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        打开出库或归还表单，Stepper 按钮为 48px 黑色圆形，点击有 0.9 缩放反馈。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 4</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 Stepper.jsx 当前内容，确认两个 motion.button 都已修改（+ 按钮也必须改），修复后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-card" id="step4">
+    <div class="step-header" onclick="toggleStep('step4')">
+      <div class="step-num">4</div>
+      <div class="step-title">修复 RecordCard — 右滑底板改为绿色（§5 确认语义）</div>
+      <div class="step-section">§5 Business List</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb4"><label for="cb4">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">编辑 <code>src/components/Records/RecordCard.jsx</code>，修改右滑底板颜色：</p>
+      <div class="code-block"><span class="comment">/* 右滑底板（确认/完成）：黄色 → 绿色 */</span>
+<span class="remove">className="absolute inset-0 bg-brand-yellow flex items-center justify-start pl-5"</span>
+<span class="add">className="absolute inset-0 flex items-center justify-start pl-5"
+style={{ background: '#4CAF50' }}</span>
+
+<span class="comment">/* 右滑底板内的 Check icon：改为白色（绿底上白色可读）*/</span>
+<span class="remove">&lt;Check size={24} className="text-action-black" strokeWidth={3} /&gt;</span>
+<span class="add">&lt;Check size={24} className="text-white" strokeWidth={3} /&gt;</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Records\RecordCard.jsx" -Pattern "#4CAF50|text-white"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        2 条匹配：#4CAF50 绿色背景 + text-white 图标颜色。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">额外确认</div>
+        grep "bg-brand-yellow" src/components/Records/RecordCard.jsx 预期：0 条（黄色已移除）。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 5</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 RecordCard.jsx 第 98–101 行，确认右滑底板 div（第一个 absolute inset-0）已修改，修复后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-card" id="step5">
+    <div class="step-header" onclick="toggleStep('step5')">
+      <div class="step-num">5</div>
+      <div class="step-title">重构 CheckoutForm Segmented Control — Framer Motion 动画滑块</div>
+      <div class="step-section">§2D Seg Control</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb5"><label for="cb5">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">编辑 <code>src/components/Forms/CheckoutForm.jsx</code>，找到 method selector 区块（约第 55–62 行），替换为：</p>
+      <div class="code-block"><span class="comment">/* 在文件顶部 import 中添加 AnimatePresence（已有 motion）*/</span>
+import { motion <span class="add">, AnimatePresence</span> } from 'framer-motion';
+
+<span class="comment">/* 替换 method selector div */</span>
+<span class="remove">&lt;div className="bg-bg-secondary rounded-full p-1 flex"&gt;
+  {['外销', '外借'].map(m =&gt; (
+    &lt;button key={m} onClick={() =&gt; { setMethod(m); setConfirmLoss(false); }}
+      className={`flex-1 py-2 text-sm font-semibold rounded-full transition-colors ${method === m ? 'bg-action-black text-white' : 'text-text-secondary'}`}&gt;
+      {m}
+    &lt;/button&gt;
+  ))}
+&lt;/div&gt;</span>
+
+<span class="add">&lt;div className="relative bg-bg-secondary rounded-full p-[3px] flex"&gt;
+  {['外销', '外借'].map(m =&gt; (
+    &lt;button
+      key={m}
+      onClick={() =&gt; { setMethod(m); setConfirmLoss(false); }}
+      className="relative flex-1 py-2 text-sm font-semibold z-10 rounded-full text-center"
+      style={{ color: method === m ? '#fff' : '#757575' }}
+    &gt;
+      {method === m &amp;&amp; (
+        &lt;motion.div
+          layoutId="method-seg-pill"
+          className="absolute inset-0 bg-action-black rounded-full"
+          transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        /&gt;
+      )}
+      &lt;span className="relative z-10"&gt;{m}&lt;/span&gt;
+    &lt;/button&gt;
+  ))}
+&lt;/div&gt;</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Forms\CheckoutForm.jsx" -Pattern "layoutId|method-seg-pill"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        1 条匹配，含 layoutId="method-seg-pill"。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        打开出库 FormSheet，点击"外销/外借"切换，pill 滑块有弹簧动画过渡（非瞬间切换）。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 6</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 CheckoutForm.jsx method selector 区域，确认 motion.div layoutId 在 active button 内部渲染，检查 z-index 层级（pill absolute inset-0 需在 span 之下），修复后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 6 -->
+  <div class="step-card" id="step6">
+    <div class="step-header" onclick="toggleStep('step6')">
+      <div class="step-num">6</div>
+      <div class="step-title">重构 SettingsTab — 列表结构对齐 §2C，移除图标容器</div>
+      <div class="step-section">§2C Settings</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb6"><label for="cb6">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">编辑 <code>src/components/Settings/SettingsTab.jsx</code>，修改 settings list 容器和项目结构：</p>
+      <div class="code-block"><span class="comment">/* 移除 Server, ChevronRight, LogOut import 中的 Server */</span>
+<span class="remove">import { ChevronRight, LogOut, Server } from 'lucide-react';</span>
+<span class="add">import { ChevronRight, LogOut } from 'lucide-react';</span>
+
+<span class="comment">/* 替换 settings list 容器 div */</span>
+<span class="remove">&lt;div className="overflow-hidden rounded-2xl" style={{ gap: 1, background: '#E5E5E5', display: 'flex', flexDirection: 'column' }}&gt;
+  &lt;motion.button whileTap={{ scale: 0.98 }} onClick={() =&gt; setShowServerConfig(true)}
+    className="w-full flex items-center gap-3 bg-white active:bg-gray-50"
+    style={{ padding: '14px 16px' }}&gt;
+    &lt;div className="w-10 h-10 rounded-lg bg-bg-secondary flex items-center justify-center shrink-0"&gt;
+      &lt;Server size={20} className="text-action-black" /&gt;
+    &lt;/div&gt;
+    &lt;div className="flex-1 text-left"&gt;
+      &lt;p className="text-sm font-bold text-text-primary"&gt;服务器配置&lt;/p&gt;
+      &lt;p className="text-xs text-text-secondary"&gt;管理连接的服务器地址&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;ChevronRight size={18} className="text-text-secondary" /&gt;
+  &lt;/motion.button&gt;
+&lt;/div&gt;</span>
+
+<span class="add">&lt;div className="flex flex-col rounded-2xl overflow-hidden" style={{ gap: 1, background: '#E5E5E5' }}&gt;
+  &lt;motion.button
+    whileTap={{ scale: 0.98 }}
+    onClick={() =&gt; setShowServerConfig(true)}
+    className="w-full flex items-center justify-between bg-white active:bg-gray-50 px-4 py-3.5"
+  &gt;
+    &lt;div className="text-left"&gt;
+      &lt;p className="text-sm font-bold text-text-primary"&gt;服务器配置&lt;/p&gt;
+      &lt;p className="text-xs text-text-secondary mt-0.5"&gt;管理连接的服务器地址&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;ChevronRight size={18} className="text-text-secondary flex-shrink-0" /&gt;
+  &lt;/motion.button&gt;
+&lt;/div&gt;</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Settings\SettingsTab.jsx" -Pattern "Server |w-10 h-10"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        0 条匹配（Server import 和图标容器已移除）。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        设置页面列表项：纯文字 title/subtitle + chevron，无方形图标容器，间距靠 gap:1px 分割线。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 7</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 SettingsTab.jsx，确认 Server import 行和图标容器 div 已删除，仅剩文字内容结构，修复后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 7 -->
+  <div class="step-card" id="step7">
+    <div class="step-header" onclick="toggleStep('step7')">
+      <div class="step-num">7</div>
+      <div class="step-title">修复 AppShell Tab Bar — 移除 yellow dot indicator</div>
+      <div class="step-section">§2E Tab Bar</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb7"><label for="cb7">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">编辑 <code>src/pages/AppShell.jsx</code>，删除 tab indicator motion.div 和 AnimatePresence import：</p>
+      <div class="code-block"><span class="comment">/* 删除 active indicator 渲染块（约第 61–67 行）*/</span>
+<span class="remove">{isActive &amp;&amp; (
+  &lt;motion.div
+    layoutId="tab-indicator"
+    className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-yellow"
+    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+  /&gt;
+)}</span>
+
+<span class="comment">/* 同时移除 button 上的 relative 定位（如无其他用途）*/</span>
+<span class="remove">className="flex-1 flex flex-col items-center py-2 pt-3 relative"</span>
+<span class="add">className="flex-1 flex flex-col items-center py-2 pt-3"</span>
+
+<span class="comment">/* 检查是否还有其他地方用 motion，若无，可移除 motion import（保留供后续使用）*/</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\pages\AppShell.jsx" -Pattern "tab-indicator|layoutId"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        0 条匹配。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        切换 Tab，active 状态只有 icon 颜色变黑 + 字重加粗，无黄色圆点出现。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 所有 7 步完成，计划执行结束。</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 AppShell.jsx，grep "tab-indicator" 定位残留行，删除后重跑 GATE。</div>
+      </div>
+
+      <div style="margin-top:16px;padding:12px 14px;background:#FFFDE7;border-radius:8px;border-left:3px solid var(--bumble-yellow);font-size:12px">
+        完成 Steps 1–7 后继续执行 Steps 8–10（详情页重构）。
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 8 -->
+  <div class="step-card" id="step8">
+    <div class="step-header" onclick="toggleStep('step8')">
+      <div class="step-num">8</div>
+      <div class="step-title">重构 CheckoutDetail — 垂直英雄卡（黄/白三色）+ 货物无标签 InfoGroup</div>
+      <div class="step-section">§C Detail Card</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb8"><label for="cb8">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">将 <code>src/components/Details/CheckoutDetail.jsx</code> 完整替换为（垂直英雄卡：黄色=正常/白色=已撤销；货物信息无标签）：</p>
+      <div class="code-block"><span class="add">import { motion } from 'framer-motion';
+import { Package, Building2, Hash, Ruler, DollarSign, TrendingUp, TrendingDown, User, Clock, FileText } from 'lucide-react';
+
+function InfoIcon({ icon: Icon }) {
+  return (
+    &lt;div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-white"
+      style={{ background: '#1A1A1A' }}&gt;
+      &lt;Icon size={18} /&gt;
+    &lt;/div&gt;
+  );
+}
+
+function InfoItemVal({ icon, value }) {
+  return (
+    &lt;div className="flex items-center gap-3.5 py-2.5"&gt;
+      &lt;InfoIcon icon={icon} /&gt;
+      &lt;span className="text-[17px] font-bold" style={{ color: '#1A1A1A' }}&gt;{value}&lt;/span&gt;
+    &lt;/div&gt;
+  );
+}
+
+function InfoItemLabeled({ icon, label, value, valueColor }) {
+  return (
+    &lt;div className="flex items-center gap-3.5 py-2.5"&gt;
+      &lt;InfoIcon icon={icon} /&gt;
+      &lt;div className="flex flex-col flex-1 min-w-0"&gt;
+        &lt;span className="text-[12px]" style={{ color: '#757575', marginBottom: '1px' }}&gt;{label}&lt;/span&gt;
+        &lt;span className="text-[17px] font-bold" style={{ color: valueColor ?? '#1A1A1A' }}&gt;{value}&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+function InfoGroup({ title, children, delay = 0 }) {
+  return (
+    &lt;motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, delay }}
+      className="bg-white rounded-2xl"
+      style={{ padding: '20px 22px' }}
+    &gt;
+      &lt;p className="text-[18px] font-extrabold mb-4" style={{ color: '#1A1A1A' }}&gt;{title}&lt;/p&gt;
+      {children}
+    &lt;/motion.div&gt;
+  );
+}
+
+function HeroCard({ quantity, method, costPrice, status }) {
+  const isCancelled = status === '已撤销';
+  const bg = isCancelled ? '#fff' : '#FFC629';
+  const border = isCancelled ? '1.5px solid #E5E5E5' : 'none';
+  const badgeColor = isCancelled ? '#fff' : '#FFC629';
+  const badge = `${method === '外借' ? '外借出库' : '外销出库'} · ${status}`;
+  return (
+    &lt;div className="rounded-3xl flex flex-col" style={{ background: bg, border, padding: '22px 22px 18px' }}&gt;
+      &lt;span className="text-[11px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
+        style={{ background: '#1A1A1A', color: badgeColor, letterSpacing: '0.3px' }}&gt;
+        {badge}
+      &lt;/span&gt;
+      &lt;div className="text-[56px] font-extrabold leading-none mb-1.5"
+        style={{ color: '#1A1A1A', letterSpacing: '-2px' }}&gt;
+        {quantity}
+      &lt;/div&gt;
+      &lt;div className="text-[14px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}&gt;
+        件 · {method}
+      &lt;/div&gt;
+      &lt;div className="flex items-baseline justify-between pt-3.5"
+        style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}&gt;
+        &lt;span className="text-[12px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}&gt;成本单价&lt;/span&gt;
+        &lt;span className="text-[22px] font-extrabold" style={{ color: '#1A1A1A' }}&gt;¥{costPrice.toFixed(2)}&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default function CheckoutDetail({ record }) {
+  const isLoss = record.method === '外销' &amp;&amp; record.saleUnitPrice &lt; record.costPrice;
+  return (
+    &lt;div className="flex flex-col gap-3"&gt;
+      &lt;HeroCard quantity={record.quantity} method={record.method} costPrice={record.costPrice} status={record.status} /&gt;
+      &lt;InfoGroup title="货物信息" delay={0.05}&gt;
+        &lt;InfoItemVal icon={Package} value={record.itemName} /&gt;
+        &lt;InfoItemVal icon={Building2} value={record.warehouse} /&gt;
+        &lt;InfoItemVal icon={Hash} value={record.code} /&gt;
+        &lt;InfoItemVal icon={Ruler} value={record.spec} /&gt;
+      &lt;/InfoGroup&gt;
+      {record.method === '外销' &amp;&amp; (
+        &lt;InfoGroup title="金额信息" delay={0.1}&gt;
+          &lt;InfoItemLabeled icon={DollarSign} label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} /&gt;
+          &lt;InfoItemLabeled icon={isLoss ? TrendingDown : TrendingUp} label="销售单价"
+            value={`¥${record.saleUnitPrice.toFixed(2)}${isLoss ? ' ↓' : ' ↑'}`}
+            valueColor={isLoss ? '#C62828' : '#2E7D32'} /&gt;
+        &lt;/InfoGroup&gt;
+      )}
+      &lt;InfoGroup title="操作信息" delay={0.15}&gt;
+        &lt;InfoItemLabeled icon={User} label="操作人" value={record.operatorName} /&gt;
+        &lt;InfoItemLabeled icon={Clock} label="出库时间" value={record.time} /&gt;
+        {record.remark &amp;&amp; &lt;InfoItemLabeled icon={FileText} label="备注" value={record.remark} /&gt;}
+      &lt;/InfoGroup&gt;
+    &lt;/div&gt;
+  );
+}</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Details\CheckoutDetail.jsx" -Pattern "HeroCard|InfoGroup|FFC629"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        3 条匹配（HeroCard 定义/使用、InfoGroup 定义/使用、#FFC629 颜色）。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        点开正常出库记录：黄色英雄卡，顶部黑底黄字徽章，56px 大字数量，底部 cost-row 成本单价。点开已撤销记录：白色边框英雄卡。货物信息行无"货物名称"等标签。外销记录有金额分组（含涨跌色），外借记录无金额分组。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 9</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取文件检查 HeroCard 组件是否 export，record 字段名是否与 mockData 一致（costPrice/saleTotalPrice/saleUnitPrice），修复后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 9 -->
+  <div class="step-card" id="step9">
+    <div class="step-header" onclick="toggleStep('step9')">
+      <div class="step-num">9</div>
+      <div class="step-title">重构 ReturnDetail — 黄色垂直英雄卡（外借人在 cost-row）+ 货物无标签 InfoGroup</div>
+      <div class="step-section">§C Detail Card</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb9"><label for="cb9">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">将 <code>src/components/Details/ReturnDetail.jsx</code> 完整替换为（白色英雄卡，cost-row 显示外借人，货物信息无标签）：</p>
+      <div class="code-block"><span class="add">import { motion } from 'framer-motion';
+import { Package, Building2, Hash, Ruler, User, Clock, FileText } from 'lucide-react';
+
+<span class="comment">/* InfoIcon / InfoItemVal / InfoItemLabeled / InfoGroup — 结构同 CheckoutDetail，内联定义 */</span>
+
+function HeroCard({ returnQty, borrower }) {
+  return (
+    &lt;div className="rounded-3xl flex flex-col"
+      style={{ background: '#FFC629', padding: '22px 22px 18px' }}&gt;
+      &lt;span className="text-[11px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
+        style={{ background: '#1A1A1A', color: '#FFC629', letterSpacing: '0.3px' }}&gt;
+        归还记录 · 已归还
+      &lt;/span&gt;
+      &lt;div className="text-[56px] font-extrabold leading-none mb-1.5"
+        style={{ color: '#1A1A1A', letterSpacing: '-2px' }}&gt;
+        {returnQty}
+      &lt;/div&gt;
+      &lt;div className="text-[14px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}&gt;
+        件 · 已归还
+      &lt;/div&gt;
+      &lt;div className="flex items-baseline justify-between pt-3.5"
+        style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}&gt;
+        &lt;span className="text-[12px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}&gt;外借人&lt;/span&gt;
+        &lt;span className="text-[17px] font-extrabold" style={{ color: '#1A1A1A' }}&gt;{borrower}&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default function ReturnDetail({ record }) {
+  return (
+    &lt;div className="flex flex-col gap-3"&gt;
+      &lt;HeroCard returnQty={record.returnQty} borrower={record.borrower} /&gt;
+      &lt;InfoGroup title="货物信息" delay={0.05}&gt;
+        &lt;InfoItemVal icon={Package} value={record.itemName} /&gt;
+        &lt;InfoItemVal icon={Building2} value={record.warehouse} /&gt;
+        &lt;InfoItemVal icon={Hash} value={record.code} /&gt;
+        &lt;InfoItemVal icon={Ruler} value={record.spec} /&gt;
+      &lt;/InfoGroup&gt;
+      &lt;InfoGroup title="操作信息" delay={0.1}&gt;
+        &lt;InfoItemLabeled icon={User} label="操作人" value={record.operatorName} /&gt;
+        &lt;InfoItemLabeled icon={Clock} label="归还时间" value={record.time} /&gt;
+        {record.remark &amp;&amp; &lt;InfoItemLabeled icon={FileText} label="备注" value={record.remark} /&gt;}
+      &lt;/InfoGroup&gt;
+    &lt;/div&gt;
+  );
+}</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Details\ReturnDetail.jsx" -Pattern "returnQty|borrower|FFC629"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        3 条匹配（returnQty、borrower、黄色背景 #FFC629）。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        点开归还记录详情：黄色英雄卡（与出库一致），顶部黑底黄字徽章"归还记录 · 已归还"，56px 大字归还数量，底部 cost-row 显示外借人姓名。货物信息无"货物名称"等文字标签。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 进入 Step 10</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 mockData.js 确认归还记录字段名（returnQty vs returnQuantity，borrower vs borrowerName），修复字段引用后重跑 GATE。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 10 -->
+  <div class="step-card" id="step10">
+    <div class="step-header" onclick="toggleStep('step10')">
+      <div class="step-num">10</div>
+      <div class="step-title">重构 InventoryCheckDetail — 黄色垂直英雄卡（差值数字语义色）+ 货物无标签 InfoGroup</div>
+      <div class="step-section">§C Detail Card</div>
+      <div class="step-status"><div class="checkbox-row"><input type="checkbox" id="cb10"><label for="cb10">[ ]</label></div></div>
+    </div>
+    <div class="step-body">
+      <div class="step-section-label">ACTION</div>
+      <p style="font-size:12px;margin-bottom:8px">将 <code>src/components/Details/InventoryCheckDetail.jsx</code> 完整替换为（三色英雄卡：黑=亏损/黄=盈余/白=相符；货物信息无标签）：</p>
+      <div class="code-block"><span class="add">import { motion } from 'framer-motion';
+import { Package, Building2, Hash, Ruler, BarChart2, ListChecks, Scale, User, Clock, FileText } from 'lucide-react';
+
+<span class="comment">/* InfoIcon / InfoItemVal / InfoItemLabeled / InfoGroup — 结构同 CheckoutDetail，内联定义 */</span>
+
+function HeroCard({ difference, costPrice }) {
+  const isPos = difference &gt; 0;
+  const isNeg = difference &lt; 0;
+  const diffText = isPos ? `+${difference}` : difference === 0 ? '0' : `${difference}`;
+  const diffColor = isNeg ? '#C62828' : isPos ? '#2E7D32' : '#1A1A1A';
+  const diffContext = isPos ? '件盈余' : isNeg ? '件短缺' : '库存相符';
+  const statusLabel = isPos ? '盈余' : isNeg ? '亏损' : '相符';
+  const loss = Math.abs(difference) * costPrice;
+
+  return (
+    &lt;div className="rounded-3xl flex flex-col" style={{ background: '#FFC629', padding: '22px 22px 18px' }}&gt;
+      &lt;span className="text-[11px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
+        style={{ background: '#1A1A1A', color: '#FFC629', letterSpacing: '0.3px' }}&gt;
+        盘点记录 · {statusLabel}
+      &lt;/span&gt;
+      &lt;div className="text-[56px] font-extrabold leading-none mb-1.5"
+        style={{ color: diffColor, letterSpacing: '-2px' }}&gt;
+        {diffText}
+      &lt;/div&gt;
+      &lt;div className="text-[14px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}&gt;
+        {diffContext}
+      &lt;/div&gt;
+      &lt;div className="flex items-baseline justify-between pt-3.5"
+        style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}&gt;
+        &lt;div&gt;
+          &lt;span className="text-[12px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}&gt;成本单价&lt;/span&gt;
+          {difference !== 0 &amp;&amp; (
+            &lt;div className="text-[12px] font-semibold mt-0.5" style={{ color: 'rgba(0,0,0,0.42)' }}&gt;
+              {isNeg ? '损失' : '溢价'} ¥{loss.toFixed(2)}
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+        &lt;span className="text-[22px] font-extrabold" style={{ color: '#1A1A1A' }}&gt;¥{costPrice.toFixed(2)}&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+
+export default function InventoryCheckDetail({ record }) {
+  const isPos = record.difference &gt; 0;
+  const isNeg = record.difference &lt; 0;
+  return (
+    &lt;div className="flex flex-col gap-3"&gt;
+      &lt;HeroCard difference={record.difference} costPrice={record.costPrice} /&gt;
+      &lt;InfoGroup title="盘点数据" delay={0.05}&gt;
+        &lt;InfoItemLabeled icon={BarChart2} label="账面库存" value={`${record.bookQty} 件`} /&gt;
+        &lt;InfoItemLabeled icon={ListChecks} label="实盘数量" value={`${record.actualQty} 件`} /&gt;
+        &lt;InfoItemLabeled icon={Scale} label="差值"
+          value={isPos ? `+${record.difference} 件` : isNeg ? `${record.difference} 件` : '0 件'}
+          valueColor={isPos ? '#2E7D32' : isNeg ? '#C62828' : undefined} /&gt;
+      &lt;/InfoGroup&gt;
+      &lt;InfoGroup title="货物信息" delay={0.1}&gt;
+        &lt;InfoItemVal icon={Package} value={record.itemName} /&gt;
+        &lt;InfoItemVal icon={Building2} value={record.warehouse} /&gt;
+        &lt;InfoItemVal icon={Hash} value={record.code} /&gt;
+        &lt;InfoItemVal icon={Ruler} value={record.spec} /&gt;
+      &lt;/InfoGroup&gt;
+      &lt;InfoGroup title="操作信息" delay={0.15}&gt;
+        &lt;InfoItemLabeled icon={User} label="操作人" value={record.operatorName} /&gt;
+        &lt;InfoItemLabeled icon={Clock} label="盘点时间" value={record.time} /&gt;
+        {record.remark &amp;&amp; &lt;InfoItemLabeled icon={FileText} label="备注" value={record.remark} /&gt;}
+      &lt;/InfoGroup&gt;
+    &lt;/div&gt;
+  );
+}</span></div>
+
+      <div class="step-section-label">GATE</div>
+      <div class="gate-check">
+        <div class="gate-label">命令</div>
+        Select-String -Path "src\components\Details\InventoryCheckDetail.jsx" -Pattern "difference|costPrice|2E7D32|C62828"
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">预期</div>
+        4 条匹配（difference、costPrice、绿色#2E7D32、红色#C62828）。
+      </div>
+      <div class="gate-check">
+        <div class="gate-label">视觉验证</div>
+        （1）差值为负：英雄卡主数值红色，副文本"件短缺"，右区显示损失金额。（2）差值为零：主数值黑色，副文本"库存相符"，右区无损失行。（3）差值为正：主数值绿色，副文本"件盈余"。
+      </div>
+
+      <div class="step-section-label">NEXT</div>
+      <div class="next-block">
+        <div class="next-row"><span class="next-icon-pass">PASS →</span> 全部 10 步完成。在浏览器逐 Tab 打开详情页，与 §2 Planned 视图对比，计划执行结束。</div>
+        <div class="next-row"><span class="next-icon-fail">FAIL →</span> 读取 mockData.js 确认盘点记录字段：difference / bookQty / actualQty / costPrice，确认 HeroCard 收到正确 props，修复后重跑视觉验证三条场景。</div>
+      </div>
+
+      <div style="margin-top:16px;padding:12px 14px;background:#FFFDE7;border-radius:8px;border-left:3px solid var(--bumble-yellow);font-size:12px">
+        <strong>全部完成标志：</strong>所有 10 个步骤 STATUS 勾选，浏览器中每个 Tab 和详情页与 §2 Page Composition Views "Planned" 视图一致。
+      </div>
+    </div>
+  </div>
+
+</section>
+</main>
+
+<script>
+// Sidebar active state
+document.querySelectorAll('.sidebar nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar nav a').forEach(x => x.classList.remove('active'));
+    a.classList.add('active');
+  });
+});
+
+// Intersection observer for sidebar
+const sections = document.querySelectorAll('section[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.sidebar nav a').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id);
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+// Composition tab switch
+function switchCompTab(name) {
+  document.querySelectorAll('.comp-tab').forEach((t, i) => {
+    const names = ['checkout','records','settings','shell','detail'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.comp-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+}
+
+// Flowchart node details
+const fcDetails = {
+  1: { title: 'Step 1: index.css 错误状态', body: 'ACTION: 在 src/index.css 末尾添加 .bumble-input.error、@keyframes inputShake、.bumble-input-underline、.bumble-error-msg 四组样式。同时删除 input:focus 中的 box-shadow ring（改由 border-bottom 处理）。<br><br><span class="fc-pass">GATE PASS:</span> grep inputShake|errorFlash|bumble-input-underline → 3 条匹配。<br><span class="fc-fail">GATE FAIL:</span> 重新追加，确认写入位置正确。' },
+  2: { title: 'Step 2: BumbleInput error/shake', body: 'ACTION: 添加 error, errorMsg props；useEffect 监听 error 变化，触发时给 groupRef 添加 shake class（300ms后移除）；添加 .bumble-input-underline div 和 .bumble-error-msg 段落。<br><br><span class="fc-pass">GATE PASS:</span> grep error|errorMsg|groupRef|shake → 4 条匹配。<br><span class="fc-fail">GATE FAIL:</span> 检查 useEffect 依赖数组 [error]，shake timer 清理逻辑。' },
+  3: { title: 'Step 3: Stepper 圆形黑底', body: 'ACTION: 两个 motion.button 改为 rounded-full + bg-action-black + text-white + boxShadow。whileTap scale 从 0.94 改为 0.9。value input 移除 border-y。<br><br><span class="fc-pass">GATE PASS:</span> grep rounded-full|bg-action-black|0\\.9 → 3 条匹配。<br><span class="fc-fail">GATE FAIL:</span> 确认两个按钮都已修改（+ 号按钮也必须改）。' },
+  4: { title: 'Step 4: RecordCard 绿色底板', body: 'ACTION: 右滑底板（第一个 absolute inset-0 div）bg-brand-yellow → style background #4CAF50。Check icon className text-action-black → text-white。<br><br><span class="fc-pass">GATE PASS:</span> grep "#4CAF50"|"text-white" → 2 条匹配；grep bg-brand-yellow → 0 条。<br><span class="fc-fail">GATE FAIL:</span> 定位第 98-101 行右滑底板 div，确认是第一个 absolute inset-0。' },
+  5: { title: 'Step 5: CheckoutForm Segmented Control', body: 'ACTION: method selector 区块替换为 Framer Motion layoutId="method-seg-pill" 滑块方案。pill 是 active button 内的 absolute motion.div，spring stiffness:300 damping:28。<br><br><span class="fc-pass">GATE PASS:</span> grep layoutId|method-seg-pill → 1 条匹配。<br><span class="fc-fail">GATE FAIL:</span> 检查 z-index 层级：pill absolute inset-0 在 span 之下。' },
+  6: { title: 'Step 6: SettingsTab 列表结构', body: 'ACTION: 移除 Server import 和图标容器 div（w-10 h-10 rounded-lg）。list 容器改为纯 Tailwind className（flex flex-col rounded-2xl overflow-hidden），每项只有 text + chevron。<br><br><span class="fc-pass">GATE PASS:</span> grep "Server |w-10 h-10" → 0 条匹配。<br><span class="fc-fail">GATE FAIL:</span> 确认 import 行和图标 div 都已删除。' },
+  7: { title: 'Step 7: AppShell 移除 yellow dot', body: 'ACTION: 删除 isActive && motion.div layoutId="tab-indicator" 整个条件渲染块。移除 button 上的 relative 定位。<br><br><span class="fc-pass">GATE PASS:</span> grep "tab-indicator"|layoutId → 0 条匹配。<br><span class="fc-fail">GATE FAIL:</span> grep "tab-indicator" 精确定位残留行删除。' },
+  8: { title: 'Step 8: CheckoutDetail 英雄卡重构', body: 'ACTION: 完整重写 CheckoutDetail.jsx。移除 Row 函数，改为 HeroCard + InfoGroup 结构。英雄卡左区=数量，右区=成本单价。三个 InfoGroup：货物信息/金额信息（外销时）/操作信息。Framer Motion 错开入场 delay。<br><br><span class="fc-pass">GATE PASS:</span> grep "hero-card|InfoGroup|costPrice.*bold" → 3 条匹配；运行应用点开出库记录详情，英雄卡黄底正常显示。<br><span class="fc-fail">GATE FAIL:</span> 读取当前文件，确认 HeroCard 组件结构，金额分组条件渲染逻辑是否正确。' },
+  9: { title: 'Step 9: ReturnDetail 英雄卡重构', body: 'ACTION: 完整重写 ReturnDetail.jsx。英雄卡左区=归还数量，右区=外借人姓名（sec-value font-size 18px 适应长名）。两个 InfoGroup：货物信息/操作信息，无金额分组。<br><br><span class="fc-pass">GATE PASS:</span> grep "hero-card|borrower|InfoGroup" → 3 条匹配；点开归还记录详情，英雄卡显示归还数量+外借人。<br><span class="fc-fail">GATE FAIL:</span> 检查外借人字段来自 record.borrower 而非 record.borrowerName，确认字段名与 mockData 一致。' },
+  10: { title: 'Step 10: InventoryCheckDetail 英雄卡重构', body: 'ACTION: 完整重写 InventoryCheckDetail.jsx。英雄卡主数值=差值（语义色：正#2E7D32/负#C62828/零action-black），右区=成本单价+损失金额（差值×成本单价）。三个 InfoGroup：盘点数据（账面/实盘/差值）/货物信息/操作信息。<br><br><span class="fc-pass">GATE PASS:</span> grep "diff-pos|diff-neg|costPrice" → 2 条匹配；亏损记录英雄卡主数值红色，差值为负时 sub 显示"件短缺"。<br><span class="fc-fail">GATE FAIL:</span> 确认 difference 计算来自 record.difference = record.actualQty - record.bookQty，语义色条件逻辑是否覆盖零值（color=action-black, sub="库存相符"）。' },
+};
+let currentFcNode = null;
+
+function showFcDetail(n) {
+  const nodes = document.querySelectorAll('.fc-node');
+  nodes.forEach(nd => nd.classList.remove('selected'));
+  nodes[n-1].classList.add('selected');
+
+  const detail = document.getElementById('fcDetail');
+  const title = document.getElementById('fcDetailTitle');
+  const body = document.getElementById('fcDetailBody');
+  const d = fcDetails[n];
+  title.textContent = d.title;
+  body.innerHTML = d.body;
+  detail.classList.add('show');
+  currentFcNode = n;
+}
+
+// Step accordion
+function toggleStep(id) {
+  const card = document.getElementById(id);
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.step-card').forEach(c => c.classList.remove('open'));
+  if (!isOpen) card.classList.add('open');
+}
+</script>
+</body>
+</html>
