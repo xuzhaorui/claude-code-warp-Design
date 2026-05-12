@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Stepper from './Stepper';
 import BumbleInput from './BumbleInput';
 
@@ -30,111 +30,141 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
   };
 
   return (
-    <div className="space-y-4">
-      {/* Read-only item info */}
-      <div className="bg-bg-secondary rounded-2xl p-4 space-y-2">
-        <InfoRow label="货物名称" value={item.itemName} />
-        <InfoRow label="所属仓库" value={item.warehouse} />
-        <InfoRow label="编号" value={item.code} />
-        <InfoRow label="规格" value={item.spec} />
-        <InfoRow label="库存数量" value={item.stockQty} />
-        {showCostPrice && <InfoRow label="成本单价" value={`¥${item.costPrice.toFixed(2)}`} />}
+    <div className="flex" style={{ minHeight: '320px' }}>
+      {/* Left: Item Info */}
+      <div className="w-[135px] bg-white border-r border-gray-100 p-3 flex flex-col gap-2.5 overflow-y-auto shrink-0">
+        <BadgeField label="库存" value={item.stockQty} />
+        {showCostPrice && <BadgeField label="成本单价" value={`¥${item.costPrice.toFixed(2)}`} price />}
+        <InfoField label="货物名称" value={item.itemName} />
+        <InfoField label="仓库" value={item.warehouse} />
+        <InfoField label="编号" value={item.code} />
+        <InfoField label="规格" value={item.spec} />
       </div>
 
-      {/* Method selector */}
-      <div className="relative bg-bg-secondary rounded-full p-[3px] flex">
-        {['外销', '外借'].map(m => (
-          <button
-            key={m}
-            onClick={() => { setMethod(m); setConfirmLoss(false); }}
-            className="relative flex-1 py-2 text-base font-semibold z-10 rounded-full text-center"
-            style={{ color: method === m ? '#fff' : '#757575' }}
-          >
-            {method === m && (
-              <motion.div
-                layoutId="method-seg-pill"
-                className="absolute inset-0 bg-action-black rounded-full"
-                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              />
-            )}
-            <span className="relative z-10">{m}</span>
-          </button>
-        ))}
-      </div>
+      {/* Right: Form */}
+      <div className="flex-1 p-3 flex flex-col gap-3 overflow-y-auto">
+        {/* Method selector */}
+        <div className="relative bg-bg-secondary rounded-full p-[3px] flex">
+          {['外销', '外借'].map(m => (
+            <button
+              key={m}
+              onClick={() => { setMethod(m); setConfirmLoss(false); }}
+              className="relative flex-1 py-2 text-base font-semibold z-10 rounded-full text-center"
+              style={{ color: method === m ? '#fff' : '#757575' }}
+            >
+              {method === m && (
+                <motion.div
+                  layoutId="method-seg-pill"
+                  className="absolute inset-0 bg-action-black rounded-full"
+                  transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+                />
+              )}
+              <span className="relative z-10">{m}</span>
+            </button>
+          ))}
+        </div>
 
-      {/* Quantity */}
-      <Stepper
-        value={quantity}
-        onChange={(updater) => { setQuantity(updater); setConfirmLoss(false); }}
-        min={1}
-        max={item.stockQty}
-        label="出库数量"
-        hint={`库存：${item.stockQty} 件`}
-        error={overStock}
-      />
-      {overStock && (
-        <p className="text-[13px] text-action-black font-semibold mt-1 pl-1">超出库存数量（库存: {item.stockQty}）</p>
-      )}
-
-      {/* Sale price (外销 only) */}
-      {method === '外销' && (
-        <>
-          <div>
-            <BumbleInput
-              label="销售总价"
-              type="number"
-              value={saleTotalPrice}
-              onChange={e => { setSaleTotalPrice(e.target.value); setConfirmLoss(false); }}
-            />
-          </div>
-          <div className="bg-bg-secondary rounded-2xl px-4 py-3">
-            <span className="text-sm text-text-secondary">销售单价：</span>
-            <span className="text-base font-semibold text-text-primary">¥{saleUnitPrice}</span>
-          </div>
-          {isLoss && !confirmLoss && (
-            <div className="bg-red-50 rounded-2xl p-3">
-              <p className="text-sm text-red-600 mb-2">销售单价低于成本单价（¥{item.costPrice.toFixed(2)}），存在亏损风险</p>
-              <button
-                onClick={() => setConfirmLoss(true)}
-                className="text-sm font-semibold text-red-600 underline"
-              >
-                确认继续
-              </button>
-            </div>
-          )}
-          {isLoss && confirmLoss && (
-            <p className="text-sm text-text-secondary">已确认亏损操作</p>
-          )}
-        </>
-      )}
-
-      {/* Remark (外借 only) */}
-      {method === '外借' && (
-        <BumbleInput
-          label="出库备注（选填）"
-          value={remark}
-          onChange={e => setRemark(e.target.value)}
+        {/* Quantity */}
+        <Stepper
+          value={quantity}
+          onChange={(updater) => { setQuantity(updater); setConfirmLoss(false); }}
+          min={1}
+          max={item.stockQty}
+          label="出库数量"
+          hint={`库存：${item.stockQty} 件`}
+          error={overStock}
         />
-      )}
+        {overStock && (
+          <p className="text-[13px] text-action-black font-semibold mt-1 pl-1">超出库存数量（库存: {item.stockQty}）</p>
+        )}
 
-      {/* Submit */}
-      <motion.button
-        whileTap={{ scale: 0.96 }}
-        onClick={handleSubmit}
-        disabled={!canSubmit}
-        className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-base disabled:opacity-40"
-      >
-        提交
-      </motion.button>
+        {/* Sale price (外销 only) */}
+        {method === '外销' && (
+          <>
+            <div>
+              <BumbleInput
+                label="销售总价"
+                type="number"
+                value={saleTotalPrice}
+                onChange={e => { setSaleTotalPrice(e.target.value); setConfirmLoss(false); }}
+              />
+            </div>
+            <div className="bg-bg-secondary rounded-2xl px-4 py-3">
+              <span className="text-sm text-text-secondary">销售单价：</span>
+              <span className="text-base font-semibold text-text-primary">¥{saleUnitPrice}</span>
+            </div>
+            {isLoss && !confirmLoss && (
+              <div className="bg-red-50 rounded-2xl p-3">
+                <p className="text-sm text-red-600 mb-2">销售单价低于成本单价（¥{item.costPrice.toFixed(2)}），存在亏损风险</p>
+                <button
+                  onClick={() => setConfirmLoss(true)}
+                  className="text-sm font-semibold text-red-600 underline"
+                >
+                  确认继续
+                </button>
+              </div>
+            )}
+            {isLoss && confirmLoss && (
+              <p className="text-sm text-text-secondary">已确认亏损操作</p>
+            )}
+          </>
+        )}
+
+        {/* Remark (外借 only) */}
+        {method === '外借' && (
+          <BumbleInput
+            label="出库备注（选填）"
+            value={remark}
+            onChange={e => setRemark(e.target.value)}
+          />
+        )}
+
+        {/* Submit */}
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={handleSubmit}
+          disabled={!canSubmit}
+          className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-base disabled:opacity-40 mt-auto"
+        >
+          提交
+        </motion.button>
+      </div>
     </div>
   );
 }
 
-function InfoRow({ label, value }) {
+function InfoField({ label, value }) {
   return (
-    <div className="flex justify-between text-base">
-      <span className="text-text-secondary">{label}</span>
-      <span className="font-semibold text-text-primary">{value}</span>
+    <div>
+      <div className="text-[10px] font-semibold text-text-secondary tracking-wide">{label}</div>
+      <div className="text-sm font-bold text-text-primary mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+function BadgeField({ label, value, price }) {
+  return (
+    <div>
+      <div className="text-[10px] font-semibold text-text-secondary tracking-wide">{label}</div>
+      <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
+        <div className="rounded-[14px] p-1.5" style={{ background: '#F5C842' }}>
+          <div className="rounded-[10px] py-1.5 px-3 text-center" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
+            <span
+              className="inline-block"
+              style={{
+                fontSize: price ? '16px' : '18px',
+                fontWeight: 900,
+                fontStyle: 'italic',
+                color: '#F5C842',
+                letterSpacing: '-0.5px',
+                transform: 'skewX(8deg)',
+              }}
+            >
+              {value}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
