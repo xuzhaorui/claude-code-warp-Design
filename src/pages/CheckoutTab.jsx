@@ -131,7 +131,7 @@ export default function CheckoutTab({ showCostPrice = true }) {
           </span>
           <div
             className="absolute flex items-center justify-center"
-            style={{ top: '20px', left: '50%', transform: 'translateX(-50%)', width: '96px', height: '96px', background: '#F5C842', borderRadius: '16px' }}
+            style={{ top: '20px', left: '50%', transform: 'translateX(-50%)', width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
           >
             <span className="text-white"><ScanFrameIcon size={48} animated /></span>
           </div>
