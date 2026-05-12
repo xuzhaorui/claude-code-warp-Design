@@ -4,7 +4,7 @@ import { User, Clock } from 'lucide-react';
 function DataCell({ label, value, valueColor }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px]" style={{ color: '#757575' }}>{label}</span>
+      <span className="text-[13px]" style={{ color: '#757575' }}>{label}</span>
       <span className="text-[15px] font-bold leading-tight" style={{ color: valueColor ?? '#1A1A1A' }}>{value}</span>
     </div>
   );
@@ -41,17 +41,17 @@ function MetaStrip({ operatorName, time, remark, delay = 0 }) {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
           <User size={13} style={{ color: '#757575' }} />
-          <span className="text-[13px] font-semibold" style={{ color: '#1A1A1A' }}>{operatorName}</span>
+          <span className="text-[15px] font-semibold" style={{ color: '#1A1A1A' }}>{operatorName}</span>
         </div>
-        <span className="text-[11px]" style={{ color: '#C0C0C0' }}>·</span>
+        <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
         <div className="flex items-center gap-1.5">
           <Clock size={13} style={{ color: '#757575' }} />
-          <span className="text-[13px]" style={{ color: '#757575' }}>{time}</span>
+          <span className="text-[15px]" style={{ color: '#757575' }}>{time}</span>
         </div>
         {remark && (
           <>
-            <span className="text-[11px]" style={{ color: '#C0C0C0' }}>·</span>
-            <span className="text-[13px]" style={{ color: '#757575' }}>{remark}</span>
+            <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
+            <span className="text-[15px]" style={{ color: '#757575' }}>{remark}</span>
           </>
         )}
       </div>

@@ -40,23 +40,23 @@ function MetaStrip({ operatorName, time, remark, delay = 0 }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay }}
-      className="bg-white"
-      style={{ padding: '0 20px' }}
+      className="bg-white rounded-2xl"
+      style={{ padding: '14px 18px' }}
     >
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <User size={14} style={{ color: '#AAAAAA' }} />
-          <span style={{ fontSize: '13px', color: '#1A1A1A', fontWeight: 600 }}>{operatorName}</span>
+          <User size={13} style={{ color: '#757575' }} />
+          <span className="text-[15px] font-semibold" style={{ color: '#1A1A1A' }}>{operatorName}</span>
         </div>
-        <span style={{ fontSize: '13px', color: '#AAAAAA' }}>·</span>
+        <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
         <div className="flex items-center gap-1.5">
-          <Clock size={14} style={{ color: '#AAAAAA' }} />
-          <span style={{ fontSize: '13px', color: '#AAAAAA' }}>{time}</span>
+          <Clock size={13} style={{ color: '#757575' }} />
+          <span className="text-[15px]" style={{ color: '#757575' }}>{time}</span>
         </div>
         {remark && (
           <>
-            <span style={{ fontSize: '13px', color: '#AAAAAA' }}>·</span>
-            <span style={{ fontSize: '13px', color: '#AAAAAA' }}>{remark}</span>
+            <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
+            <span className="text-[15px]" style={{ color: '#757575' }}>{remark}</span>
           </>
         )}
       </div>
