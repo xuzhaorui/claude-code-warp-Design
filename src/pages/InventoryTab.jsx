@@ -115,33 +115,33 @@ export default function InventoryTab({ showCostPrice = true }) {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <div
-          className="w-full rounded-[20px] flex flex-col items-start"
-          style={{ background: '#F5C842', padding: '20px' }}
-        >
-          <span
-            className="rounded-[10px] font-black italic"
-            style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
+        <div className="flex items-start gap-3">
+          <div
+            className="flex-1 rounded-[20px] flex flex-col items-start"
+            style={{ background: '#F5C842', padding: '20px' }}
           >
-            扫码盘点
-          </span>
-          <div className="flex justify-center w-full" style={{ margin: '12px 0' }}>
-            <div
-              className="flex items-center justify-center"
-              style={{ width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
+            <span
+              className="rounded-[10px] font-black italic"
+              style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
             >
-              <span className="text-white"><ScanFrameIcon size={48} animated /></span>
-            </div>
+              扫码盘点
+            </span>
+            <motion.button
+              whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+              onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
+              className="w-full mt-4 flex items-center justify-center rounded-[14px] text-white"
+              style={{ background: '#1A1A1A', height: '52px', fontSize: '16px', fontWeight: 600, gap: '8px' }}
+            >
+              <span className="text-white"><ScanFrameIcon size={20} animated /></span>
+              点击扫码盘点
+            </motion.button>
           </div>
-          <motion.button
-            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
-            onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
-            className="w-full flex items-center justify-center rounded-[14px] text-white"
-            style={{ background: '#1A1A1A', height: '52px', fontSize: '16px', fontWeight: 600, gap: '8px' }}
+          <div
+            className="shrink-0 flex items-center justify-center"
+            style={{ width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
           >
-            <span className="text-white"><ScanFrameIcon size={20} animated /></span>
-            点击扫码盘点
-          </motion.button>
+            <span className="text-white"><ScanFrameIcon size={48} animated /></span>
+          </div>
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
