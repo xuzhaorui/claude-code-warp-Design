@@ -1,20 +1,41 @@
-import { useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
 const springConfig = { type: 'spring', stiffness: 200, damping: 25, mass: 1 };
 
 export default function DetailSheet({ isOpen, onClose, title, children }) {
-  const heightRef = useRef(null);
+  const [sheetHeight, setSheetHeight] = useState(null);
+  const sheetRef = useRef(null);
 
   useEffect(() => {
-    if (isOpen && !heightRef.current) {
-      heightRef.current = window.innerHeight * 0.9;
-    }
-    if (!isOpen) {
-      heightRef.current = null;
+    if (isOpen) {
+      setSheetHeight(window.innerHeight * 0.9);
+    } else {
+      setSheetHeight(null);
     }
   }, [isOpen]);
+
+  // Lock height against keyboard resize
+  useEffect(() => {
+    if (!isOpen || !sheetHeight) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const onResize = () => {
+      if (!sheetRef.current) return;
+      sheetRef.current.style.maxHeight = sheetHeight + 'px';
+      sheetRef.current.style.top = vv.offsetTop + 'px';
+    };
+
+    onResize();
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onResize);
+    return () => {
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onResize);
+    };
+  }, [isOpen, sheetHeight]);
 
   return (
     <AnimatePresence>
@@ -29,6 +50,7 @@ export default function DetailSheet({ isOpen, onClose, title, children }) {
             onClick={onClose}
           />
           <motion.div
+            ref={sheetRef}
             initial={{ y: '-100%' }}
             animate={{ y: 0 }}
             exit={{ y: '-100%' }}
@@ -39,8 +61,8 @@ export default function DetailSheet({ isOpen, onClose, title, children }) {
             onDragEnd={(_, info) => {
               if (info.offset.y < -150 || info.velocity.y < -500) onClose();
             }}
-            className="fixed top-0 left-0 right-0 bg-white rounded-b-3xl z-50 flex flex-col"
-            style={{ maxHeight: heightRef.current ? `${heightRef.current}px` : '90vh' }}
+            className="fixed left-0 right-0 bg-white rounded-b-3xl z-50 flex flex-col"
+            style={{ maxHeight: sheetHeight ? `${sheetHeight}px` : '90vh' }}
           >
             <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
               <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />

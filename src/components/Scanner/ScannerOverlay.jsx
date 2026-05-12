@@ -30,7 +30,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   const mountedRef = useRef(true);
   const scanningRef = useRef(false);
   const activeRef = useRef(true);
-  const sheetHeightRef = useRef(null);
+  const [sheetHeight, setSheetHeight] = useState(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -41,6 +41,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   useEffect(() => {
     if (!sheetContent && showSheet) {
       setShowSheet(false);
+      setSheetHeight(null);
       const timer = setTimeout(() => {
         if (mountedRef.current) {
           setScanned(false);
@@ -50,10 +51,31 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
       return () => clearTimeout(timer);
     }
     if (sheetContent && !showSheet) {
-      sheetHeightRef.current = window.innerHeight * 0.85;
+      setSheetHeight(window.innerHeight * 0.85);
       setShowSheet(true);
     }
   }, [sheetContent]);
+
+  // Lock sheet height against keyboard resize
+  useEffect(() => {
+    if (!showSheet || !sheetHeight) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (!mountedRef.current) return;
+      const sheet = document.querySelector('[data-sheet-lock]');
+      if (sheet) {
+        sheet.style.maxHeight = sheetHeight + "px";
+        sheet.style.top = vv.offsetTop + "px";
+      }
+    };
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
+  }, [showSheet, sheetHeight]);
 
   const resumeScanning = useCallback(() => {
     const scanner = scannerRef.current;
@@ -226,7 +248,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   onDragEnd={(_, info) => {
                     if (info.offset.y < -150 || info.velocity.y < -500) handleSheetClose();
                   }}
-                  className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl flex flex-col" style={{ maxHeight: sheetHeightRef.current ? sheetHeightRef.current + "px" : "85vh" }}
+                  className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl flex flex-col" data-sheet-lock style={{ maxHeight: sheetHeight ? sheetHeight + "px" : "85vh" }}
                 >
                   <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
                     <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
