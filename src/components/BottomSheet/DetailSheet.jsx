@@ -17,17 +17,17 @@ export default function DetailSheet({ isOpen, onClose, title, children }) {
             onClick={onClose}
           />
           <motion.div
-            initial={{ y: '100%' }}
+            initial={{ y: '-100%' }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
+            exit={{ y: '-100%' }}
             transition={springConfig}
             drag="y"
-            dragConstraints={{ top: 0 }}
+            dragConstraints={{ bottom: 0 }}
             dragElastic={0.15}
             onDragEnd={(_, info) => {
-              if (info.offset.y > 150 || info.velocity.y > 500) onClose();
+              if (info.offset.y < -150 || info.velocity.y < -500) onClose();
             }}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[90vh] flex flex-col"
+            className="fixed top-0 left-0 right-0 bg-white rounded-b-3xl z-50 max-h-[90vh] flex flex-col"
           >
             <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
               <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
