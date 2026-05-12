@@ -80,10 +80,27 @@ function InfoField({ label, value }) {
 
 function BadgeField({ label, value }) {
   return (
-    <div className="rounded-2xl flex flex-col" style={{ background: '#FFC629', padding: '12px 14px' }}>
-      <div className="text-[11px] font-semibold" style={{ color: 'rgba(0,0,0,0.5)' }}>{label}</div>
-      <div className="text-[36px] font-extrabold leading-none" style={{ color: '#1A1A1A', letterSpacing: '-1px' }}>{value}</div>
-      <div className="text-[13px] font-medium" style={{ color: 'rgba(0,0,0,0.45)' }}>件</div>
+    <div>
+      <div className="text-[10px] font-semibold text-text-secondary tracking-wide">{label}</div>
+      <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
+        <div className="rounded-[14px] p-1.5" style={{ background: '#F5C842' }}>
+          <div className="rounded-[10px] py-1.5 px-3 text-center" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
+            <span
+              className="inline-block"
+              style={{
+                fontSize: '18px',
+                fontWeight: 900,
+                fontStyle: 'italic',
+                color: '#F5C842',
+                letterSpacing: '-0.5px',
+                transform: 'skewX(8deg)',
+              }}
+            >
+              {value}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
