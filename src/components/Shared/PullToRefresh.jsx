@@ -9,6 +9,8 @@ export default function PullToRefresh({ onRefresh, isRefreshing, children, class
   const threshold = 80;
 
   const handleTouchStart = (e) => {
+    const el = e.currentTarget;
+    if (el.scrollTop > 0) return;
     const touch = e.touches[0];
     startY.current = touch.clientY;
     setIsPulling(true);
