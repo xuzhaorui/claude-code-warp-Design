@@ -125,7 +125,7 @@ export default function CheckoutTab({ showCostPrice = true }) {
             className="relative z-10 self-start rounded-[10px] font-black italic"
             style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
           >
-            扫码出库
+            出库
           </span>
           <div
             className="absolute flex items-center justify-center"
