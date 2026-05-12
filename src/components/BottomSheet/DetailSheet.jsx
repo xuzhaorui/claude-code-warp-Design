@@ -1,9 +1,21 @@
+import { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
 const springConfig = { type: 'spring', stiffness: 200, damping: 25, mass: 1 };
 
 export default function DetailSheet({ isOpen, onClose, title, children }) {
+  const heightRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && !heightRef.current) {
+      heightRef.current = window.innerHeight * 0.9;
+    }
+    if (!isOpen) {
+      heightRef.current = null;
+    }
+  }, [isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -27,7 +39,8 @@ export default function DetailSheet({ isOpen, onClose, title, children }) {
             onDragEnd={(_, info) => {
               if (info.offset.y < -150 || info.velocity.y < -500) onClose();
             }}
-            className="fixed top-0 left-0 right-0 bg-white rounded-b-3xl z-50 max-h-[90vh] flex flex-col"
+            className="fixed top-0 left-0 right-0 bg-white rounded-b-3xl z-50 flex flex-col"
+            style={{ maxHeight: heightRef.current ? `${heightRef.current}px` : '90vh' }}
           >
             <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
               <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />

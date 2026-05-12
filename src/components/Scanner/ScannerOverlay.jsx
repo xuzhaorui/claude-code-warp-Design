@@ -30,6 +30,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   const mountedRef = useRef(true);
   const scanningRef = useRef(false);
   const activeRef = useRef(true);
+  const sheetHeightRef = useRef(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -49,6 +50,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
       return () => clearTimeout(timer);
     }
     if (sheetContent && !showSheet) {
+      sheetHeightRef.current = window.innerHeight * 0.85;
       setShowSheet(true);
     }
   }, [sheetContent]);
@@ -224,7 +226,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   onDragEnd={(_, info) => {
                     if (info.offset.y < -150 || info.velocity.y < -500) handleSheetClose();
                   }}
-                  className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl max-h-[85vh] flex flex-col"
+                  className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl flex flex-col" style={{ maxHeight: sheetHeightRef.current ? sheetHeightRef.current + "px" : "85vh" }}
                 >
                   <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
                     <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
