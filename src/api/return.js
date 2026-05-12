@@ -105,7 +105,7 @@ function mapReturnRecord(item) {
     spec: item.specification || parts[1] || '',
     returnQty: Number(item.num || 0),
     borrower: item.inBorrowerUserName || '',
-    operatorName: item.operationUserName || item.userName || '',
+    operatorName: item.operationNickName || item.nickName || item.operationUserName || item.userName || '',
     time: item.operationTime || '',
     remark: item.inDescription || '',
     status: inState === 2 ? '已撤销' : '正常',

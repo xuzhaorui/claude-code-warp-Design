@@ -86,7 +86,7 @@ function mapCheckoutRecord(item) {
     saleUnitPrice: Number(item.outUnitPrice || (Number(item.totalPrice || 0) / Number(item.num || 1)) || 0),
     costPrice: Number(item.costUnitPrice || 0),
     remark: item.outDescription || '',
-    operatorName: item.operationUserName || '',
+    operatorName: item.operationNickName || item.nickName || item.operationUserName || '',
     time: item.operationTime || '',
     status: outState === 2 ? '已撤销' : '正常',
   };

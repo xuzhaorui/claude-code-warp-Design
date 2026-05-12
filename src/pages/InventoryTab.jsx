@@ -43,14 +43,24 @@ export default function InventoryTab({ showCostPrice = true }) {
 
   const loadRecords = useCallback(async () => {
     const data = await getInventoryCheckRecords();
-    const name = (() => { try { return JSON.parse(localStorage.getItem('currentUser') || '{}').username || '未知'; } catch { return '未知'; } })();
-    setRecords(data.map(r => ({ ...r, operatorName: r.operatorName || name })));
+    const displayName = (() => {
+      try {
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const profile = user.profile || {};
+        return profile.nickName || profile.user?.nickName || user.username || '未知';
+      } catch { return '未知'; }
+    })();
+    setRecords(data.map(r => ({ ...r, operatorName: r.operatorName || displayName })));
   }, []);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
   const operatorName = (() => {
-    try { return JSON.parse(localStorage.getItem('currentUser') || '{}').username || '未知'; } catch { return '未知'; }
+    try {
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const profile = user.profile || {};
+      return profile.nickName || profile.user?.nickName || user.username || '未知';
+    } catch { return '未知'; }
   })();
 
   const handleScan = useCallback(async (code) => {
