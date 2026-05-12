@@ -1,20 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { LogOut, RotateCcw, ClipboardCheck, Settings } from 'lucide-react';
 import CheckoutTab from './CheckoutTab';
 import ReturnTab from './ReturnTab';
 import InventoryTab from './InventoryTab';
 import SettingsTab from '../components/Settings/SettingsTab';
+import Toast from '../components/Shared/Toast';
 
-const tabs = [
-  { key: 'checkout', label: '出库', icon: LogOut, activeIcon: LogOut },
-  { key: 'return', label: '归还', icon: RotateCcw, activeIcon: RotateCcw },
-  { key: 'inventory', label: '盘点', icon: ClipboardCheck, activeIcon: ClipboardCheck },
-  { key: 'settings', label: '设置', icon: Settings, activeIcon: Settings },
+const allTabs = [
+  { key: 'checkout', label: '出库', icon: LogOut, activeIcon: LogOut, permission: 'outbound' },
+  { key: 'return', label: '归还', icon: RotateCcw, activeIcon: RotateCcw, permission: 'return' },
+  { key: 'inventory', label: '盘点', icon: ClipboardCheck, activeIcon: ClipboardCheck, permission: 'inventory' },
+  { key: 'settings', label: '设置', icon: Settings, activeIcon: Settings, permission: 'settings' },
 ];
 
-export default function AppShell({ onLogout }) {
-  const [activeTab, setActiveTab] = useState('checkout');
+export default function AppShell({ onLogout, onServerChanged, allowedTabs, showCostPrice }) {
+  const visibleTabs = allTabs.filter(tab => allowedTabs.includes(tab.permission));
+  const [activeTab, setActiveTab] = useState(visibleTabs[0]?.key || 'settings');
+
+  useEffect(() => {
+    if (!visibleTabs.some(t => t.key === activeTab)) {
+      setActiveTab(visibleTabs[0]?.key || 'settings');
+    }
+  }, [allowedTabs]);
 
   const handleLogout = () => {
     localStorage.removeItem('currentUser');
@@ -23,11 +31,20 @@ export default function AppShell({ onLogout }) {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'checkout': return <CheckoutTab />;
-      case 'return': return <ReturnTab />;
-      case 'inventory': return <InventoryTab />;
-      case 'settings': return <SettingsTab onLogout={handleLogout} />;
-      default: return <CheckoutTab />;
+      case 'checkout': return <CheckoutTab showCostPrice={showCostPrice} />;
+      case 'return': return <ReturnTab showCostPrice={showCostPrice} />;
+      case 'inventory': return <InventoryTab showCostPrice={showCostPrice} />;
+      case 'settings': return <SettingsTab onLogout={handleLogout} onServerChanged={onServerChanged} />;
+      default: return visibleTabs[0] ? renderTab(visibleTabs[0].key) : null;
+    }
+  };
+
+  const renderTab = (key) => {
+    switch (key) {
+      case 'checkout': return <CheckoutTab showCostPrice={showCostPrice} />;
+      case 'return': return <ReturnTab showCostPrice={showCostPrice} />;
+      case 'inventory': return <InventoryTab showCostPrice={showCostPrice} />;
+      default: return null;
     }
   };
 
@@ -40,22 +57,23 @@ export default function AppShell({ onLogout }) {
       {/* Bottom Tab Bar */}
       <div className="bg-white border-t border-gray-100 pb-safe">
         <div className="flex">
-          {tabs.map(tab => {
+          {visibleTabs.map(tab => {
             const isActive = activeTab === tab.key;
             const Icon = tab.icon;
             return (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className="flex-1 flex flex-col items-center py-2 pt-3"
+                onPointerDown={() => setActiveTab(tab.key)}
+                className="flex-1 flex flex-col items-center justify-center py-3 pt-4 active:bg-gray-100 select-none touch-none"
+                style={{ minHeight: 64, WebkitTapHighlightColor: 'transparent' }}
               >
                 <Icon
-                  size={22}
+                  size={28}
                   className={isActive ? 'text-action-black' : 'text-text-secondary'}
                   strokeWidth={isActive ? 2.5 : 1.5}
                   fill={isActive ? 'currentColor' : 'none'}
                 />
-                <span className={`text-[10px] mt-1 ${isActive ? 'text-action-black font-semibold' : 'text-text-secondary'}`}>
+                <span className={`text-xs mt-1.5 ${isActive ? 'text-action-black font-semibold' : 'text-text-secondary'}`}>
                   {tab.label}
                 </span>
               </button>
@@ -63,6 +81,8 @@ export default function AppShell({ onLogout }) {
           })}
         </div>
       </div>
+
+      <Toast />
     </div>
   );
 }

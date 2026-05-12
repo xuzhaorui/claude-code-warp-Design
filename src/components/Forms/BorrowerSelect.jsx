@@ -19,7 +19,7 @@ export default function BorrowerSelect({ borrowers, onSelect }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: idx * 0.05 }}
           whileTap={{ scale: 0.96 }}
-          onClick={() => onSelect(b)}
+          onPointerDown={() => onSelect(b)}
           className="w-full bg-bg-secondary rounded-2xl p-4 text-left active:bg-gray-100"
         >
           <div className="flex justify-between items-center mb-1">

@@ -3,30 +3,21 @@ import { motion } from 'framer-motion';
 import Stepper from './Stepper';
 import BumbleInput from './BumbleInput';
 
-export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClose }) {
-  const [returnQty, setReturnQty] = useState(1);
+export default function ReturnForm({ borrowRecord, operatorName, showCostPrice = true, onSubmit, onClose }) {
+  const [returnQty, setReturnQty] = useState('');
   const [remark, setRemark] = useState('');
 
-  const qty = returnQty;
+  const qty = Number(returnQty) || 0;
   const overQty = qty > borrowRecord.borrowQty;
   const canSubmit = qty > 0 && !overQty;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
-      id: 'rt-' + Date.now(),
-      borrowRecordId: borrowRecord.id,
-      itemId: borrowRecord.itemId,
-      itemName: borrowRecord.itemName,
-      warehouse: borrowRecord.warehouse,
-      code: borrowRecord.code,
-      spec: borrowRecord.spec,
-      costPrice: borrowRecord.costPrice,
+      loanId: borrowRecord.loanId,
+      freightId: borrowRecord.freightId,
+      storageId: borrowRecord.storageId,
       returnQty: qty,
-      borrower: borrowRecord.borrower,
-      operatorId: JSON.parse(localStorage.getItem('currentUser') || '{}').id,
-      operatorName,
-      time: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-'),
       remark,
     });
   };
@@ -38,21 +29,22 @@ export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClo
         <InfoRow label="外借人" value={borrowRecord.borrower} />
         <InfoRow label="仓库名称" value={borrowRecord.warehouse} />
         <InfoRow label="在借数量" value={borrowRecord.borrowQty} />
-        <InfoRow label="成本单价" value={`¥${borrowRecord.costPrice.toFixed(2)}`} />
+        {showCostPrice && <InfoRow label="成本单价" value={borrowRecord.costPrice != null ? `¥${Number(borrowRecord.costPrice).toFixed(2)}` : '—'} />}
       </div>
 
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-2 block">归还数量</label>
-        <Stepper
-          value={returnQty}
-          onChange={setReturnQty}
-          min={1}
-          max={borrowRecord.borrowQty}
-        />
-        {overQty && (
-          <p className="text-red-500 text-xs mt-1">归还数量超过在借数量（在借: {borrowRecord.borrowQty}）</p>
-        )}
-      </div>
+      <Stepper
+        value={returnQty}
+        onChange={setReturnQty}
+        min={1}
+        max={borrowRecord.borrowQty}
+        label="归还数量"
+        hint={`在借：${borrowRecord.borrowQty} 件`}
+        error={overQty}
+        unit="件"
+      />
+      {overQty && (
+        <p className="text-[13px] text-action-black font-semibold mt-1 pl-1">超出在借数量（在借: {borrowRecord.borrowQty}）</p>
+      )}
 
       <BumbleInput
         label="归还备注（选填）"
@@ -64,7 +56,7 @@ export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClo
         whileTap={{ scale: 0.96 }}
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-sm disabled:opacity-40"
+        className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-base disabled:opacity-40"
       >
         确认归还
       </motion.button>
@@ -74,7 +66,7 @@ export default function ReturnForm({ borrowRecord, operatorName, onSubmit, onClo
 
 function InfoRow({ label, value }) {
   return (
-    <div className="flex justify-between text-sm">
+    <div className="flex justify-between text-base">
       <span className="text-text-secondary">{label}</span>
       <span className="font-semibold text-text-primary">{value}</span>
     </div>

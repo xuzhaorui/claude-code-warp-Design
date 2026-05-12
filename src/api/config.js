@@ -1,16 +1,17 @@
-let currentApiBaseUrl = 'http://localhost:8080';
-
-const DEFAULT_BASE_URL = 'http://175.178.165.153:8082/store';
+const DEFAULT_BASE_URL = '/store';
 
 export function setApiBaseUrl(url) {
-  currentApiBaseUrl = url;
   localStorage.setItem('api-base-url', url);
+  fetch('/__proxy-target', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target: url }),
+  }).catch(() => {});
 }
 
 export function buildApiUrl(path) {
-  const baseUrl = localStorage.getItem('api-base-url') || DEFAULT_BASE_URL;
   const normalizedPath = path.startsWith('/') ? path : '/' + path;
-  return `${baseUrl}${normalizedPath}`;
+  return `/store${normalizedPath}`;
 }
 
 export function buildFormBody(fields) {
@@ -37,16 +38,25 @@ export async function parseJsonResponse(response) {
     throw new Error('服务器返回了HTML而不是JSON');
   }
 
+  let text;
   try {
-    const text = await response.text();
-    const data = text ? JSON.parse(text) : {};
-    if (data.code === 401 || (data.msg && /未登录|登录超时|重新登录|会话已失效|登录状态已过期/.test(data.msg))) {
-      throw new Error('未登录或会话已过期');
-    }
-    return data;
-  } catch (error) {
+    text = await response.text();
+  } catch {
+    throw new Error('读取响应失败');
+  }
+
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
     throw new Error('JSON解析失败');
   }
+
+  if (data.code === 401 || (data.msg && /未登录|登录超时|重新登录|会话已失效|登录状态已过期/.test(data.msg))) {
+    throw new Error('未登录或会话已过期');
+  }
+
+  return data;
 }
 
 export function ensureAjaxSuccess(payload, fallbackMessage) {

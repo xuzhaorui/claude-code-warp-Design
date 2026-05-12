@@ -22,13 +22,14 @@ function playBeep() {
   } catch {}
 }
 
-export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTitle, sheetContent, onSheetClose }) {
+export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTitle, sheetContent, onSheetClose, skipCamera }) {
   const scannerRef = useRef(null);
   const [error, setError] = useState('');
   const [scanned, setScanned] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const mountedRef = useRef(true);
   const scanningRef = useRef(false);
+  const activeRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -55,33 +56,18 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   const resumeScanning = useCallback(() => {
     const scanner = scannerRef.current;
     if (!scanner) return;
+    activeRef.current = true;
+    scanningRef.current = false;
     try {
       scanner.resume?.();
     } catch {}
-    // Re-start scanning loop if paused
-    try {
-      scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 320, height: 320 } },
-        (decodedText) => {
-          if (!mountedRef.current || scanningRef.current) return;
-          scanningRef.current = true;
-          setScanned(true);
-          try { navigator.vibrate?.([100, 50, 100]); } catch {}
-          playBeep();
-          try { scanner.pause(true); } catch {}
-          onScanSuccess?.(decodedText);
-        },
-        () => {}
-      ).catch(() => {});
-    } catch {}
-  }, [onScanSuccess]);
+  }, []);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || skipCamera) return;
 
     let scanner = null;
-    let active = true;
+    activeRef.current = true;
     setScanned(false);
     setShowSheet(false);
     setError('');
@@ -95,9 +81,9 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 320, height: 320 } },
           (decodedText) => {
-            if (!active || scanningRef.current) return;
+            if (!activeRef.current || scanningRef.current) return;
             scanningRef.current = true;
-            active = false;
+            activeRef.current = false;
             setScanned(true);
             try { navigator.vibrate?.([100, 50, 100]); } catch {}
             playBeep();
@@ -107,7 +93,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           () => {}
         );
       } catch (err) {
-        if (active) {
+        if (activeRef.current) {
           setError('无法访问摄像头，请检查权限设置');
           console.error('Scanner error:', err);
         }
@@ -117,7 +103,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     startScan();
 
     return () => {
-      active = false;
+      activeRef.current = false;
       scanningRef.current = false;
       if (scanner) {
         scanner.stop().catch(() => {});
@@ -155,12 +141,13 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex flex-col"
         >
           {/* Camera view with blur on scan */}
+          {!skipCamera && (
           <div className={`flex-1 relative transition-all duration-300 ${scanned ? 'blur-[5px] brightness-50' : ''}`}>
             <div className="flex-1 flex items-center justify-center h-full">
               {error ? (
                 <div className="text-center text-white/80 px-8">
                   <p className="text-lg mb-2">{error}</p>
-                  <button onClick={onClose} className="mt-4 px-6 py-2 bg-white/20 rounded-full text-white">
+                  <button onPointerDown={onClose} className="mt-4 px-6 py-2 bg-white/20 rounded-full text-white">
                     关闭
                   </button>
                 </div>
@@ -204,17 +191,11 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
               )}
             </div>
           </div>
-
-          {/* Hint text */}
-          {!scanned && !error && (
-            <div className="absolute bottom-8 left-0 right-0 text-center text-white/60 text-sm">
-              将二维码对准扫描框
-            </div>
           )}
 
           {/* Exit button - frosted glass */}
           <button
-            onClick={handleManualClose}
+            onPointerDown={handleManualClose}
             className="absolute top-4 left-4 px-4 py-2 rounded-full text-white text-sm font-semibold backdrop-blur-xl bg-white/15 border border-white/20 active:bg-white/25"
           >
             退出扫码
@@ -230,7 +211,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
                   className="absolute inset-0 bg-black"
-                  onClick={handleSheetClose}
+                  onPointerDown={handleSheetClose}
                 />
                 <motion.div
                   initial={{ y: '100%' }}
@@ -249,7 +230,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                     <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
                     <div className="flex items-center justify-between w-full px-5">
                       <h2 className="text-lg font-bold text-text-primary">{sheetTitle}</h2>
-                      <button onClick={handleSheetClose} className="p-1 -mr-1 active:bg-gray-100 rounded-full">
+                      <button onPointerDown={handleSheetClose} className="p-1 -mr-1 active:bg-gray-100 rounded-full">
                         <X size={20} className="text-text-secondary" />
                       </button>
                     </div>

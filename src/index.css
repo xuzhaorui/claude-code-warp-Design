@@ -34,7 +34,7 @@ input:focus, textarea:focus {
 
 .bumble-input {
   padding: 22px 16px 6px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   background: #F5F5F5;
   border: none;
@@ -89,7 +89,7 @@ input:focus, textarea:focus {
 
 /* §7 Error message */
 .bumble-error-msg {
-  font-size: 12px; color: #1A1A1A; margin-top: 6px;
+  font-size: 14px; color: #1A1A1A; margin-top: 6px;
   display: none; font-weight: 600;
 }
 .bumble-input.error ~ .bumble-error-msg { display: block; }
@@ -98,7 +98,7 @@ input:focus, textarea:focus {
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 15px;
+  font-size: 17px;
   color: #757575;
   pointer-events: none;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -121,6 +121,13 @@ input:focus, textarea:focus {
 @keyframes scan-line {
   0% { top: 0; }
   100% { top: 100%; }
+}
+
+@keyframes stepperBounce {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+  60% { transform: translateY(1px); }
+  100% { transform: translateY(0); }
 }
 
 .hide-scrollbar {

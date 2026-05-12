@@ -4,8 +4,8 @@ import { User, Clock } from 'lucide-react';
 function DataCell({ label, value, valueColor }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[11px]" style={{ color: '#757575' }}>{label}</span>
-      <span className="text-[15px] font-bold leading-tight" style={{ color: valueColor ?? '#1A1A1A' }}>{value}</span>
+      <span className="text-[13px]" style={{ color: '#757575' }}>{label}</span>
+      <span className="text-[17px] font-bold leading-tight" style={{ color: valueColor ?? '#1A1A1A' }}>{value}</span>
     </div>
   );
 }
@@ -19,7 +19,7 @@ function DataGrid({ title, cells, delay = 0 }) {
       className="bg-white rounded-2xl"
       style={{ padding: '16px 18px' }}
     >
-      <p className="text-[13px] font-bold mb-3" style={{ color: '#757575' }}>{title}</p>
+      <p className="text-[15px] font-bold mb-3" style={{ color: '#757575' }}>{title}</p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {cells.map((cell, i) => (
           <DataCell key={i} label={cell.label} value={cell.value} valueColor={cell.valueColor} />
@@ -41,17 +41,17 @@ function MetaStrip({ operatorName, time, remark, delay = 0 }) {
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
           <User size={13} style={{ color: '#757575' }} />
-          <span className="text-[13px] font-semibold" style={{ color: '#1A1A1A' }}>{operatorName}</span>
+          <span className="text-[15px] font-semibold" style={{ color: '#1A1A1A' }}>{operatorName}</span>
         </div>
-        <span className="text-[11px]" style={{ color: '#C0C0C0' }}>·</span>
+        <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
         <div className="flex items-center gap-1.5">
           <Clock size={13} style={{ color: '#757575' }} />
-          <span className="text-[13px]" style={{ color: '#757575' }}>{time}</span>
+          <span className="text-[15px]" style={{ color: '#757575' }}>{time}</span>
         </div>
         {remark && (
           <>
-            <span className="text-[11px]" style={{ color: '#C0C0C0' }}>·</span>
-            <span className="text-[13px]" style={{ color: '#757575' }}>{remark}</span>
+            <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
+            <span className="text-[15px]" style={{ color: '#757575' }}>{remark}</span>
           </>
         )}
       </div>
@@ -59,7 +59,7 @@ function MetaStrip({ operatorName, time, remark, delay = 0 }) {
   );
 }
 
-function HeroCard({ quantity, method, costPrice, status }) {
+function HeroCard({ quantity, method, costPrice, status, showCostPrice }) {
   const isCancelled = status === '已撤销';
   const bg = isCancelled ? '#fff' : '#FFC629';
   const border = isCancelled ? '1.5px solid #E5E5E5' : 'none';
@@ -67,7 +67,7 @@ function HeroCard({ quantity, method, costPrice, status }) {
   const badge = `${method === '外借' ? '外借出库' : '外销出库'} · ${status}`;
   return (
     <div className="rounded-3xl flex flex-col" style={{ background: bg, border, padding: '22px 22px 18px' }}>
-      <span className="text-[11px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
+      <span className="text-[13px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
         style={{ background: '#1A1A1A', color: badgeColor, letterSpacing: '0.3px' }}>
         {badge}
       </span>
@@ -75,23 +75,25 @@ function HeroCard({ quantity, method, costPrice, status }) {
         style={{ color: '#1A1A1A', letterSpacing: '-2px' }}>
         {quantity}
       </div>
-      <div className="text-[14px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}>
+      <div className="text-[16px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}>
         件 · {method}
       </div>
-      <div className="flex items-baseline justify-between pt-3.5"
-        style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-        <span className="text-[12px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}>成本单价</span>
-        <span className="text-[22px] font-extrabold" style={{ color: '#1A1A1A' }}>¥{costPrice.toFixed(2)}</span>
-      </div>
+      {showCostPrice && (
+        <div className="flex items-baseline justify-between pt-3.5"
+          style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}>
+          <span className="text-[14px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}>成本单价</span>
+          <span className="text-[24px] font-extrabold" style={{ color: '#1A1A1A' }}>¥{costPrice.toFixed(2)}</span>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function CheckoutDetail({ record }) {
+export default function CheckoutDetail({ record, showCostPrice = true }) {
   const isLoss = record.method === '外销' && record.saleUnitPrice < record.costPrice;
   return (
     <div className="flex flex-col gap-3">
-      <HeroCard quantity={record.quantity} method={record.method} costPrice={record.costPrice} status={record.status} />
+      <HeroCard quantity={record.quantity} method={record.method} costPrice={record.costPrice} status={record.status} showCostPrice={showCostPrice} />
       <DataGrid
         title="货物信息"
         delay={0.05}

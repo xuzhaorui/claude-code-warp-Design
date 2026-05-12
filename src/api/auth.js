@@ -1,17 +1,26 @@
-import { buildApiUrl, buildFormBody, parseJsonResponse, ensureAjaxSuccess } from './config';
+import { buildApiUrl, buildFormBody, parseJsonResponse, ensureAjaxSuccess, setAuthExpiredHandler, handleAuthExpired } from './config';
 
-export async function login(username, password, rememberMe) {
+export { setAuthExpiredHandler, handleAuthExpired };
+
+export async function login(username, password) {
   const response = await fetch(buildApiUrl('/login'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
     },
     credentials: 'include',
-    body: buildFormBody({ username, password, rememberMe }),
+    body: buildFormBody({ username, password, rememberMe: 'true' }),
   });
 
   const payload = await parseJsonResponse(response);
-  return ensureAjaxSuccess(payload, '登录失败');
+  ensureAjaxSuccess(payload, '登录失败');
+
+  return {
+    success: true,
+    message: payload?.msg || payload?.message || '登录成功',
+    data: payload?.data ?? payload,
+    code: payload?.code,
+  };
 }
 
 export async function logout() {
@@ -55,5 +64,9 @@ export function getAuthSession() {
 }
 
 export function isAuthenticated() {
-  return getAuthSession() !== null;
+  if (getAuthSession()) return true;
+  try {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    return !!user?.username;
+  } catch { return false; }
 }

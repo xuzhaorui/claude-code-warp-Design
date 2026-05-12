@@ -15,41 +15,30 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
-      id: 'ic-' + Date.now(),
-      itemId: item.id,
-      itemName: item.name,
-      warehouse: item.warehouse,
-      code: item.code,
-      spec: item.spec,
-      costPrice: item.costPrice,
-      bookQty,
+      inventoryId: item.id,
       actualQty: actualQty,
-      difference,
       remark,
-      operatorId: JSON.parse(localStorage.getItem('currentUser') || '{}').id,
-      operatorName,
-      time: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-'),
     });
   };
 
   return (
     <div className="space-y-4">
       <div className="bg-bg-secondary rounded-2xl p-4 space-y-2">
-        <InfoRow label="货物名称" value={item.name} />
+        <InfoRow label="货物名称" value={item.itemName} />
         <InfoRow label="仓库编号" value={item.code} />
         <InfoRow label="规格" value={item.spec} />
         <InfoRow label="账面数量" value={bookQty} />
       </div>
 
-      <div>
-        <label className="text-xs font-semibold text-text-secondary mb-2 block">盘点真实数量</label>
-        <Stepper
-          value={actualQty}
-          onChange={setActualQty}
-          min={0}
-          max={99999}
-        />
-      </div>
+      <Stepper
+        value={actualQty}
+        onChange={setActualQty}
+        min={0}
+        max={99999}
+        label="盘点真实数量"
+        hint={`账面：${bookQty} 件`}
+        unit="件"
+      />
 
       <div className="bg-bg-secondary rounded-2xl px-4 py-3 flex justify-between items-center">
         <span className="text-sm text-text-secondary">差值</span>

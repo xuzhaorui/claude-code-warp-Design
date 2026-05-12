@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanLine, RotateCcw } from 'lucide-react';
+import { ScanLine, RotateCcw, ImageUp } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import DetailSheet from '../components/BottomSheet/DetailSheet';
 import BorrowerSelect from '../components/Forms/BorrowerSelect';
@@ -8,9 +8,10 @@ import ReturnForm from '../components/Forms/ReturnForm';
 import ReturnDetail from '../components/Details/ReturnDetail';
 import RecordCard from '../components/Records/RecordCard';
 import PullToRefresh from '../components/Shared/PullToRefresh';
-import { getItemByCode, getBorrowersByItem, getReturnRecords, submitReturn, removeReturnRecord } from '../data/mockData';
+import { getBorrowersByQrcode, getReturnRecords, submitReturn } from '../api/return';
+import { showToast } from '../components/Shared/Toast';
 
-export default function ReturnTab() {
+export default function ReturnTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -18,11 +19,32 @@ export default function ReturnTab() {
   const [selectedBorrower, setSelectedBorrower] = useState(null);
   const [records, setRecords] = useState([]);
   const [scanError, setScanError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [skipCamera, setSkipCamera] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      const scanner = new Html5Qrcode('return-file-scanner');
+      const code = await scanner.scanFile(file, false);
+      scanner.clear();
+      setSkipCamera(true);
+      setScanning(true);
+      await handleScan(code);
+    } catch {
+      setScanError('无法识别图片中的二维码');
+    }
+    e.target.value = '';
+  };
 
   const loadRecords = useCallback(async () => {
     const data = await getReturnRecords();
-    setRecords(data);
+    const name = (() => { try { return JSON.parse(localStorage.getItem('currentUser') || '{}').username || '未知'; } catch { return '未知'; } })();
+    setRecords(data.map(r => ({ ...r, operatorName: r.operatorName || name })));
   }, []);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
@@ -32,32 +54,36 @@ export default function ReturnTab() {
   })();
 
   const handleScan = useCallback(async (code) => {
-    const item = await getItemByCode(code);
-    if (!item) {
-      setScanError('未找到该编号对应的库存货物');
-      return;
+    try {
+      const borrowerList = await getBorrowersByQrcode(code);
+      if (borrowerList.length === 0) {
+        setScanError('该货物暂无外借记录');
+        return;
+      }
+      setBorrowers(borrowerList);
+      setSelectedBorrower(null);
+      setScanError('');
+    } catch {
+      setScanError('未找到该编号对应的外借记录');
     }
-    const borrowerList = await getBorrowersByItem(item.id);
-    if (borrowerList.length === 0) {
-      setScanError('该货物暂无外借记录');
-      return;
-    }
-    setBorrowers(borrowerList);
-    setSelectedBorrower(null);
-    setScanError('');
   }, []);
 
   const handleSubmitReturn = async (record) => {
-    await submitReturn(record);
-    setScanning(false);
-    setBorrowers([]);
-    setSelectedBorrower(null);
-    await loadRecords();
+    try {
+      await submitReturn(record);
+      setScanning(false);
+      showToast('归还成功');
+      setBorrowers([]);
+      setSelectedBorrower(null);
+      setSubmitError('');
+      await loadRecords();
+    } catch (err) {
+      setSubmitError(err.message || '归还提交失败');
+    }
   };
 
-  const handleRemoveRecord = useCallback(async (id) => {
+  const handleRemoveRecord = useCallback((id) => {
     setRecords(prev => prev.filter(r => r.id !== id));
-    await removeReturnRecord(id);
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -75,12 +101,20 @@ export default function ReturnTab() {
   ) : borrowers.length > 0 && !selectedBorrower ? (
     <BorrowerSelect borrowers={borrowers} onSelect={(b) => setSelectedBorrower(b)} />
   ) : selectedBorrower ? (
-    <ReturnForm
-      borrowRecord={selectedBorrower}
-      operatorName={operatorName}
-      onSubmit={handleSubmitReturn}
-      onClose={() => { setBorrowers([]); setSelectedBorrower(null); }}
-    />
+    <>
+      <ReturnForm
+        borrowRecord={selectedBorrower}
+        operatorName={operatorName}
+        showCostPrice={showCostPrice}
+        onSubmit={handleSubmitReturn}
+        onClose={() => { setBorrowers([]); setSelectedBorrower(null); setSubmitError(''); }}
+      />
+      {submitError && (
+        <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">{submitError}</p>
+        </div>
+      )}
+    </>
   ) : null;
 
   return (
@@ -89,15 +123,24 @@ export default function ReturnTab() {
         <h1 className="text-2xl font-bold text-text-primary mb-4">归还</h1>
         <motion.button
           whileTap={{ scale: 0.96 }}
-          onClick={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
+          onPointerDown={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
           className="w-full bg-brand-yellow rounded-3xl p-6 flex flex-col items-center gap-3"
         >
           <div className="w-20 h-20 rounded-3xl bg-white/30 flex items-center justify-center">
             <ScanLine size={36} className="text-action-black" />
           </div>
-          <span className="text-base font-bold text-action-black">点击扫码归还</span>
+          <span className="text-lg font-bold text-action-black">点击扫码归还</span>
         </motion.button>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-1.5 mx-auto mt-3 text-base text-text-secondary active:opacity-60"
+        >
+          <ImageUp size={16} />
+          <span>从图片识别</span>
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleFileUpload} />
       </div>
+      <div id="return-file-scanner" style={{ display: 'none' }} />
 
       <PullToRefresh
         onRefresh={handleRefresh}
@@ -106,10 +149,10 @@ export default function ReturnTab() {
       >
         <div className="px-5 pb-2 flex items-center gap-2.5">
           <div className="w-1 h-5 rounded-full bg-brand-yellow" />
-          <h2 className="text-sm font-bold text-text-primary">归还记录</h2>
+          <h2 className="text-base font-bold text-text-primary">归还记录</h2>
         </div>
         {records.length === 0 ? (
-          <p className="text-center text-text-secondary text-sm py-8">暂无归还记录</p>
+          <p className="text-center text-text-secondary text-base py-8">暂无归还记录</p>
         ) : (
           <div className="px-5 flex flex-col gap-2">
             <AnimatePresence mode="popLayout">
@@ -135,11 +178,12 @@ export default function ReturnTab() {
 
       <ScannerOverlay
         isOpen={scanning}
-        onClose={() => { setScanning(false); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
+        skipCamera={skipCamera}
+        onClose={() => { setScanning(false); setBorrowers([]); setSelectedBorrower(null); setScanError(''); setSkipCamera(false); }}
         onScanSuccess={handleScan}
         sheetTitle={sheetTitle}
         sheetContent={sheetContent}
-        onSheetClose={() => { setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
+        onSheetClose={() => { setBorrowers([]); setSelectedBorrower(null); setScanError(''); setSkipCamera(false); }}
       />
 
       <DetailSheet

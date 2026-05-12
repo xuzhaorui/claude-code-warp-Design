@@ -564,6 +564,111 @@ body.dark-mode .drag-bs-demo { background: #333; }
 }
 .stepper-value.bounce { animation: stepperBounce 0.2s ease; }
 
+/* ========== Qty Input — numeric input with inline stepper ========== */
+.qty-input-wrap {
+  position: relative;
+  width: 100%;
+  height: 56px;
+  background: #F5F5F5;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 0;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid transparent;
+}
+.qty-input-wrap:focus-within {
+  background: #FFFFFF;
+  border-color: var(--bumble-yellow);
+  box-shadow: 0 0 0 3px rgba(255,198,41,0.15);
+}
+.qty-input-wrap.error {
+  border-color: var(--action-black);
+  animation: errorFlash 0.2s ease;
+}
+.qty-input-field {
+  flex: 1;
+  height: 100%;
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-stack);
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  -moz-appearance: textfield;
+  padding: 0 4px;
+}
+.qty-input-field::-webkit-inner-spin-button,
+.qty-input-field::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.qty-input-field::placeholder {
+  color: #C0C0C0;
+  font-weight: 500;
+  font-size: 16px;
+}
+.qty-input-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, background 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  flex-shrink: 0;
+}
+.qty-input-btn:active {
+  transform: scale(0.9);
+}
+.qty-input-btn.minus {
+  background: #E8E8E8;
+  color: var(--text-primary);
+}
+.qty-input-btn.minus:active {
+  background: #DADADA;
+}
+.qty-input-btn.plus {
+  background: var(--action-black);
+  color: #FFF;
+}
+.qty-input-btn.plus:active {
+  background: #333;
+}
+.qty-input-label {
+  position: absolute;
+  top: -8px;
+  left: 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bumble-yellow);
+  background: #F5F5F5;
+  padding: 0 4px;
+  letter-spacing: 0.3px;
+  transition: color 0.2s ease, background 0.2s ease;
+  pointer-events: none;
+}
+.qty-input-wrap:focus-within .qty-input-label {
+  color: var(--bumble-yellow);
+  background: #FFFFFF;
+}
+.qty-input-unit {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.qty-input-wrap .qty-input-field.bounce { animation: stepperBounce 0.2s ease; }
+
 /* Dark mode for inputs */
 body.dark-mode .bumble-input { background: #2A2A2A; color: #FFF; border-bottom-color: #555; box-shadow: inset 0 1px 2px rgba(0,0,0,0.15); }
 body.dark-mode .bumble-input:focus { background: #333; box-shadow: inset 0 1px 2px rgba(0,0,0,0.15), 0 2px 0 0 var(--bumble-yellow); }
@@ -1202,6 +1307,245 @@ body.dark-mode .stepper-value { background: transparent; color: #FFF; }
           <div>&#8226; WMS 场景：快速调节大批量入库数量</div>
         </div>
         <div style="margin-top:16px;font-size:12px;color:var(--text-secondary)" id="stepperSpeed">当前速率：正常</div>
+      </div>
+
+      <!-- Qty Input -->
+      <div>
+        <h3 class="subsection-title">数量输入框 Qty Input</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">直接键盘输入 + 侧翼微调按钮 &mdash; 老年友好型大字号聚焦输入。</p>
+
+        <div style="max-width:320px;margin-bottom:24px">
+          <div class="qty-input-wrap" id="qtyWrap">
+            <span class="qty-input-label">出库数量</span>
+            <button class="qty-input-btn minus" id="qtyMinus" onpointerdown="qtyStep(-1)">&minus;</button>
+            <input class="qty-input-field" id="qtyField" type="number" inputmode="numeric" placeholder="0" oninput="qtyValidate()" onfocus="qtyFocus(true)" onblur="qtyFocus(false)">
+            <button class="qty-input-btn plus" id="qtyPlus" onpointerdown="qtyStep(1)">+</button>
+          </div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;padding-left:4px" id="qtyHint">库存：128 件</div>
+        </div>
+
+        <div style="max-width:320px;margin-bottom:24px">
+          <div class="qty-input-wrap error" id="qtyWrap2">
+            <span class="qty-input-label">出库数量</span>
+            <button class="qty-input-btn minus" onpointerdown="qtyStep2(-1)">&minus;</button>
+            <input class="qty-input-field" id="qtyField2" type="number" inputmode="numeric" value="200" oninput="qtyValidate2()">
+            <button class="qty-input-btn plus" onpointerdown="qtyStep2(1)">+</button>
+          </div>
+          <div style="font-size:13px;color:var(--action-black);font-weight:600;margin-top:8px;padding-left:4px">超出库存数量（库存: 128）</div>
+        </div>
+
+        <div style="max-width:320px;margin-bottom:0">
+          <div class="qty-input-wrap" id="qtyWrap3">
+            <span class="qty-input-label">归还数量</span>
+            <button class="qty-input-btn minus" onpointerdown="qtyStep3(-1)">&minus;</button>
+            <input class="qty-input-field" id="qtyField3" type="number" inputmode="numeric" placeholder="0">
+            <button class="qty-input-btn plus" onpointerdown="qtyStep3(1)">+</button>
+            <span class="qty-input-unit">件</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;padding-left:4px">在借：5 件</div>
+        </div>
+
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;margin-top:20px">
+          <div>&#8226; 22px 粗体居中数字 &mdash; 视觉重心突出，老年友好</div>
+          <div>&#8226; 聚焦态：白底 + 黄色边框 + 外发光 <code>box-shadow</code></div>
+          <div>&#8226; 错误态：黑色边框 + 背景闪红</div>
+          <div>&#8226; <code>inputmode="numeric"</code> 触发数字键盘</div>
+          <div>&#8226; 浮动标签同 BumbleInput 风格，始终可见</div>
+          <div>&#8226; 侧翼按钮：减号灰底方形、加号黑底方形 &mdash; 与 Stepper 区分</div>
+          <div>&#8226; 可选单位后缀（件/箱）</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+      </div>
+
+      <!-- Split Form Layout — Info left, Form right -->
+      <div style="grid-column: 1 / -1">
+        <h3 class="subsection-title">分栏表单布局 Split Form Layout</h3>
+        <p style="font-size:12px;color:var(--text-secondary);margin-bottom:20px">左栏货物信息（固定），右栏表单输入（可滚动）&mdash; 键盘弹出时信息不被挤掉。</p>
+
+        <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center">
+
+          <!-- Phone Frame: Checkout -->
+          <div style="flex-shrink:0">
+            <p style="font-size:13px;font-weight:700;text-align:center;margin-bottom:10px;color:var(--text-secondary)">出库登记</p>
+            <div style="width:375px;height:460px;border-radius:24px;border:3px solid #E5E5E5;overflow:hidden;background:#F2F2F2;display:flex;flex-direction:column">
+              <!-- Header -->
+              <div style="padding:12px 16px 8px;display:flex;align-items:center;justify-content:between;border-bottom:1px solid #eee;background:#fff">
+                <div style="width:36px;height:4px;border-radius:2px;background:#D5D5D5;margin:0 auto 6px;position:absolute;left:50%;transform:translateX(-50%)"></div>
+                <span style="font-size:16px;font-weight:700;color:var(--text-primary);margin-top:8px;width:100%;text-align:center">出库登记</span>
+              </div>
+              <!-- Split body -->
+              <div style="flex:1;display:flex;overflow:hidden">
+                <!-- Left: Item Info -->
+                <div style="width:135px;background:#fff;border-right:1px solid #F0F0F0;padding:14px 10px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex-shrink:0">
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">货物名称</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">液压扳手</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">仓库</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">A区-主仓</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">编号</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">WH-0042</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">规格</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">M24-500N.m</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">库存</div>
+                    <div style="margin-top:3px;transform:rotate(-1deg)"><div style="background:#F5C842;border-radius:14px;padding:6px"><div style="background:#1A1A1A;border-radius:10px;padding:8px 18px;text-align:center;transform:skewX(-5deg)"><span style="font-size:18px;font-weight:900;font-style:italic;color:#F5C842;letter-spacing:-0.5px;display:inline-block;transform:skewX(8deg)">128</span></div></div></div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">成本单价</div>
+                    <div style="margin-top:3px;transform:rotate(-1deg)"><div style="background:#F5C842;border-radius:14px;padding:6px"><div style="background:#1A1A1A;border-radius:10px;padding:8px 18px;text-align:center;transform:skewX(-5deg)"><span style="font-size:18px;font-weight:900;font-style:italic;color:#F5C842;letter-spacing:-0.5px;display:inline-block;transform:skewX(8deg)">¥280.00</span></div></div></div>
+                  </div>
+                </div>
+                <!-- Right: Form -->
+                <div style="flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+                  <!-- Method selector -->
+                  <div style="display:flex;background:#E8E8E8;border-radius:50px;padding:2px">
+                    <div style="flex:1;text-align:center;font-size:13px;font-weight:600;color:#757575;padding:7px 0">外销</div>
+                    <div style="flex:1;text-align:center;font-size:13px;font-weight:700;color:#fff;padding:7px 0;background:var(--action-black);border-radius:50px">外借</div>
+                  </div>
+                  <!-- Qty Input -->
+                  <div style="position:relative">
+                    <span style="position:absolute;top:-7px;left:12px;font-size:10px;font-weight:700;color:var(--bumble-yellow);background:#F2F2F2;padding:0 3px;z-index:1">出库数量</span>
+                    <div style="display:flex;align-items:center;height:50px;background:#F5F5F5;border:2px solid var(--bumble-yellow);border-radius:14px;padding:0 5px">
+                      <button style="width:40px;height:40px;border-radius:10px;background:#E8E8E8;border:none;font-size:20px;font-weight:700;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">&minus;</button>
+                      <input type="number" value="3" inputmode="numeric" style="flex:1;height:100%;font-size:20px;font-weight:700;text-align:center;border:none;outline:none;background:transparent;color:var(--text-primary);font-family:var(--font-stack);-moz-appearance:textfield">
+                      <button style="width:40px;height:40px;border-radius:10px;background:var(--action-black);border:none;font-size:20px;font-weight:700;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center">+</button>
+                    </div>
+                  </div>
+                  <!-- Remark input -->
+                  <div style="position:relative">
+                    <span style="position:absolute;top:-7px;left:12px;font-size:10px;font-weight:700;color:var(--bumble-yellow);background:#F2F2F2;padding:0 3px;z-index:1">出库备注</span>
+                    <input type="text" placeholder="选填" style="width:100%;height:50px;background:#F5F5F5;border:2px solid transparent;border-radius:14px;padding:16px 14px 6px;font-size:15px;font-weight:500;outline:none;font-family:var(--font-stack);color:var(--text-primary)">
+                  </div>
+                  <!-- Submit -->
+                  <button style="width:100%;height:48px;background:var(--action-black);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;margin-top:auto">提交</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phone Frame: Return -->
+          <div style="flex-shrink:0">
+            <p style="font-size:13px;font-weight:700;text-align:center;margin-bottom:10px;color:var(--text-secondary)">归还登记</p>
+            <div style="width:375px;height:460px;border-radius:24px;border:3px solid #E5E5E5;overflow:hidden;background:#F2F2F2;display:flex;flex-direction:column">
+              <div style="padding:12px 16px 8px;border-bottom:1px solid #eee;background:#fff">
+                <span style="font-size:16px;font-weight:700;color:var(--text-primary);display:block;text-align:center;margin-top:8px">归还登记</span>
+              </div>
+              <div style="flex:1;display:flex;overflow:hidden">
+                <div style="width:135px;background:#fff;border-right:1px solid #F0F0F0;padding:14px 10px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex-shrink:0">
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">货物名称</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">液压扳手</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">外借人</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">张伟</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">仓库</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">A区-主仓</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">在借数量</div>
+                    <div style="margin-top:3px;transform:rotate(-1deg)"><div style="background:#F5C842;border-radius:14px;padding:6px"><div style="background:#1A1A1A;border-radius:10px;padding:8px 18px;text-align:center;transform:skewX(-5deg)"><span style="font-size:18px;font-weight:900;font-style:italic;color:#F5C842;letter-spacing:-0.5px;display:inline-block;transform:skewX(8deg)">5</span></div></div></div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">成本单价</div>
+                    <div style="margin-top:3px;transform:rotate(-1deg)"><div style="background:#F5C842;border-radius:14px;padding:6px"><div style="background:#1A1A1A;border-radius:10px;padding:8px 18px;text-align:center;transform:skewX(-5deg)"><span style="font-size:18px;font-weight:900;font-style:italic;color:#F5C842;letter-spacing:-0.5px;display:inline-block;transform:skewX(8deg)">¥280.00</span></div></div></div>
+                  </div>
+                </div>
+                <div style="flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+                  <div style="position:relative">
+                    <span style="position:absolute;top:-7px;left:12px;font-size:10px;font-weight:700;color:var(--bumble-yellow);background:#F2F2F2;padding:0 3px;z-index:1">归还数量</span>
+                    <div style="display:flex;align-items:center;height:50px;background:#F5F5F5;border:2px solid transparent;border-radius:14px;padding:0 5px">
+                      <button style="width:40px;height:40px;border-radius:10px;background:#E8E8E8;border:none;font-size:20px;font-weight:700;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">&minus;</button>
+                      <input type="number" value="2" inputmode="numeric" style="flex:1;height:100%;font-size:20px;font-weight:700;text-align:center;border:none;outline:none;background:transparent;color:var(--text-primary);font-family:var(--font-stack);-moz-appearance:textfield">
+                      <button style="width:40px;height:40px;border-radius:10px;background:var(--action-black);border:none;font-size:20px;font-weight:700;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center">+</button>
+                      <span style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-right:4px">件</span>
+                    </div>
+                  </div>
+                  <div style="font-size:12px;color:var(--text-secondary);padding-left:4px">在借：5 件</div>
+                  <div style="position:relative;margin-top:4px">
+                    <span style="position:absolute;top:-7px;left:12px;font-size:10px;font-weight:700;color:var(--bumble-yellow);background:#F2F2F2;padding:0 3px;z-index:1">归还备注</span>
+                    <input type="text" placeholder="选填" style="width:100%;height:50px;background:#F5F5F5;border:2px solid transparent;border-radius:14px;padding:16px 14px 6px;font-size:15px;font-weight:500;outline:none;font-family:var(--font-stack);color:var(--text-primary)">
+                  </div>
+                  <button style="width:100%;height:48px;background:var(--action-black);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;margin-top:auto">确认归还</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phone Frame: Inventory -->
+          <div style="flex-shrink:0">
+            <p style="font-size:13px;font-weight:700;text-align:center;margin-bottom:10px;color:var(--text-secondary)">盘点登记</p>
+            <div style="width:375px;height:460px;border-radius:24px;border:3px solid #E5E5E5;overflow:hidden;background:#F2F2F2;display:flex;flex-direction:column">
+              <div style="padding:12px 16px 8px;border-bottom:1px solid #eee;background:#fff">
+                <span style="font-size:16px;font-weight:700;color:var(--text-primary);display:block;text-align:center;margin-top:8px">盘点登记</span>
+              </div>
+              <div style="flex:1;display:flex;overflow:hidden">
+                <div style="width:135px;background:#fff;border-right:1px solid #F0F0F0;padding:14px 10px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex-shrink:0">
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">货物名称</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">液压扳手</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">编号</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">WH-0042</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">规格</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">M24-500N.m</div>
+                  </div>
+                  <div>
+                    <div style="font-size:10px;font-weight:600;color:var(--text-secondary);letter-spacing:0.3px">账面数量</div>
+                    <div style="margin-top:3px;transform:rotate(-1deg)"><div style="background:#F5C842;border-radius:14px;padding:6px"><div style="background:#1A1A1A;border-radius:10px;padding:8px 18px;text-align:center;transform:skewX(-5deg)"><span style="font-size:18px;font-weight:900;font-style:italic;color:#F5C842;letter-spacing:-0.5px;display:inline-block;transform:skewX(8deg)">128</span></div></div></div>
+                  </div>
+                </div>
+                <div style="flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+                  <div style="position:relative">
+                    <span style="position:absolute;top:-7px;left:12px;font-size:10px;font-weight:700;color:var(--bumble-yellow);background:#F2F2F2;padding:0 3px;z-index:1">盘点真实数量</span>
+                    <div style="display:flex;align-items:center;height:50px;background:#fff;border:2px solid var(--bumble-yellow);border-radius:14px;padding:0 5px;box-shadow:0 0 0 3px rgba(255,198,41,0.15)">
+                      <button style="width:40px;height:40px;border-radius:10px;background:#E8E8E8;border:none;font-size:20px;font-weight:700;cursor:pointer;color:var(--text-primary);display:flex;align-items:center;justify-content:center">&minus;</button>
+                      <input type="number" value="125" inputmode="numeric" style="flex:1;height:100%;font-size:20px;font-weight:700;text-align:center;border:none;outline:none;background:transparent;color:var(--text-primary);font-family:var(--font-stack);-moz-appearance:textfield">
+                      <button style="width:40px;height:40px;border-radius:10px;background:var(--action-black);border:none;font-size:20px;font-weight:700;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center">+</button>
+                      <span style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-right:4px">件</span>
+                    </div>
+                  </div>
+                  <!-- Difference badge -->
+                  <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border-radius:12px;padding:10px 14px">
+                    <span style="font-size:13px;color:var(--text-secondary)">差值</span>
+                    <span style="font-size:18px;font-weight:800;color:#EF4444">-3</span>
+                  </div>
+                  <div style="position:relative;margin-top:4px">
+                    <span style="position:absolute;top:-7px;left:12px;font-size:10px;font-weight:700;color:var(--bumble-yellow);background:#F2F2F2;padding:0 3px;z-index:1">盘点备注</span>
+                    <input type="text" placeholder="选填" style="width:100%;height:50px;background:#F5F5F5;border:2px solid transparent;border-radius:14px;padding:16px 14px 6px;font-size:15px;font-weight:500;outline:none;font-family:var(--font-stack);color:var(--text-primary)">
+                  </div>
+                  <button style="width:100%;height:48px;background:var(--action-black);color:#fff;border:none;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;margin-top:auto">提交盘点</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;margin-top:20px;max-width:800px">
+          <div>&#8226; <strong>左栏（135px）</strong>：货物信息纵向排列，标签 10px + 数值 14px，关键数量黑底黄字徽章突出</div>
+          <div>&#8226; <strong>右栏（剩余宽度）</strong>：表单输入区，独立滚动，键盘弹出时仅影响右栏高度</div>
+          <div>&#8226; 左栏 <code>flex-shrink:0</code> + <code>overflow-y:auto</code>，内容过多时可滚动但不被挤压</div>
+          <div>&#8226; 右栏 <code>margin-top:auto</code> 将提交按钮推至底部</div>
+          <div>&#8226; 分隔线 <code>border-right: 1px solid #F0F0F0</code> 视觉分区</div>
+          <div>&#8226; 出库表单：外销模式右栏显示销售总价输入；外借模式显示备注输入</div>
+        </div>
       </div>
     </div>
   </section>
