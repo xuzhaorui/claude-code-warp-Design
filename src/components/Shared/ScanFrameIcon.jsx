@@ -20,7 +20,7 @@ export default function ScanFrameIcon({ size = 20, animated = false }) {
       </defs>
       <rect
         x="16" y="47" width="68" height="3" rx="1.5" fill="url(#scanGrad)"
-        style={animated ? { animation: 'scanLineMove 2s ease-in-out infinite alternate' } : undefined}
+        style={animated ? { animation: 'scanLineMove 2s ease-in-out infinite', willChange: 'transform' } : undefined}
       />
     </svg>
   );
