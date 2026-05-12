@@ -115,8 +115,10 @@ export default function InventoryTab({ showCostPrice = true }) {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <div
-          className="w-full rounded-[20px] flex flex-col relative"
+        <motion.div
+          whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+          onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
+          className="w-full rounded-[20px] flex flex-col relative cursor-pointer"
           style={{ background: '#F5C842', padding: '20px' }}
         >
           <span
@@ -132,16 +134,7 @@ export default function InventoryTab({ showCostPrice = true }) {
             <span className="text-white"><ScanFrameIcon size={48} animated /></span>
           </div>
           <div style={{ height: '96px' }} />
-          <motion.button
-            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
-            onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
-            className="w-full mt-4 flex items-center justify-center rounded-[14px] text-white"
-            style={{ background: '#1A1A1A', height: '52px', fontSize: '16px', fontWeight: 600, gap: '8px' }}
-          >
-            <span className="text-white"><ScanFrameIcon size={20} animated /></span>
-            点击扫码盘点
-          </motion.button>
-        </div>
+        </motion.div>
         <button
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-1.5 mx-auto mt-3 text-base text-text-secondary active:opacity-60"
