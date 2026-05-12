@@ -138,33 +138,33 @@ export default function ReturnTab({ showCostPrice = true }) {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <div
-          className="w-full rounded-[20px] flex flex-col items-start"
-          style={{ background: '#F5C842', padding: '20px' }}
-        >
-          <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-3">
+          <div
+            className="flex-1 rounded-[20px] flex flex-col items-start"
+            style={{ background: '#F5C842', padding: '20px' }}
+          >
             <span
               className="rounded-[10px] font-black italic"
               style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
             >
               扫码归还
             </span>
-            <div
-              className="flex items-center justify-center"
-              style={{ width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
+            <motion.button
+              whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+              onPointerDown={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
+              className="w-full mt-4 flex items-center justify-center rounded-[14px] text-white"
+              style={{ background: '#1A1A1A', height: '52px', fontSize: '16px', fontWeight: 600, gap: '8px' }}
             >
-              <span className="text-white"><ScanFrameIcon size={48} animated /></span>
-            </div>
+              <span className="text-white"><ScanFrameIcon size={20} animated /></span>
+              点击扫码归还
+            </motion.button>
           </div>
-          <motion.button
-            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
-            onPointerDown={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
-            className="w-full mt-4 flex items-center justify-center rounded-[14px] text-white"
-            style={{ background: '#1A1A1A', height: '52px', fontSize: '16px', fontWeight: 600, gap: '8px' }}
+          <div
+            className="shrink-0 flex items-center justify-center"
+            style={{ width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
           >
-            <span className="text-white"><ScanFrameIcon size={20} animated /></span>
-            点击扫码归还
-          </motion.button>
+            <span className="text-white"><ScanFrameIcon size={48} animated /></span>
+          </div>
         </div>
         <button
           onClick={() => fileInputRef.current?.click()}
