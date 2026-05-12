@@ -34,7 +34,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
       {/* Left: Item Info */}
       <div className="w-[135px] bg-white border-r border-gray-100 p-3 flex flex-col gap-2.5 overflow-y-auto shrink-0">
         <BadgeField label="库存" value={item.stockQty} />
-        {showCostPrice && <BadgeField label="成本单价" value={`¥${item.costPrice.toFixed(2)}`} price />}
         <InfoField label="货物名称" value={item.itemName} />
         <InfoField label="仓库" value={item.warehouse} />
         <InfoField label="编号" value={item.code} />
@@ -42,7 +41,9 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
       </div>
 
       {/* Right: Form */}
-      <div className="flex-1 p-3 flex flex-col gap-3 overflow-y-auto">
+      <div className="flex-1 p-3 flex flex-col gap-3 overflow-y-auto min-w-0">
+        {showCostPrice && <CostBadge value={`¥${item.costPrice.toFixed(2)}`} />}
+
         {/* Method selector */}
         <div className="relative bg-bg-secondary rounded-full p-[3px] flex">
           {['外销', '外借'].map(m => (
@@ -64,7 +65,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
           ))}
         </div>
 
-        {/* Quantity */}
         <Stepper
           value={quantity}
           onChange={(updater) => { setQuantity(updater); setConfirmLoss(false); }}
@@ -78,7 +78,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
           <p className="text-[13px] text-action-black font-semibold mt-1 pl-1">超出库存数量（库存: {item.stockQty}）</p>
         )}
 
-        {/* Sale price (外销 only) */}
         {method === '外销' && (
           <>
             <div>
@@ -110,7 +109,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
           </>
         )}
 
-        {/* Remark (外借 only) */}
         {method === '外借' && (
           <BumbleInput
             label="出库备注（选填）"
@@ -119,7 +117,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
           />
         )}
 
-        {/* Submit */}
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={handleSubmit}
@@ -142,17 +139,44 @@ function InfoField({ label, value }) {
   );
 }
 
-function BadgeField({ label, value, price }) {
+function BadgeField({ label, value }) {
   return (
     <div>
       <div className="text-[10px] font-semibold text-text-secondary tracking-wide">{label}</div>
       <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
-        <div className="rounded-[14px] p-1.5" style={{ background: '#F5C842' }}>
-          <div className="rounded-[10px] py-1.5 px-3 text-center" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
+        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#F5C842' }}>
+          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
             <span
               className="inline-block"
               style={{
-                fontSize: price ? '16px' : '18px',
+                fontSize: '18px',
+                fontWeight: 900,
+                fontStyle: 'italic',
+                color: '#F5C842',
+                letterSpacing: '-0.5px',
+                transform: 'skewX(8deg)',
+              }}
+            >
+              {value}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CostBadge({ value }) {
+  return (
+    <div>
+      <div className="text-[10px] font-semibold text-text-secondary tracking-wide">成本单价</div>
+      <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
+        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#F5C842' }}>
+          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
+            <span
+              className="inline-block"
+              style={{
+                fontSize: '16px',
                 fontWeight: 900,
                 fontStyle: 'italic',
                 color: '#F5C842',
