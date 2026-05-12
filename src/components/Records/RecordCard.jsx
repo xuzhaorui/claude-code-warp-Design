@@ -29,10 +29,10 @@ export default function RecordCard({ icon: Icon, title, subtitle, extra, status,
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.25 }}
-      onClick={onClick}
+      onTap={onClick}
       whileTap={{ scale: 0.98 }}
       className="flex items-center bg-white cursor-pointer"
-      style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+      style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', touchAction: 'manipulation' }}
     >
       <div className="shrink-0 flex items-center justify-center rounded-full" style={{ width: '44px', height: '44px', background: '#1A1A1A' }}>
         <Icon size={20} className="text-white" strokeWidth={1.5} />
