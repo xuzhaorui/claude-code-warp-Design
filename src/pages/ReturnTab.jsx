@@ -138,7 +138,6 @@ export default function ReturnTab({ showCostPrice = true }) {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <h1 className="text-2xl font-bold text-text-primary mb-4">归还</h1>
         <div
           className="w-full rounded-[20px] flex flex-col items-start"
           style={{ background: '#F5C842', padding: '20px' }}
@@ -147,7 +146,7 @@ export default function ReturnTab({ showCostPrice = true }) {
             className="rounded-[10px] font-black italic"
             style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
           >
-            PREMIUM+
+            扫码归还
           </span>
           <div className="flex justify-center w-full" style={{ margin: '12px 0' }}>
             <div
