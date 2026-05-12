@@ -131,7 +131,7 @@ export default function InventoryTab({ showCostPrice = true }) {
             className="absolute flex items-center justify-center"
             style={{ top: '20px', left: '50%', transform: 'translateX(-50%)', width: '96px', height: '96px', background: '#1A1A1A', borderRadius: '16px' }}
           >
-            <span className="text-white"><ScanFrameIcon size={48} animated /></span>
+            <span className="text-white"><ScanFrameIcon size={72} animated /></span>
           </div>
           <div style={{ height: '96px' }} />
         </motion.div>
