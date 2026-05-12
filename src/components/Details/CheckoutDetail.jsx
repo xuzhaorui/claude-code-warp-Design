@@ -104,7 +104,7 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
         cells={[
           { label: '品名', value: record.itemName },
           { label: '仓库', value: record.warehouse },
-          { label: '编码', value: record.code },
+          { label: '编号', value: record.code },
           { label: '规格', value: record.spec },
         ]}
       />
