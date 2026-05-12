@@ -70,13 +70,15 @@ function mapInventoryItem(item) {
 function mapCheckoutRecord(item) {
   const type = Number(item.type || 0);
   const outState = Number(item.outState || 1);
+  const numAndSpec = item.numberAndSpec || '';
+  const parts = numAndSpec.split('/').map(s => s.trim());
   return {
     id: item.id,
     inventoryId: item.inventoryId,
     warehouse: item.storageName || '',
     itemName: item.freightName || '',
-    code: item.freightNumber || '',
-    spec: item.specification || '',
+    code: item.freightNumber || parts[0] || '',
+    spec: item.specification || parts[1] || '',
     quantity: Number(item.num || 0),
     type,
     method: type === 1 ? '外销' : '外借',
