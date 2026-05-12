@@ -30,7 +30,9 @@ export default function RecordCard({ icon: Icon, title, subtitle, extra, status,
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.25 }}
       onClick={onClick}
-      whileTap={{ scale: 0.98 }}
+      onPointerDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
+      onPointerUp={(e) => e.currentTarget.style.transform = ''}
+      onPointerCancel={(e) => e.currentTarget.style.transform = ''}
       className="flex items-center bg-white cursor-pointer"
       style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
     >
