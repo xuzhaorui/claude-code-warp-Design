@@ -142,13 +142,13 @@ export default function ReturnTab({ showCostPrice = true }) {
           className="w-full rounded-[20px] flex flex-col items-start"
           style={{ background: '#F5C842', padding: '20px' }}
         >
-          <span
-            className="rounded-[10px] font-black italic"
-            style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
-          >
-            扫码归还
-          </span>
-          <div className="flex justify-center w-full" style={{ margin: '12px 0' }}>
+          <div className="flex items-center justify-between w-full">
+            <span
+              className="rounded-[10px] font-black italic"
+              style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
+            >
+              扫码归还
+            </span>
             <div
               className="flex items-center justify-center"
               style={{ width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
