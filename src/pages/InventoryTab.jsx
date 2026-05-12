@@ -10,6 +10,7 @@ import PullToRefresh from '../components/Shared/PullToRefresh';
 import { getItemByCode } from '../api/outbound';
 import { getInventoryCheckRecords, submitInventoryCheck } from '../api/inventory';
 import { showToast } from '../components/Shared/Toast';
+import ScanFrameIcon from '../components/Shared/ScanFrameIcon';
 
 export default function InventoryTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
@@ -114,17 +115,34 @@ export default function InventoryTab({ showCostPrice = true }) {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <h1 className="text-2xl font-bold text-text-primary mb-4">盘点</h1>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
-          className="w-full bg-brand-yellow rounded-3xl p-6 flex flex-col items-center gap-3"
+        <div
+          className="w-full rounded-[20px] flex flex-col items-start"
+          style={{ background: '#F5C842', padding: '20px' }}
         >
-          <div className="w-20 h-20 rounded-3xl bg-white/30 flex items-center justify-center">
-            <ScanLine size={36} className="text-action-black" />
+          <span
+            className="rounded-[10px] font-black italic"
+            style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
+          >
+            扫码盘点
+          </span>
+          <div className="flex justify-center w-full" style={{ margin: '12px 0' }}>
+            <div
+              className="flex items-center justify-center"
+              style={{ width: '96px', height: '96px', background: 'rgba(0,0,0,0.12)', borderRadius: '16px' }}
+            >
+              <span className="text-white"><ScanFrameIcon size={48} animated /></span>
+            </div>
           </div>
-          <span className="text-lg font-bold text-action-black">点击扫码盘点</span>
-        </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+            onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
+            className="w-full flex items-center justify-center rounded-[14px] text-white"
+            style={{ background: '#1A1A1A', height: '52px', fontSize: '16px', fontWeight: 600, gap: '8px' }}
+          >
+            <span className="text-white"><ScanFrameIcon size={20} animated /></span>
+            点击扫码盘点
+          </motion.button>
+        </div>
         <button
           onClick={() => fileInputRef.current?.click()}
           className="flex items-center gap-1.5 mx-auto mt-3 text-base text-text-secondary active:opacity-60"
@@ -148,7 +166,7 @@ export default function InventoryTab({ showCostPrice = true }) {
         {records.length === 0 ? (
           <p className="text-center text-text-secondary text-base py-8">暂无盘点记录</p>
         ) : (
-          <div className="px-5 flex flex-col gap-2">
+          <div className="px-5 flex flex-col" style={{ gap: '12px' }}>
             <AnimatePresence mode="popLayout">
               {records.map((record, idx) => (
                 <RecordCard
