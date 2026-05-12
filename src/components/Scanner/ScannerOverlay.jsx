@@ -214,17 +214,17 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   onPointerDown={handleSheetClose}
                 />
                 <motion.div
-                  initial={{ y: '100%' }}
+                  initial={{ y: '-100%' }}
                   animate={{ y: 0 }}
-                  exit={{ y: '100%' }}
+                  exit={{ y: '-100%' }}
                   transition={SPRING}
                   drag="y"
-                  dragConstraints={{ top: 0 }}
+                  dragConstraints={{ bottom: 0 }}
                   dragElastic={0.15}
                   onDragEnd={(_, info) => {
-                    if (info.offset.y > 150 || info.velocity.y > 500) handleSheetClose();
+                    if (info.offset.y < -150 || info.velocity.y < -500) handleSheetClose();
                   }}
-                  className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col"
+                  className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl max-h-[85vh] flex flex-col"
                 >
                   <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
                     <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
