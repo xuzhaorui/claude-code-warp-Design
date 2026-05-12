@@ -3,21 +3,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Check, X } from 'lucide-react';
 
 const STATUS_COLORS = {
-  '正常':   { background: '#FFC629', color: '#1A1A1A' },
-  '已完成': { background: '#FFC629', color: '#1A1A1A' },
+  '正常':   { background: '#F0F0F0', color: '#888888' },
+  '已完成': { background: '#F0F0F0', color: '#888888' },
   '异常':   { background: '#1A1A1A', color: '#FFFFFF' },
   '亏损':   { background: '#1A1A1A', color: '#FFFFFF' },
-  '已撤销': { background: '#E5E5E5', color: '#1A1A1A' },
-  '进行中': { background: '#FFC629', color: '#1A1A1A' },
-  '待处理': { background: '#E5E5E5', color: '#666666' },
+  '已撤销': { background: '#FFF0F0', color: '#FF4444' },
+  '进行中': { background: '#F0F0F0', color: '#888888' },
+  '待处理': { background: '#F0F0F0', color: '#888888' },
 };
 
 function StatusPill({ status }) {
-  const style = STATUS_COLORS[status] ?? { background: '#E5E5E5', color: '#666666' };
+  const style = STATUS_COLORS[status] ?? { background: '#F0F0F0', color: '#888888' };
   return (
     <span
-      className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-      style={style}
+      className="font-normal rounded-full shrink-0"
+      style={{ ...style, padding: '4px 10px', fontSize: '12px' }}
     >
       {status}
     </span>
@@ -93,7 +93,7 @@ export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, 
           animate={{ opacity: 1, y: 0 }}
           exit={{ x: exitX, opacity: 0, transition: { duration: 0.25 } }}
           transition={{ delay: index * 0.05, duration: 0.25 }}
-          className="relative overflow-hidden rounded-2xl border border-gray-100"
+          className="relative overflow-hidden rounded-2xl"
         >
           {/* Right swipe underlay (confirm) */}
           <div className="absolute inset-0 flex items-center justify-start pl-5" style={{ background: '#FFC629' }}>
@@ -116,23 +116,17 @@ export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, 
             onDirectionLock={handleDirectionLock}
             onClick={handleClick}
             whileTap={{ scale: 0.98 }}
-            className="relative z-10 flex items-center gap-3 px-4 py-3 bg-white cursor-pointer"
+            className="relative z-10 flex items-center bg-white cursor-pointer"
+            style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
           >
-            <div className="relative shrink-0">
-              <div className="w-10 h-10 rounded-lg bg-bg-secondary flex items-center justify-center">
-                <Icon size={20} className="text-action-black" />
-              </div>
-              {badge !== undefined && badge !== null && (
-                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-brand-yellow text-action-black text-[10px] font-semibold rounded-full px-1">
-                  {badge}
-                </span>
-              )}
+            <div className="shrink-0 flex items-center justify-center rounded-full" style={{ width: '44px', height: '44px', background: '#1A1A1A' }}>
+              <Icon size={20} className="text-white" strokeWidth={1.5} />
             </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-text-primary truncate">{title}</p>
-              <p className="text-xs text-text-secondary truncate mt-0.5">{subtitle}</p>
-              {extra && <p className="text-xs text-text-secondary truncate mt-0.5">{extra}</p>}
+            <div className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <p className="truncate" style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A1A' }}>{title}</p>
+              <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{subtitle}</p>
+              {extra && <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{extra}</p>}
             </div>
 
             {status ? <StatusPill status={status} /> : <ChevronRight size={16} className="text-text-secondary shrink-0" />}

@@ -1,28 +1,33 @@
 import { motion } from 'framer-motion';
 import { User, Clock } from 'lucide-react';
 
-function DataCell({ label, value, valueColor }) {
+function DataCell({ label, value, valueFontSize = '16px', valueFontWeight = 700 }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-[13px]" style={{ color: '#757575' }}>{label}</span>
-      <span className="text-[17px] font-bold leading-tight" style={{ color: valueColor ?? '#1A1A1A' }}>{value}</span>
+    <div className="flex flex-col" style={{ gap: '4px' }}>
+      <span style={{ fontSize: '12px', color: '#888888', fontWeight: 400 }}>{label}</span>
+      <span className="leading-tight" style={{ fontSize: valueFontSize, color: '#1A1A1A', fontWeight: valueFontWeight }}>{value}</span>
     </div>
   );
 }
 
-function DataGrid({ title, cells, delay = 0 }) {
+function DataGrid({ cells, delay = 0, isAmount = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay }}
-      className="bg-white rounded-2xl"
-      style={{ padding: '16px 18px' }}
+      className="bg-white"
+      style={{ padding: '0 20px' }}
     >
-      <p className="text-[15px] font-bold mb-3" style={{ color: '#757575' }}>{title}</p>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+      <div className="grid grid-cols-2" style={{ gap: '20px 24px' }}>
         {cells.map((cell, i) => (
-          <DataCell key={i} label={cell.label} value={cell.value} valueColor={cell.valueColor} />
+          <DataCell
+            key={i}
+            label={cell.label}
+            value={cell.value}
+            valueFontSize={isAmount ? '18px' : '16px'}
+            valueFontWeight={isAmount ? 800 : 700}
+          />
         ))}
       </div>
     </motion.div>
@@ -35,23 +40,23 @@ function MetaStrip({ operatorName, time, remark, delay = 0 }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay }}
-      className="bg-white rounded-2xl"
-      style={{ padding: '14px 18px' }}
+      className="bg-white"
+      style={{ padding: '0 20px' }}
     >
       <div className="flex items-center gap-2 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <User size={13} style={{ color: '#757575' }} />
-          <span className="text-[15px] font-semibold" style={{ color: '#1A1A1A' }}>{operatorName}</span>
+          <User size={14} style={{ color: '#AAAAAA' }} />
+          <span style={{ fontSize: '13px', color: '#1A1A1A', fontWeight: 600 }}>{operatorName}</span>
         </div>
-        <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
+        <span style={{ fontSize: '13px', color: '#AAAAAA' }}>·</span>
         <div className="flex items-center gap-1.5">
-          <Clock size={13} style={{ color: '#757575' }} />
-          <span className="text-[15px]" style={{ color: '#757575' }}>{time}</span>
+          <Clock size={14} style={{ color: '#AAAAAA' }} />
+          <span style={{ fontSize: '13px', color: '#AAAAAA' }}>{time}</span>
         </div>
         {remark && (
           <>
-            <span className="text-[13px]" style={{ color: '#C0C0C0' }}>·</span>
-            <span className="text-[15px]" style={{ color: '#757575' }}>{remark}</span>
+            <span style={{ fontSize: '13px', color: '#AAAAAA' }}>·</span>
+            <span style={{ fontSize: '13px', color: '#AAAAAA' }}>{remark}</span>
           </>
         )}
       </div>
@@ -95,7 +100,6 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
     <div className="flex flex-col gap-3">
       <HeroCard quantity={record.quantity} method={record.method} costPrice={record.costPrice} status={record.status} showCostPrice={showCostPrice} />
       <DataGrid
-        title="货物信息"
         delay={0.05}
         cells={[
           { label: '品名', value: record.itemName },
@@ -105,14 +109,17 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
         ]}
       />
       {record.method === '外销' && (
-        <DataGrid
-          title="金额信息"
-          delay={0.1}
-          cells={[
-            { label: '销售总价', value: `¥${record.saleTotalPrice.toFixed(2)}` },
-            { label: '销售单价', value: `¥${record.saleUnitPrice.toFixed(2)}${isLoss ? ' ↓' : ' ↑'}` },
-          ]}
-        />
+        <>
+          <div style={{ margin: '16px 20px', borderTop: '1px solid #EEEEEE' }} />
+          <DataGrid
+            isAmount
+            delay={0.1}
+            cells={[
+              { label: '销售总价', value: `¥${record.saleTotalPrice.toFixed(2)}` },
+              { label: '销售单价', value: `¥${record.saleUnitPrice.toFixed(2)}${isLoss ? ' ↓' : ' ↑'}` },
+            ]}
+          />
+        </>
       )}
       <MetaStrip
         operatorName={record.operatorName}
