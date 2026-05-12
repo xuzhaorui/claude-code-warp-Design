@@ -20,6 +20,7 @@ export default function BumbleInput({
         type={type}
         value={value}
         onChange={onChange}
+        onFocus={e => setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300)}
         placeholder=" "
         className={`bumble-input w-full${error ? ' error' : ''}`}
       />
