@@ -117,11 +117,11 @@ export default function CheckoutTab({ showCostPrice = true }) {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <div className="flex items-start gap-3">
-          <div
-            className="flex-1 rounded-[20px] flex flex-col items-start"
-            style={{ background: '#F5C842', padding: '20px' }}
-          >
+        <div
+          className="w-full rounded-[20px] flex items-start"
+          style={{ background: '#F5C842', padding: '20px', gap: '12px' }}
+        >
+          <div className="flex-1 min-w-0 flex flex-col items-start">
             <span
               className="rounded-[10px] font-black italic"
               style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
