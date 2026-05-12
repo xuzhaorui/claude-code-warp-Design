@@ -54,6 +54,7 @@ export default function RecordCard({ icon: Icon, badge, title, subtitle, extra, 
       setDismissed('left');
     }
     hasTriggeredHaptic.current = { left: false, right: false };
+    isDragging.current = false;
   }, []);
 
   const handleDragStart = useCallback(() => {
