@@ -58,10 +58,7 @@ Layout structure is determined by the task-plan skill based on task complexity. 
 
 ## Coding Discipline (编码纪律)
 - **Git 是后悔药**：每次变更需当前分支本地提交
-- **Code is Liability（代码即负债）**：每一行代码都需要维护、测试和理解。目标是功能最大化，同时代码量最小化
-- **YAGNI（你不需要它）**：严禁为"未来可能的需求"写代码。如果是为了明天，今天就删掉。只为当下的物理事实编码
-- **Delete > Add（删除优于增加）**：即使是复杂的重构，如果结果是代码行数（LOC）减少且功能不变，那就是胜利
-- **No Zombie Code（拒绝僵尸）**：任何被注释掉的代码、未引用的类、未使用的依赖，必须立即物理删除，而不是留作纪念。Git 历史就是你的纪念馆
+- **踩坑记录**：`踩坑记录.txt` 记录每次遇到的问题和反脆弱措施，遇到问题时先阅读
 
 ## Coding Rules
 - Named exports only (default export for route-level components)
