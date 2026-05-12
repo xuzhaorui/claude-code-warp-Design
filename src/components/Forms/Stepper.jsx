@@ -46,7 +46,7 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
   return (
     <div>
       <div
-        className={`relative flex items-center h-11 rounded-xl px-1 gap-0 border-2 overflow-hidden transition-all duration-200 ${
+        className={`relative flex items-center h-12 rounded-xl px-0.5 gap-0 border-2 overflow-hidden transition-all duration-200 ${
           error ? 'border-action-black bg-bg-secondary' : 'border-transparent bg-bg-secondary focus-within:border-brand-yellow focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(255,198,41,0.15)]'
         }`}
       >
@@ -60,7 +60,7 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
           onPointerDown={() => startHold(-1)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
-          className="w-8 h-8 rounded-lg bg-[#E8E8E8] text-text-primary flex items-center justify-center text-lg font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#DADADA] transition-colors duration-150"
+          className="w-9 h-9 rounded-lg bg-[#E8E8E8] text-text-primary flex items-center justify-center text-xl font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#DADADA] transition-colors duration-150"
         >
           −
         </motion.button>
@@ -70,7 +70,7 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
           value={value}
           onChange={handleChange}
           placeholder="0"
-          className={`flex-1 h-full text-center text-lg font-bold bg-transparent border-none outline-none text-text-primary min-w-0 placeholder:text-gray-300 placeholder:font-medium placeholder:text-sm ${bounce ? 'animate-[stepperBounce_0.2s_ease]' : ''}`}
+          className={`flex-1 h-full text-center text-xl font-bold bg-transparent border-none outline-none text-text-primary min-w-0 placeholder:text-gray-300 placeholder:font-medium placeholder:text-base ${bounce ? 'animate-[stepperBounce_0.2s_ease]' : ''}`}
           style={{ fontVariantNumeric: 'tabular-nums', MozAppearance: 'textfield' }}
         />
         <motion.button
@@ -78,12 +78,12 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
           onPointerDown={() => startHold(1)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
-          className="w-8 h-8 rounded-lg bg-action-black text-white flex items-center justify-center text-lg font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#333] transition-colors duration-150"
+          className="w-9 h-9 rounded-lg bg-action-black text-white flex items-center justify-center text-xl font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#333] transition-colors duration-150"
         >
           +
         </motion.button>
         {unit && (
-          <span className="text-xs font-semibold text-text-secondary mr-0.5 shrink-0">{unit}</span>
+          <span className="text-sm font-semibold text-text-secondary mr-0.5 shrink-0">{unit}</span>
         )}
       </div>
       {hint && !error && (
