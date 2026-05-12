@@ -59,24 +59,29 @@ function MetaStrip({ operatorName, time, remark, delay = 0 }) {
   );
 }
 
-function HeroCard({ returnQty, borrower }) {
+function HeroCard({ returnQty, borrower, status }) {
+  const isCancelled = status === '已撤销';
+  const bg = isCancelled ? '#fff' : '#FFC629';
+  const border = isCancelled ? '1.5px solid #E5E5E5' : 'none';
+  const badgeColor = isCancelled ? '#fff' : '#FFC629';
+  const statusText = isCancelled ? '已撤销' : '已归还';
   return (
     <div className="rounded-3xl flex flex-col"
-      style={{ background: '#FFC629', padding: '22px 22px 18px' }}>
-      <span className="text-[11px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
-        style={{ background: '#1A1A1A', color: '#FFC629', letterSpacing: '0.3px' }}>
-        归还记录 · 已归还
+      style={{ background: bg, border, padding: '22px 22px 18px' }}>
+      <span className="text-[13px] font-extrabold self-start px-3 py-1.5 rounded-full mb-5"
+        style={{ background: '#1A1A1A', color: badgeColor, letterSpacing: '0.3px' }}>
+        归还记录 · {statusText}
       </span>
       <div className="text-[56px] font-extrabold leading-none mb-1.5"
         style={{ color: '#1A1A1A', letterSpacing: '-2px' }}>
         {returnQty}
       </div>
-      <div className="text-[14px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}>
-        件 · 已归还
+      <div className="text-[16px] font-medium mb-5" style={{ color: 'rgba(0,0,0,0.55)' }}>
+        件 · {statusText}
       </div>
       <div className="flex items-baseline justify-between pt-3.5"
         style={{ borderTop: '1px solid rgba(0,0,0,0.1)' }}>
-        <span className="text-[12px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}>外借人</span>
+        <span className="text-[14px] font-semibold" style={{ color: 'rgba(0,0,0,0.42)' }}>外借人</span>
         <span className="text-[17px] font-extrabold" style={{ color: '#1A1A1A' }}>{borrower}</span>
       </div>
     </div>
@@ -86,7 +91,7 @@ function HeroCard({ returnQty, borrower }) {
 export default function ReturnDetail({ record }) {
   return (
     <div className="flex flex-col gap-3">
-      <HeroCard returnQty={record.returnQty} borrower={record.borrower} />
+      <HeroCard returnQty={record.returnQty} borrower={record.borrower} status={record.status} />
       <DataGrid
         title="货物信息"
         delay={0.05}
