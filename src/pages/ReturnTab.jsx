@@ -135,11 +135,11 @@ export default function ReturnTab({ showCostPrice = true }) {
           </span>
           <div
             className="absolute flex items-center justify-center"
-            style={{ top: '20px', left: '50%', transform: 'translateX(-50%)', width: '96px', height: '96px', background: '#1A1A1A', borderRadius: '16px' }}
+            style={{ top: '20px', left: '50%', transform: 'translateX(-50%)', width: '120px', height: '120px', background: '#1A1A1A', borderRadius: '16px' }}
           >
-            <span className="text-white"><ScanFrameIcon size={72} animated /></span>
+            <span className="text-white"><ScanFrameIcon size={96} animated /></span>
           </div>
-          <div style={{ height: '96px' }} />
+          <div style={{ height: '120px' }} />
         </motion.div>
         <button
           onClick={() => fileInputRef.current?.click()}
