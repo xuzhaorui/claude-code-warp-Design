@@ -176,7 +176,7 @@ function CostBadge({ value }) {
             <span
               className="inline-block"
               style={{
-                fontSize: '16px',
+                fontSize: '18px',
                 fontWeight: 900,
                 fontStyle: 'italic',
                 color: '#E8986E',
