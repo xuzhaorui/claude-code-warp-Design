@@ -1,4 +1,3 @@
-import { useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 
@@ -25,31 +24,12 @@ function StatusPill({ status }) {
 }
 
 export default function RecordCard({ icon: Icon, title, subtitle, extra, status, onClick, index = 0 }) {
-  const tapTimerRef = useRef(null);
-  const lastFireRef = useRef(0);
-
-  const handleTap = useCallback(() => {
-    if (Date.now() - lastFireRef.current < 300) return;
-
-    if (tapTimerRef.current) {
-      clearTimeout(tapTimerRef.current);
-      tapTimerRef.current = null;
-      return;
-    }
-
-    tapTimerRef.current = setTimeout(() => {
-      tapTimerRef.current = null;
-      lastFireRef.current = Date.now();
-      onClick?.();
-    }, 300);
-  }, [onClick]);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.25 }}
-      onTap={handleTap}
+      onTap={onClick}
       whileTap={{ scale: 0.98 }}
       className="flex items-center bg-white cursor-pointer"
       style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', touchAction: 'manipulation' }}
