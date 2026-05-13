@@ -4,8 +4,8 @@ import { ChevronRight } from 'lucide-react';
 const STATUS_COLORS = {
   '正常':   { background: '#F0F0F0', color: '#888888' },
   '已完成': { background: '#F0F0F0', color: '#888888' },
-  '异常':   { background: '#9A3412', color: '#FFFFFF' },
-  '亏损':   { background: '#9A3412', color: '#FFFFFF' },
+  '异常':   { background: '#E8986E', color: '#FFFFFF' },
+  '亏损':   { background: '#E8986E', color: '#FFFFFF' },
   '已撤销': { background: '#FFF0F0', color: '#FF4444' },
   '进行中': { background: '#F0F0F0', color: '#888888' },
   '待处理': { background: '#F0F0F0', color: '#888888' },
@@ -38,7 +38,7 @@ export default function RecordCard({ title, detail, status, onClick, index = 0 }
         onTap={onClick}
         whileTap={{ scale: 0.9 }}
         className="shrink-0 flex items-center justify-center rounded-full cursor-pointer"
-        style={{ width: '36px', height: '36px', background: '#D97757' }}
+        style={{ width: '36px', height: '36px', background: '#E8986E' }}
       >
         <ChevronRight size={18} style={{ color: '#FFFFFF' }} />
       </motion.div>

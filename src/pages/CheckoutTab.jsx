@@ -131,17 +131,17 @@ export default function CheckoutTab({ showCostPrice = true }) {
           whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
           onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
           className="w-full rounded-[20px] flex flex-col relative cursor-pointer"
-          style={{ background: '#D97757', padding: '20px' }}
+          style={{ background: '#EDE2D5', padding: '20px' }}
         >
           <span
             className="relative z-10 self-start rounded-[10px] font-black italic"
-            style={{ background: '#9A3412', color: '#D97757', padding: '6px 14px', fontSize: '20px' }}
+            style={{ background: '#E8986E', color: '#FFFFFF', padding: '6px 14px', fontSize: '20px' }}
           >
             出库
           </span>
           <div
             className="absolute flex items-center justify-center"
-            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '115px', height: '115px', background: '#9A3412', borderRadius: '16px' }}
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '115px', height: '115px', background: '#E8986E', borderRadius: '16px' }}
           >
             <span className="text-white"><ScanFrameIcon size={91} animated /></span>
           </div>

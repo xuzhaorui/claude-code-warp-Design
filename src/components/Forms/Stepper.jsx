@@ -47,7 +47,7 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
     <div>
       <div
         className={`relative flex items-center h-14 rounded-2xl px-1.5 gap-0 border-2 transition-all duration-200 ${
-          error ? 'border-action-black' : 'border-transparent focus-within:border-brand-yellow focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(217,119,87,0.15)]'
+          error ? 'border-action-black' : 'border-transparent focus-within:border-brand-yellow focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(232,152,110,0.15)]'
         } bg-bg-secondary`}
       >
         {label && (
