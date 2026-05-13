@@ -112,7 +112,7 @@ export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange,
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className={`flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 active:bg-gray-50 cursor-pointer ${activeId === server.id ? 'bg-yellow-50/50' : ''}`}
+              className={`flex items-center gap-3 px-5 py-4 border-b border-gray-100 active:bg-gray-50 cursor-pointer ${activeId === server.id ? 'bg-yellow-50/50' : ''}`}
               onClick={() => handleSelect(server.id)}
             >
               {activeId === server.id && (
@@ -121,21 +121,21 @@ export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange,
               {activeId !== server.id && <div className="w-2 shrink-0" />}
 
               <div className="flex-1 min-w-0">
-                <p className="text-base font-semibold text-text-primary truncate">{server.name}</p>
-                <p className="text-sm text-text-secondary truncate">{server.url}</p>
+                <p className="text-lg font-semibold text-text-primary truncate">{server.name}</p>
+                <p className="text-base text-text-secondary truncate">{server.url}</p>
               </div>
 
               <button
                 onClick={e => { e.stopPropagation(); handleEdit(server); }}
                 className="p-2 active:bg-gray-100 rounded-full"
               >
-                <Pencil size={16} className="text-text-secondary" />
+                <Pencil size={18} className="text-text-secondary" />
               </button>
               <button
                 onClick={e => { e.stopPropagation(); setShowDeleteConfirm(server.id); }}
                 className="p-2 active:bg-gray-100 rounded-full"
               >
-                <Trash2 size={16} className="text-text-secondary" />
+                <Trash2 size={18} className="text-text-secondary" />
               </button>
             </motion.div>
           ))
@@ -160,7 +160,7 @@ export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange,
       >
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-semibold text-text-secondary mb-1 block">服务器名称</label>
+            <label className="text-base font-semibold text-text-secondary mb-1 block">服务器名称</label>
             <input
               value={formName}
               onChange={e => setFormName(e.target.value)}
@@ -169,7 +169,7 @@ export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange,
             />
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-secondary mb-1 block">服务器地址</label>
+            <label className="text-base font-semibold text-text-secondary mb-1 block">服务器地址</label>
             <input
               value={formUrl}
               onChange={e => setFormUrl(e.target.value)}

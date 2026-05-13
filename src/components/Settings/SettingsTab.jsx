@@ -20,13 +20,13 @@ export default function SettingsTab({ onLogout, onServerChanged }) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowServerConfig(true)}
-          className="w-full flex items-center justify-between bg-white rounded-2xl px-4 py-3.5 border border-gray-100 active:bg-gray-50"
+          className="w-full flex items-center justify-between bg-white rounded-2xl px-5 py-4 border border-gray-100 active:bg-gray-50"
         >
           <div className="text-left">
-            <p className="text-base font-bold text-text-primary">服务器配置</p>
-            <p className="text-sm text-text-secondary mt-0.5">管理连接的服务器地址</p>
+            <p className="text-lg font-bold text-text-primary">服务器配置</p>
+            <p className="text-base text-text-secondary mt-0.5">管理连接的服务器地址</p>
           </div>
-          <ChevronRight size={18} className="text-text-secondary flex-shrink-0" />
+          <ChevronRight size={20} className="text-text-secondary flex-shrink-0" />
         </motion.button>
       </div>
 
