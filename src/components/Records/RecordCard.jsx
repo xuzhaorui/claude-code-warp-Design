@@ -29,22 +29,29 @@ export default function RecordCard({ icon: Icon, title, subtitle, extra, status,
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.25 }}
-      onTap={onClick}
-      whileTap={{ scale: 0.98 }}
-      className="flex items-center bg-white cursor-pointer"
-      style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', touchAction: 'manipulation' }}
+      className="bg-white"
+      style={{ border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden' }}
     >
-      <div className="shrink-0 flex items-center justify-center rounded-full" style={{ width: '44px', height: '44px', background: '#1A1A1A' }}>
-        <Icon size={20} className="text-white" strokeWidth={1.5} />
+      <div className="flex items-center" style={{ gap: '12px', padding: '16px 16px' }}>
+        <div className="shrink-0 flex items-center justify-center rounded-full" style={{ width: '44px', height: '44px', background: '#1A1A1A' }}>
+          <Icon size={20} className="text-white" strokeWidth={1.5} />
+        </div>
+        <div className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <p className="truncate" style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A1A' }}>{title}</p>
+          <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{subtitle}</p>
+          {extra && <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{extra}</p>}
+        </div>
+        {status && <StatusPill status={status} />}
       </div>
-
-      <div className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <p className="truncate" style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A1A' }}>{title}</p>
-        <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{subtitle}</p>
-        {extra && <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{extra}</p>}
-      </div>
-
-      {status ? <StatusPill status={status} /> : <ChevronRight size={16} className="text-text-secondary shrink-0" />}
+      <motion.div
+        onTap={onClick}
+        whileTap={{ scale: 0.98, opacity: 0.7 }}
+        className="flex items-center justify-center cursor-pointer"
+        style={{ borderTop: '1px solid #F0F0F0', padding: '10px 0', color: '#888888', fontSize: '13px' }}
+      >
+        <span>查看详情</span>
+        <ChevronRight size={14} style={{ marginLeft: '4px' }} />
+      </motion.div>
     </motion.div>
   );
 }
