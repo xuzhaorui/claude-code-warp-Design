@@ -51,6 +51,8 @@ function AuthFlow() {
   };
 
   const handleServerConfirmed = () => {
+    clearAuthSession();
+    setUser(null);
     const activeServer = resolveActiveServer();
     if (activeServer) setApiBaseUrl(activeServer.url);
     setAuthStep('login');

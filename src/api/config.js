@@ -1,16 +1,44 @@
-const DEFAULT_BASE_URL = '/store';
+function normalizeServerUrl(raw) {
+  let url = (raw || '').trim().replace(/\/$/, '');
+  if (url && !url.startsWith('http')) url = `http://${url}`;
+  return url;
+}
 
-export function setApiBaseUrl(url) {
+export function setApiBaseUrl(rawUrl) {
+  const url = normalizeServerUrl(rawUrl);
   localStorage.setItem('api-base-url', url);
-  fetch('/__proxy-target', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ target: url }),
-  }).catch(() => {});
+  // /__proxy-target is a Vite dev-only endpoint — skip in production to avoid 405
+  if (import.meta.env.DEV) {
+    fetch('/__proxy-target', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: url }),
+    }).catch(() => {});
+  }
 }
 
 export function buildApiUrl(path) {
   const normalizedPath = path.startsWith('/') ? path : '/' + path;
+
+  // Dev: Vite proxy handles cross-server routing via /__proxy-target
+  if (import.meta.env.DEV) return `/store${normalizedPath}`;
+
+  const storedBase = localStorage.getItem('api-base-url');
+  if (storedBase) {
+    try {
+      const parsed = new URL(storedBase);
+      const hasContextPath = parsed.pathname && parsed.pathname !== '/';
+      const contextPath = hasContextPath ? parsed.pathname.replace(/\/$/, '') : '/store';
+
+      if (parsed.origin === window.location.origin) {
+        // Same origin: use relative path so nginx routes it (no Mixed Content)
+        return `${contextPath}${normalizedPath}`;
+      }
+
+      // Different origin: use absolute URL — target server must be HTTPS to avoid Mixed Content
+      return `${parsed.origin}${contextPath}${normalizedPath}`;
+    } catch { /* malformed URL — fall through */ }
+  }
   return `/store${normalizedPath}`;
 }
 

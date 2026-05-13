@@ -169,11 +169,11 @@ export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange,
             />
           </div>
           <div>
-            <label className="text-sm font-semibold text-text-secondary mb-1 block">IP 地址</label>
+            <label className="text-sm font-semibold text-text-secondary mb-1 block">服务器地址</label>
             <input
               value={formUrl}
               onChange={e => setFormUrl(e.target.value)}
-              placeholder="如：192.168.1.100"
+              placeholder=""
               className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-base"
             />
           </div>
