@@ -179,7 +179,7 @@ export default function ReturnTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  title={record.itemName}
+                  title={`${record.itemName} · ${record.code} · ${record.warehouse}`}
                   detail={`${record.returnQty} 件 · ${record.borrower}`}
                   status={record.status}
                   index={idx}
