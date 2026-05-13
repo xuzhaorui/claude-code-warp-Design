@@ -45,12 +45,12 @@ export default function RecordCard({ icon: Icon, title, subtitle, extra, status,
       </div>
       <motion.div
         onTap={onClick}
-        whileTap={{ scale: 0.98, opacity: 0.7 }}
+        whileTap={{ scale: 0.97, opacity: 0.8 }}
         className="flex items-center justify-center cursor-pointer"
-        style={{ borderTop: '1px solid #F0F0F0', padding: '10px 0', color: '#888888', fontSize: '13px' }}
+        style={{ borderTop: '1px solid #EEEEEE', padding: '12px 0', background: '#1A1A1A', color: '#FFFFFF', fontSize: '15px', fontWeight: 600 }}
       >
         <span>查看详情</span>
-        <ChevronRight size={14} style={{ marginLeft: '4px' }} />
+        <ChevronRight size={16} style={{ marginLeft: '6px' }} />
       </motion.div>
     </motion.div>
   );
