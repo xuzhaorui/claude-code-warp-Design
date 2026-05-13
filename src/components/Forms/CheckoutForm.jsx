@@ -133,8 +133,8 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
 function InfoField({ label, value }) {
   return (
     <div>
-      <div className="text-[13px] font-semibold text-text-secondary tracking-wide">{label}</div>
-      <div className="text-[15px] font-bold text-text-primary mt-0.5">{value}</div>
+      <div className="text-[15px] font-semibold text-text-secondary tracking-wide">{label}</div>
+      <div className="text-[17px] font-bold text-text-primary mt-0.5">{value}</div>
     </div>
   );
 }
@@ -142,7 +142,7 @@ function InfoField({ label, value }) {
 function BadgeField({ label, value }) {
   return (
     <div>
-      <div className="text-[13px] font-semibold text-text-secondary tracking-wide">{label}</div>
+      <div className="text-[15px] font-semibold text-text-secondary tracking-wide">{label}</div>
       <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
         <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#E8986E' }}>
           <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#EDE2D5', transform: 'skewX(-5deg)' }}>
@@ -169,7 +169,7 @@ function BadgeField({ label, value }) {
 function CostBadge({ value }) {
   return (
     <div>
-      <div className="text-[13px] font-semibold text-text-secondary tracking-wide">成本单价</div>
+      <div className="text-[15px] font-semibold text-text-secondary tracking-wide">成本单价</div>
       <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
         <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#E8986E' }}>
           <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#EDE2D5', transform: 'skewX(-5deg)' }}>
