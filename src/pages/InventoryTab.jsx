@@ -173,7 +173,6 @@ export default function InventoryTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  icon={ClipboardCheck}
                   badge={record.difference > 0 ? `+${record.difference}` : record.difference}
                   title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
                   subtitle={record.itemName}

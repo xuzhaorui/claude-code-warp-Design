@@ -179,7 +179,6 @@ export default function ReturnTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  icon={RotateCcw}
                   badge={record.returnQty}
                   title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
                   subtitle={record.itemName}

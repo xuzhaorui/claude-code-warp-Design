@@ -23,7 +23,7 @@ function StatusPill({ status }) {
   );
 }
 
-export default function RecordCard({ icon: Icon, title, subtitle, extra, status, onClick, index = 0 }) {
+export default function RecordCard({ title, subtitle, extra, status, onClick, index = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -32,9 +32,6 @@ export default function RecordCard({ icon: Icon, title, subtitle, extra, status,
       className="flex items-center bg-white"
       style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
     >
-      <div className="shrink-0 flex items-center justify-center rounded-full" style={{ width: '44px', height: '44px', background: '#1A1A1A' }}>
-        <Icon size={20} className="text-white" strokeWidth={1.5} />
-      </div>
       <div className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <p className="truncate" style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A1A' }}>{title}</p>
         <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{subtitle}</p>
