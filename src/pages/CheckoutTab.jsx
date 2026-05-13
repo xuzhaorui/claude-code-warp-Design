@@ -176,7 +176,7 @@ export default function CheckoutTab({ showCostPrice = true }) {
                 <RecordCard
                   key={record.id}
                   title={record.itemName}
-                  detail={`${record.quantity} 件 · ¥${record.costPrice.toFixed(2)} · ${record.method}`}
+                  detail={`${record.quantity} 件 · 成本 ¥${record.costPrice.toFixed(2)} · ${record.method}`}
                   status={record.status}
                   index={idx}
                   onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
