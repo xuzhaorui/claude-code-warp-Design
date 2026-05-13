@@ -11,19 +11,7 @@ const STATUS_COLORS = {
   '待处理': { background: '#F0F0F0', color: '#888888' },
 };
 
-function StatusPill({ status }) {
-  const style = STATUS_COLORS[status] ?? { background: '#F0F0F0', color: '#888888' };
-  return (
-    <span
-      className="font-normal rounded-full shrink-0"
-      style={{ ...style, padding: '4px 10px', fontSize: '12px' }}
-    >
-      {status}
-    </span>
-  );
-}
-
-export default function RecordCard({ title, subtitle, extra, status, onClick, index = 0 }) {
+export default function RecordCard({ title, detail, status, onClick, index = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -32,12 +20,20 @@ export default function RecordCard({ title, subtitle, extra, status, onClick, in
       className="flex items-center bg-white"
       style={{ gap: '12px', padding: '16px 16px', border: '1px solid #EEEEEE', borderRadius: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
     >
-      <div className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <p className="truncate" style={{ fontSize: '15px', fontWeight: 700, color: '#1A1A1A' }}>{title}</p>
-        <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{subtitle}</p>
-        {extra && <p className="truncate" style={{ fontSize: '13px', fontWeight: 400, color: '#888888' }}>{extra}</p>}
+      <div className="flex-1 min-w-0" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div className="flex items-center gap-2">
+          <p className="truncate" style={{ fontSize: '16px', fontWeight: 700, color: '#1A1A1A' }}>{title}</p>
+          {status && (
+            <span
+              className="shrink-0 rounded-full"
+              style={{ ...STATUS_COLORS[status], padding: '3px 8px', fontSize: '12px' }}
+            >
+              {status}
+            </span>
+          )}
+        </div>
+        <p className="truncate" style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A' }}>{detail}</p>
       </div>
-      {status && <StatusPill status={status} />}
       <motion.div
         onTap={onClick}
         whileTap={{ scale: 0.9 }}

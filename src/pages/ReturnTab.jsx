@@ -179,15 +179,11 @@ export default function ReturnTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  badge={record.returnQty}
-                  title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-                  subtitle={record.itemName}
-                  extra={`外借人：${record.borrower}`}
+                  title={record.itemName}
+                  detail={`${record.returnQty} 件 · ${record.borrower}`}
                   status={record.status}
                   index={idx}
                   onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-                  onSwipeLeft={() => handleRemoveRecord(record.id)}
-                  onSwipeRight={() => handleRemoveRecord(record.id)}
                 />
               ))}
             </AnimatePresence>

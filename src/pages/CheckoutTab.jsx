@@ -175,15 +175,11 @@ export default function CheckoutTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  badge={record.quantity}
-                  title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-                  subtitle={record.itemName}
-                  extra={record.method === '外销' ? `¥${record.saleTotalPrice.toFixed(2)}` : record.method}
+                  title={record.itemName}
+                  detail={`${record.quantity} 件 · ¥${record.costPrice.toFixed(2)} · ${record.method}`}
                   status={record.status}
                   index={idx}
                   onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-                  onSwipeLeft={() => setRecords(prev => prev.filter(r => r.id !== record.id))}
-                  onSwipeRight={() => setRecords(prev => prev.filter(r => r.id !== record.id))}
                 />
               ))}
             </AnimatePresence>

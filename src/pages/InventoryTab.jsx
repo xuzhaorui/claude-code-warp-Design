@@ -173,15 +173,11 @@ export default function InventoryTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  badge={record.difference > 0 ? `+${record.difference}` : record.difference}
-                  title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-                  subtitle={record.itemName}
-                  extra={`盘点数量：${record.actualQty}`}
+                  title={record.itemName}
+                  detail={`实盘 ${record.actualQty} 件 · 差值 ${record.difference > 0 ? '+' : ''}${record.difference} 件`}
                   status={record.status}
                   index={idx}
                   onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-                  onSwipeLeft={() => handleRemoveRecord(record.id)}
-                  onSwipeRight={() => handleRemoveRecord(record.id)}
                 />
               ))}
             </AnimatePresence>
