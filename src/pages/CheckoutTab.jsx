@@ -175,7 +175,7 @@ export default function CheckoutTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  title={`${record.itemName} · ${record.code} · ${record.warehouse}`}
+                  title={record.itemName}
                   detail={`${record.quantity} 件 · 成本 ¥${record.costPrice.toFixed(2)} · ${record.method}`}
                   status={record.status}
                   index={idx}

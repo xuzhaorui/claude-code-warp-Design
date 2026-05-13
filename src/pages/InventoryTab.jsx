@@ -173,7 +173,7 @@ export default function InventoryTab({ showCostPrice = true }) {
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  title={`${record.itemName} · ${record.code} · ${record.warehouse}`}
+                  title={record.itemName}
                   detail={`实盘 ${record.actualQty} 件 · 差值 ${record.difference > 0 ? '+' : ''}${record.difference} 件`}
                   status={record.status}
                   index={idx}
