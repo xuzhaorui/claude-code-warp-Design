@@ -32,7 +32,7 @@ function MetaStrip({ operatorName, time, remark }) {
 }
 
 export default function CheckoutDetail({ record, showCostPrice = true }) {
-  const isLoss = record.method === '外销' && record.saleUnitPrice < record.costPrice;
+  const isLoss = showCostPrice && record.method === '外销' && record.saleUnitPrice < record.costPrice;
   return (
     <div style={{ padding: '4px 0' }}>
       <div style={{ padding: '12px 0 10px', borderBottom: '1px solid #F0F0F0' }}>
@@ -47,7 +47,7 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
         <>
           <div style={{ borderTop: '1px solid #F0F0F0' }} />
           <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold />
-          <Row label="销售单价" value={`¥${record.saleUnitPrice.toFixed(2)}${isLoss ? ' ↓' : ' ↑'}`} bold />
+          <Row label="销售单价" value={`¥${record.saleUnitPrice.toFixed(2)}${showCostPrice ? (isLoss ? ' ↓' : ' ↑') : ''}`} bold />
         </>
       )}
       <div style={{ borderTop: '1px solid #F0F0F0' }} />
