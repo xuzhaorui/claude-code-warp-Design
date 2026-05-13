@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-yellow: #3B82F6;
-  --color-action-black: #1E3A5F;
+  --color-brand-yellow: #60A5FA;
+  --color-action-black: #60A5FA;
   --color-bg-main: #FFFFFF;
   --color-bg-secondary: #F1F5F9;
   --color-text-primary: #1E293B;
@@ -45,14 +45,14 @@ input:focus, textarea:focus {
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
 }
 .bumble-input:focus {
-  border-bottom-color: #3B82F6;
+  border-bottom-color: #60A5FA;
   background: #FFFFFF;
   box-shadow: none;
 }
 
 /* §7 Error state */
 .bumble-input.error {
-  border-bottom-color: #1E3A5F;
+  border-bottom-color: #60A5FA;
   background: #F5F5F5;
   box-shadow: none;
 }
@@ -66,11 +66,11 @@ input:focus, textarea:focus {
 /* §7 Underline expansion */
 .bumble-input-underline {
   position: absolute; bottom: 0; left: 50%; width: 0; height: 2px;
-  background: #3B82F6; border-radius: 0 0 12px 12px;
+  background: #60A5FA; border-radius: 0 0 12px 12px;
   transition: width 0.3s cubic-bezier(0.4,0,0.2,1), left 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 .bumble-input:focus ~ .bumble-input-underline { width: 100%; left: 0; }
-.bumble-input.error ~ .bumble-input-underline { background: #1E3A5F; width: 100%; left: 0; }
+.bumble-input.error ~ .bumble-input-underline { background: #60A5FA; width: 100%; left: 0; }
 
 /* §7 Shake animation */
 @keyframes inputShake {
@@ -89,7 +89,7 @@ input:focus, textarea:focus {
 
 /* §7 Error message */
 .bumble-error-msg {
-  font-size: 14px; color: #1E3A5F; margin-top: 6px;
+  font-size: 14px; color: #60A5FA; margin-top: 6px;
   display: none; font-weight: 600;
 }
 .bumble-input.error ~ .bumble-error-msg { display: block; }
@@ -110,7 +110,7 @@ input:focus, textarea:focus {
   transform: translateY(0) scale(0.75);
   font-weight: 700;
   letter-spacing: 0.5px;
-  color: #3B82F6;
+  color: #60A5FA;
 }
 
 @keyframes pulse-scale {
