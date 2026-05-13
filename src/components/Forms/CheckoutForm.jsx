@@ -144,15 +144,15 @@ function BadgeField({ label, value }) {
     <div>
       <div className="text-[10px] font-semibold text-text-secondary tracking-wide">{label}</div>
       <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
-        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#F5C842' }}>
-          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
+        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#3B82F6' }}>
+          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#1E3A5F', transform: 'skewX(-5deg)' }}>
             <span
               className="inline-block"
               style={{
                 fontSize: '18px',
                 fontWeight: 900,
                 fontStyle: 'italic',
-                color: '#F5C842',
+                color: '#3B82F6',
                 letterSpacing: '-0.5px',
                 transform: 'skewX(8deg)',
               }}
@@ -171,15 +171,15 @@ function CostBadge({ value }) {
     <div>
       <div className="text-[10px] font-semibold text-text-secondary tracking-wide">成本单价</div>
       <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
-        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#F5C842' }}>
-          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#1A1A1A', transform: 'skewX(-5deg)' }}>
+        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#3B82F6' }}>
+          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#1E3A5F', transform: 'skewX(-5deg)' }}>
             <span
               className="inline-block"
               style={{
                 fontSize: '16px',
                 fontWeight: 900,
                 fontStyle: 'italic',
-                color: '#F5C842',
+                color: '#3B82F6',
                 letterSpacing: '-0.5px',
                 transform: 'skewX(8deg)',
               }}

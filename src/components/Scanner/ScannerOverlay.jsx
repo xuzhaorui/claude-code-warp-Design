@@ -181,20 +181,20 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   {/* L-shaped corner brackets */}
                   <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-0 left-0 w-10 h-10">
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: 40, height: 6, background: '#3B82F6', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: 40, background: '#3B82F6', borderRadius: 2 }} />
                     </div>
                     <div className="absolute top-0 right-0 w-10 h-10">
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 6, background: '#3B82F6', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: 40, background: '#3B82F6', borderRadius: 2 }} />
                     </div>
                     <div className="absolute bottom-0 left-0 w-10 h-10">
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 40, height: 6, background: '#3B82F6', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 6, height: 40, background: '#3B82F6', borderRadius: 2 }} />
                     </div>
                     <div className="absolute bottom-0 right-0 w-10 h-10">
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 40, height: 6, background: '#3B82F6', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 6, height: 40, background: '#3B82F6', borderRadius: 2 }} />
                     </div>
                   </div>
                   {/* Animated scan line */}

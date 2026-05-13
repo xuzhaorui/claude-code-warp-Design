@@ -7,6 +7,7 @@ export async function login(username, password) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      'X-Requested-With': 'XMLHttpRequest',
     },
     credentials: 'include',
     body: buildFormBody({ username, password, rememberMe: 'true' }),

@@ -63,7 +63,10 @@ export async function parseJsonResponse(response) {
     if (html.includes('登录') || html.includes('login')) {
       throw new Error('未登录或会话已过期');
     }
-    throw new Error('服务器返回了HTML而不是JSON');
+    if (response.status === 403 || html.includes('403') || html.includes('权限') || html.includes('denied')) {
+      throw new Error('账号权限不足，无法访问此系统');
+    }
+    throw new Error(`服务器返回了HTML而不是JSON（HTTP ${response.status}）`);
   }
 
   let text;

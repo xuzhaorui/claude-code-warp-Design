@@ -135,17 +135,17 @@ export default function ReturnTab({ showCostPrice = true }) {
           whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
           onPointerDown={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
           className="w-full rounded-[20px] flex flex-col relative cursor-pointer"
-          style={{ background: '#F5C842', padding: '20px' }}
+          style={{ background: '#3B82F6', padding: '20px' }}
         >
           <span
             className="relative z-10 self-start rounded-[10px] font-black italic"
-            style={{ background: '#1A1A1A', color: '#F5C842', padding: '6px 14px', fontSize: '20px' }}
+            style={{ background: '#1E3A5F', color: '#3B82F6', padding: '6px 14px', fontSize: '20px' }}
           >
             归还
           </span>
           <div
             className="absolute flex items-center justify-center"
-            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '115px', height: '115px', background: '#1A1A1A', borderRadius: '16px' }}
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '115px', height: '115px', background: '#1E3A5F', borderRadius: '16px' }}
           >
             <span className="text-white"><ScanFrameIcon size={91} animated /></span>
           </div>
