@@ -84,7 +84,7 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
               value={saleTotalPrice}
               onChange={(v) => { setSaleTotalPrice(v); setConfirmLoss(false); }}
               min={0}
-              max={999999}
+              max={Infinity}
               stepSize={1}
               label="销售总价"
               unit="¥"
