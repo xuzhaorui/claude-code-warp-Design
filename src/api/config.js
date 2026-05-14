@@ -53,7 +53,11 @@ export function buildFormBody(fields) {
 }
 
 export async function parseJsonResponse(response) {
-  if (response.status === 401 || response.redirected) {
+  if (response.status === 401) {
+    handleAuthExpired();
+    throw new Error('未登录或会话已过期');
+  }
+  if (response.redirected) {
     throw new Error('未登录或会话已过期');
   }
 
@@ -61,6 +65,7 @@ export async function parseJsonResponse(response) {
   if (contentType && contentType.includes('text/html')) {
     const html = await response.text();
     if (html.includes('登录') || html.includes('login')) {
+      handleAuthExpired();
       throw new Error('未登录或会话已过期');
     }
     if (response.status === 403 || html.includes('403') || html.includes('权限') || html.includes('denied')) {
@@ -84,6 +89,7 @@ export async function parseJsonResponse(response) {
   }
 
   if (data.code === 401 || (data.msg && /未登录|登录超时|重新登录|会话已失效|登录状态已过期/.test(data.msg))) {
+    handleAuthExpired();
     throw new Error('未登录或会话已过期');
   }
 

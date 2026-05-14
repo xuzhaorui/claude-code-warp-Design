@@ -77,15 +77,50 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     };
   }, [showSheet, sheetHeight]);
 
+  const restartScanner = useCallback(async () => {
+    const oldScanner = scannerRef.current;
+    if (oldScanner) {
+      try { await oldScanner.stop(); } catch {}
+    }
+    activeRef.current = true;
+    scanningRef.current = false;
+    try {
+      const newScanner = new Html5Qrcode('seamless-scanner');
+      scannerRef.current = newScanner;
+      await newScanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 320, height: 320 } },
+        (decodedText) => {
+          if (!activeRef.current || scanningRef.current) return;
+          scanningRef.current = true;
+          activeRef.current = false;
+          setScanned(true);
+          try { navigator.vibrate?.([100, 50, 100]); } catch {}
+          playBeep();
+          try { newScanner.pause(true); } catch {}
+          onScanSuccess?.(decodedText);
+        },
+        () => {}
+      );
+    } catch (err) {
+      if (mountedRef.current) setError('摄像头恢复失败，请检查权限设置');
+    }
+  }, [onScanSuccess]);
+
   const resumeScanning = useCallback(() => {
     const scanner = scannerRef.current;
     if (!scanner) return;
     activeRef.current = true;
     scanningRef.current = false;
     try {
-      scanner.resume?.();
-    } catch {}
-  }, []);
+      const result = scanner.resume?.();
+      if (result && typeof result.then === 'function') {
+        result.catch(() => restartScanner());
+      }
+    } catch {
+      restartScanner();
+    }
+  }, [restartScanner]);
 
   useEffect(() => {
     if (!isOpen || skipCamera) return;
@@ -134,6 +169,25 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
       }
     };
   }, [isOpen]);
+
+  // Recover camera when page returns from background
+  useEffect(() => {
+    if (!isOpen || skipCamera) return;
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!mountedRef.current || scanned) return;
+      const scanner = scannerRef.current;
+      if (!scanner) return;
+      try {
+        const tracks = scanner.getRunningTrackSettings?.() || scanner.getRunningTrackCapabilities?.();
+        if (!tracks) restartScanner();
+      } catch {
+        restartScanner();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [isOpen, scanned, restartScanner, skipCamera]);
 
   const handleManualClose = useCallback(() => {
     setShowSheet(false);
@@ -220,7 +274,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           {/* Exit button - frosted glass */}
           <button
             onPointerDown={handleManualClose}
-            className="absolute top-4 left-4 px-4 py-2 rounded-full text-white text-sm font-semibold backdrop-blur-xl bg-white/15 border border-white/20 active:bg-white/25"
+            className="absolute top-4 left-4 z-50 px-4 py-2 rounded-full text-white text-sm font-semibold backdrop-blur-xl bg-white/15 border border-white/20 active:bg-white/25"
           >
             退出扫码
           </button>
