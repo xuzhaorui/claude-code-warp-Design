@@ -1,10 +1,58 @@
+import { useState } from 'react';
 import { User, Clock } from 'lucide-react';
 
-function Row({ label, value, bold = false, valueColor }) {
+function Row({ label, value, bold = false, valueColor, editable, onEdit }) {
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+
+  const handleClick = () => {
+    if (!editable) return;
+    setEditValue(String(value).replace(/[^0-9.]/g, ''));
+    setEditing(true);
+  };
+
+  const handleBlur = () => {
+    setEditing(false);
+    if (editValue && onEdit) {
+      onEdit(parseFloat(editValue));
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.target.blur();
+    }
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-baseline justify-between" style={{ padding: '11px 0' }}>
+        <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
+        <input
+          type="text"
+          inputMode="decimal"
+          autoFocus
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="text-right bg-transparent outline-none"
+          style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524', width: '120px' }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-baseline justify-between" style={{ padding: '11px 0' }}>
       <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
-      <span className="text-right" style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524' }}>{value}</span>
+      <span
+        className="text-right"
+        style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524', cursor: editable ? 'pointer' : 'default' }}
+        onClick={handleClick}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -46,7 +94,7 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
       {record.method === '外销' && (
         <>
           <div style={{ borderTop: '1px solid #F0F0F0' }} />
-          <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold />
+          <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold editable />
           <Row label="销售单价" value={`¥${record.saleUnitPrice.toFixed(2)}${showCostPrice ? (isLoss ? ' ↓' : ' ↑') : ''}`} bold />
         </>
       )}
