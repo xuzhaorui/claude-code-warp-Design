@@ -1,58 +1,63 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { User, Clock } from 'lucide-react';
 
 function Row({ label, value, bold = false, valueColor, editable, onEdit }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const inputRef = useRef(null);
 
-  const handleClick = () => {
+  const handleFocus = useCallback(() => {
     if (!editable) return;
     setEditValue(String(value).replace(/[^0-9.]/g, ''));
     setEditing(true);
-  };
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    });
+  }, [editable, value]);
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     setEditing(false);
     if (editValue && onEdit) {
       onEdit(parseFloat(editValue));
     }
-  };
+  }, [editValue, onEdit]);
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = useCallback((event) => {
     if (event.key === 'Enter') {
       event.target.blur();
     }
-  };
-
-  if (editing) {
-    return (
-      <div className="flex items-baseline justify-between" style={{ padding: '11px 0' }}>
-        <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
-        <input
-          type="text"
-          inputMode="decimal"
-          autoFocus
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className="text-right bg-transparent outline-none"
-          style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524', width: '120px' }}
-        />
-      </div>
-    );
-  }
+  }, []);
 
   return (
     <div className="flex items-baseline justify-between" style={{ padding: '11px 0' }}>
       <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
-      <span
-        className="text-right"
-        style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524', cursor: editable ? 'pointer' : 'default' }}
-        onClick={handleClick}
-      >
-        {value}
-      </span>
+      {editable && (
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="decimal"
+          value={editing ? editValue : String(value).replace(/[^0-9.]/g, '')}
+          onChange={(e) => setEditValue(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          className="text-right bg-transparent outline-none"
+          style={{
+            fontSize: '18px',
+            fontWeight: bold ? 700 : 400,
+            color: valueColor ?? '#292524',
+            width: '120px',
+            caretColor: editing ? 'auto' : 'transparent',
+          }}
+        />
+      )}
+      {!editable && (
+        <span className="text-right" style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524' }}>
+          {value}
+        </span>
+      )}
     </div>
   );
 }
