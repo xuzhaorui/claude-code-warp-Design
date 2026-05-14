@@ -19,7 +19,7 @@ export default function ServerSetupScreen({ onConfirmed }) {
         />
       </div>
 
-      <div className="p-5 bg-white border-t border-gray-100 shrink-0">
+      <div className="px-5 pt-5 pb-8 bg-white border-t border-gray-100 shrink-0">
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onConfirmed}
