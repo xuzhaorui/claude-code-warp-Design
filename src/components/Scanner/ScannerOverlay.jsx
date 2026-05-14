@@ -31,6 +31,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   const scanningRef = useRef(false);
   const activeRef = useRef(true);
   const [sheetHeight, setSheetHeight] = useState(null);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -51,6 +52,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
       return () => clearTimeout(timer);
     }
     if (sheetContent && !showSheet) {
+      setClosing(false);
       setSheetHeight(window.innerHeight * 0.85);
       setShowSheet(true);
     }
@@ -196,17 +198,20 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   }, [onClose, onSheetClose]);
 
   const handleSheetClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
     setShowSheet(false);
     onSheetClose?.();
     const timer = setTimeout(() => {
       if (mountedRef.current) {
+        setClosing(false);
         setScanned(false);
         scanningRef.current = false;
         resumeScanning();
       }
     }, 350);
     return () => clearTimeout(timer);
-  }, [onSheetClose, resumeScanning]);
+  }, [onSheetClose, resumeScanning, closing]);
 
   return (
     <AnimatePresence>
@@ -296,7 +301,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   animate={{ y: 0 }}
                   exit={{ y: '-100%' }}
                   transition={SPRING}
-                  drag="y"
+                  drag={closing ? false : "y"}
                   dragConstraints={{ bottom: 0 }}
                   dragElastic={0.15}
                   onDragEnd={(_, info) => {
