@@ -80,15 +80,16 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
 
         {method === '外销' && (
           <>
-            <div>
-              <BumbleInput
-                label="销售总价"
-                type="number"
-                inputMode="decimal"
-                value={saleTotalPrice}
-                onChange={e => { setSaleTotalPrice(e.target.value); setConfirmLoss(false); }}
-              />
-            </div>
+            <Stepper
+              value={saleTotalPrice}
+              onChange={(v) => { setSaleTotalPrice(v); setConfirmLoss(false); }}
+              min={0}
+              max={999999}
+              stepSize={1}
+              label="销售总价"
+              unit="¥"
+              inputMode="decimal"
+            />
             <div className="bg-bg-secondary rounded-2xl px-4 py-3">
               <span className="text-sm text-text-secondary">销售单价：</span>
               <span className="text-base font-semibold text-text-primary">¥{saleUnitPrice}</span>

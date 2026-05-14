@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function Stepper({ value, onChange, min = 1, max = 9999, label, hint, error, unit }) {
+export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize = 1, label, hint, error, unit, inputMode = 'numeric' }) {
   const holdTimer = useRef(null);
   const intervalTimer = useRef(null);
   const [bounce, setBounce] = useState(false);
 
   const step = (dir) => {
     const v = Number(value) || 0;
-    const next = Math.min(max, Math.max(min, v + dir));
-    onChange(next || '');
+    const next = Math.min(max, Math.max(min, v + dir * stepSize));
+    const rounded = Number.isInteger(stepSize) ? next : Math.round(next * 100) / 100;
+    onChange(rounded || '');
     triggerBounce();
   };
 
@@ -40,7 +41,10 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
     const raw = e.target.value;
     if (raw === '') { onChange(''); return; }
     const n = Number(raw);
-    if (!Number.isNaN(n)) onChange(Math.max(min, Math.min(max, n)));
+    if (!Number.isNaN(n)) {
+      const clamped = Math.max(min, Math.min(max, n));
+      onChange(Number.isInteger(stepSize) ? clamped : Math.round(clamped * 100) / 100);
+    }
   };
 
   return (
@@ -66,7 +70,7 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, label, h
         </motion.button>
         <input
           type="number"
-          inputMode="numeric"
+          inputMode={inputMode}
           value={value}
           onChange={handleChange}
           placeholder="0"
