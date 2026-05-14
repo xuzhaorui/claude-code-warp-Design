@@ -84,6 +84,7 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
               <BumbleInput
                 label="销售总价"
                 type="number"
+                inputMode="decimal"
                 value={saleTotalPrice}
                 onChange={e => { setSaleTotalPrice(e.target.value); setConfirmLoss(false); }}
               />

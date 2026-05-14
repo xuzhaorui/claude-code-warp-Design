@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 
 export default function BumbleInput({
-  label, value, onChange, type = 'text',
+  label, value, onChange, type = 'text', inputMode,
   error = false, errorMsg = '',
   className = ''
 }) {
@@ -18,6 +18,7 @@ export default function BumbleInput({
     <div ref={groupRef} className={`bumble-input-group relative mb-6 ${className}`}>
       <input
         type={type}
+        inputMode={inputMode}
         value={value}
         onChange={onChange}
         onFocus={e => setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300)}
