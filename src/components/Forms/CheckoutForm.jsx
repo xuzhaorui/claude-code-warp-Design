@@ -89,6 +89,7 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
               label="销售总价"
               unit="¥"
               inputMode="decimal"
+              controls={false}
             />
             <div className="bg-bg-secondary rounded-2xl px-4 py-3">
               <span className="text-sm text-text-secondary">销售单价：</span>

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize = 1, label, hint, error, unit, inputMode = 'numeric' }) {
+export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize = 1, label, hint, error, unit, inputMode = 'numeric', controls = true }) {
   const holdTimer = useRef(null);
   const intervalTimer = useRef(null);
   const [bounce, setBounce] = useState(false);
@@ -59,15 +59,17 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize
             {label}
           </span>
         )}
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onPointerDown={() => startHold(-1)}
-          onPointerUp={stopHold}
-          onPointerLeave={stopHold}
-          className="w-11 h-11 rounded-xl bg-[#E8E8E8] text-text-primary flex items-center justify-center text-[22px] font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#DADADA] transition-colors duration-150"
-        >
-          −
-        </motion.button>
+        {controls && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onPointerDown={() => startHold(-1)}
+            onPointerUp={stopHold}
+            onPointerLeave={stopHold}
+            className="w-11 h-11 rounded-xl bg-[#E8E8E8] text-text-primary flex items-center justify-center text-[22px] font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#DADADA] transition-colors duration-150"
+          >
+            −
+          </motion.button>
+        )}
         <input
           type="number"
           inputMode={inputMode}
@@ -77,15 +79,17 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize
           className={`flex-1 h-full text-center text-[22px] font-bold bg-transparent border-none outline-none text-text-primary min-w-0 placeholder:text-gray-300 placeholder:font-medium placeholder:text-base ${bounce ? 'animate-[stepperBounce_0.2s_ease]' : ''}`}
           style={{ fontVariantNumeric: 'tabular-nums', MozAppearance: 'textfield' }}
         />
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onPointerDown={() => startHold(1)}
-          onPointerUp={stopHold}
-          onPointerLeave={stopHold}
-          className="w-11 h-11 rounded-xl bg-action-black text-white flex items-center justify-center text-[22px] font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#333] transition-colors duration-150"
-        >
-          +
-        </motion.button>
+        {controls && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onPointerDown={() => startHold(1)}
+            onPointerUp={stopHold}
+            onPointerLeave={stopHold}
+            className="w-11 h-11 rounded-xl bg-action-black text-white flex items-center justify-center text-[22px] font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#333] transition-colors duration-150"
+          >
+            +
+          </motion.button>
+        )}
         {unit && (
           <span className="text-sm font-semibold text-text-secondary mr-1 shrink-0">{unit}</span>
         )}
