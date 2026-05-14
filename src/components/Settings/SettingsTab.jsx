@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import ServerConfig from './ServerConfig';
 
-export default function SettingsTab({ onLogout }) {
+export default function SettingsTab({ onLogout, onServerChanged }) {
   const [showServerConfig, setShowServerConfig] = useState(false);
 
   if (showServerConfig) {
-    return <ServerConfig onBack={() => setShowServerConfig(false)} />;
+    return <ServerConfig onBack={() => setShowServerConfig(false)} onServerChanged={onServerChanged} />;
   }
 
   return (
@@ -20,21 +20,21 @@ export default function SettingsTab({ onLogout }) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowServerConfig(true)}
-          className="w-full flex items-center justify-between bg-white rounded-2xl px-4 py-3.5 border border-gray-100 active:bg-gray-50"
+          className="w-full flex items-center justify-between bg-white rounded-2xl px-5 py-4 border border-gray-100 active:bg-gray-50"
         >
           <div className="text-left">
-            <p className="text-sm font-bold text-text-primary">服务器配置</p>
-            <p className="text-xs text-text-secondary mt-0.5">管理连接的服务器地址</p>
+            <p className="text-lg font-bold text-text-primary">服务器配置</p>
+            <p className="text-base text-text-secondary mt-0.5">管理连接的服务器地址</p>
           </div>
-          <ChevronRight size={18} className="text-text-secondary flex-shrink-0" />
+          <ChevronRight size={20} className="text-text-secondary flex-shrink-0" />
         </motion.button>
       </div>
 
-      <div className="p-5 flex justify-center">
+      <div className="px-5 pb-5">
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={onLogout}
-          className="text-sm font-semibold text-text-secondary"
+          className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-base"
         >
           退出登录
         </motion.button>

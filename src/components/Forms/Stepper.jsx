@@ -1,12 +1,17 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function Stepper({ value, onChange, min = 1, max = 9999 }) {
+export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize = 1, label, hint, error, unit, inputMode = 'numeric', controls = true }) {
   const holdTimer = useRef(null);
   const intervalTimer = useRef(null);
+  const [bounce, setBounce] = useState(false);
 
   const step = (dir) => {
-    onChange(v => Math.min(max, Math.max(min, v + dir)));
+    const v = Number(value) || 0;
+    const next = Math.min(max, Math.max(min, v + dir * stepSize));
+    const rounded = Number.isInteger(stepSize) ? next : Math.round(next * 100) / 100;
+    onChange(rounded || '');
+    triggerBounce();
   };
 
   const startHold = (dir) => {
@@ -27,38 +32,71 @@ export default function Stepper({ value, onChange, min = 1, max = 9999 }) {
     clearTimeout(intervalTimer.current);
   };
 
-  const btnClass = 'w-12 h-12 rounded-full bg-action-black text-white flex items-center justify-center text-2xl font-bold select-none border-none cursor-pointer';
-  const btnStyle = { boxShadow: '0 2px 6px rgba(0,0,0,0.2)', touchAction: 'none' };
+  const triggerBounce = () => {
+    setBounce(false);
+    requestAnimationFrame(() => setBounce(true));
+  };
+
+  const handleChange = (e) => {
+    const raw = e.target.value;
+    if (raw === '') { onChange(''); return; }
+    const n = Number(raw);
+    if (!Number.isNaN(n)) {
+      const clamped = Math.max(min, Math.min(max, n));
+      onChange(Number.isInteger(stepSize) ? clamped : Math.round(clamped * 100) / 100);
+    }
+  };
 
   return (
-    <div className="flex items-center">
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onPointerDown={() => startHold(-1)}
-        onPointerUp={stopHold}
-        onPointerLeave={stopHold}
-        className={btnClass}
-        style={btnStyle}
+    <div>
+      <div
+        className={`relative flex items-center h-14 rounded-2xl px-1.5 gap-0 border-2 transition-all duration-200 ${
+          error ? 'border-action-black' : 'border-transparent focus-within:border-brand-yellow focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(232,152,110,0.15)]'
+        } bg-bg-secondary`}
       >
-        −
-      </motion.button>
-      <input
-        type="number"
-        value={value}
-        onChange={e => onChange(() => Math.max(min, Math.min(max, Number(e.target.value) || min)))}
-        className="w-20 h-12 text-center text-lg font-bold bg-transparent border-none"
-        style={{ fontVariantNumeric: 'tabular-nums', outline: 'none' }}
-      />
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onPointerDown={() => startHold(1)}
-        onPointerUp={stopHold}
-        onPointerLeave={stopHold}
-        className={btnClass}
-        style={btnStyle}
-      >
-        +
-      </motion.button>
+        {label && (
+          <span className="absolute -top-2 left-3.5 text-[11px] font-bold text-brand-yellow bg-bg-secondary px-1 tracking-wide pointer-events-none transition-colors duration-200 focus-within:!bg-white">
+            {label}
+          </span>
+        )}
+        {controls && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onPointerDown={() => startHold(-1)}
+            onPointerUp={stopHold}
+            onPointerLeave={stopHold}
+            className="w-11 h-11 rounded-xl bg-[#E8E8E8] text-text-primary flex items-center justify-center text-[22px] font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#DADADA] transition-colors duration-150"
+          >
+            −
+          </motion.button>
+        )}
+        <input
+          type="number"
+          inputMode={inputMode}
+          value={value}
+          onChange={handleChange}
+          placeholder="0"
+          className={`flex-1 h-full text-center text-[22px] font-bold bg-transparent border-none outline-none text-text-primary min-w-0 placeholder:text-gray-300 placeholder:font-medium placeholder:text-base ${bounce ? 'animate-[stepperBounce_0.2s_ease]' : ''}`}
+          style={{ fontVariantNumeric: 'tabular-nums', MozAppearance: 'textfield' }}
+        />
+        {controls && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onPointerDown={() => startHold(1)}
+            onPointerUp={stopHold}
+            onPointerLeave={stopHold}
+            className="w-11 h-11 rounded-xl bg-action-black text-white flex items-center justify-center text-[22px] font-bold select-none border-none cursor-pointer shrink-0 active:bg-[#333] transition-colors duration-150"
+          >
+            +
+          </motion.button>
+        )}
+        {unit && (
+          <span className="text-sm font-semibold text-text-secondary mr-1 shrink-0">{unit}</span>
+        )}
+      </div>
+      {hint && !error && (
+        <p className="text-[13px] text-text-secondary mt-2 pl-1">{hint}</p>
+      )}
     </div>
   );
 }

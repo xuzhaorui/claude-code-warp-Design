@@ -3,7 +3,23 @@ import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Server, ChevronLeft } from 'lucide-react';
 import FormSheet from '../BottomSheet/FormSheet';
 
-export default function ServerConfig({ onBack }) {
+function DeleteConfirm({ onCancel, onConfirm }) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={onCancel} />
+      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6">
+        <p className="text-center font-semibold text-text-primary mb-2">确认删除</p>
+        <p className="text-center text-base text-text-secondary mb-6">删除后无法恢复，确定要删除该服务器吗？</p>
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 bg-bg-secondary rounded-full text-base font-semibold">取消</button>
+          <button onClick={onConfirm} className="flex-1 py-3 bg-action-black text-white rounded-full text-base font-semibold">删除</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange, onServerChanged }) {
   const [servers, setServers] = useState(() => {
     try { return JSON.parse(localStorage.getItem('servers') || '[]'); } catch { return []; }
   });
@@ -17,9 +33,10 @@ export default function ServerConfig({ onBack }) {
   const saveServers = (list, active) => {
     setServers(list);
     localStorage.setItem('servers', JSON.stringify(list));
-    if (active) {
+    if (active !== undefined) {
       setActiveId(active);
       localStorage.setItem('activeServer', active);
+      if (onActiveIdChange) onActiveIdChange(active);
     }
   };
 
@@ -40,10 +57,13 @@ export default function ServerConfig({ onBack }) {
   const handleFormSubmit = () => {
     if (!formName.trim() || !formUrl.trim()) return;
     if (editingServer) {
+      const urlChanged = formUrl.trim() !== editingServer.url;
+      const isActiveServer = editingServer.id === activeId;
       const updated = servers.map(s =>
         s.id === editingServer.id ? { ...s, name: formName.trim(), url: formUrl.trim() } : s
       );
       saveServers(updated);
+      if (isActiveServer && urlChanged && onServerChanged) onServerChanged();
     } else {
       const newServer = { id: 'srv-' + Date.now(), name: formName.trim(), url: formUrl.trim() };
       const updated = [...servers, newServer];
@@ -54,33 +74,36 @@ export default function ServerConfig({ onBack }) {
   };
 
   const handleDelete = (id) => {
+    const wasActive = activeId === id;
     const updated = servers.filter(s => s.id !== id);
-    let newActive = activeId;
-    if (activeId === id) {
-      newActive = updated.length > 0 ? updated[0].id : '';
-    }
+    const newActive = wasActive ? (updated.length > 0 ? updated[0].id : '') : activeId;
     saveServers(updated, newActive);
     setShowDeleteConfirm(null);
+    if (wasActive && onServerChanged) onServerChanged();
   };
 
   const handleSelect = (id) => {
+    if (id === activeId) return;
     saveServers(servers, id);
+    if (onServerChanged) onServerChanged();
   };
 
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-        <button onClick={onBack} className="p-1">
-          <ChevronLeft size={22} className="text-action-black" />
-        </button>
-        <h1 className="text-lg font-bold text-text-primary">服务器配置</h1>
+        {!hideBackButton && (
+          <button onClick={onBack} className="p-1">
+            <ChevronLeft size={22} className="text-action-black" />
+          </button>
+        )}
+        <h1 className="text-xl font-bold text-text-primary">服务器配置</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto hide-scrollbar">
         {servers.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-text-secondary">
             <Server size={48} strokeWidth={1} className="mb-3 text-gray-300" />
-            <p className="text-sm">暂无服务器配置</p>
+            <p className="text-base">暂无服务器配置</p>
           </div>
         ) : (
           servers.map((server, idx) => (
@@ -89,7 +112,7 @@ export default function ServerConfig({ onBack }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
-              className={`flex items-center gap-3 px-4 py-3.5 border-b border-gray-100 active:bg-gray-50 cursor-pointer ${activeId === server.id ? 'bg-yellow-50/50' : ''}`}
+              className={`flex items-center gap-3 px-5 py-4 border-b border-gray-100 active:bg-gray-50 cursor-pointer ${activeId === server.id ? 'bg-yellow-50/50' : ''}`}
               onClick={() => handleSelect(server.id)}
             >
               {activeId === server.id && (
@@ -98,21 +121,21 @@ export default function ServerConfig({ onBack }) {
               {activeId !== server.id && <div className="w-2 shrink-0" />}
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-text-primary truncate">{server.name}</p>
-                <p className="text-xs text-text-secondary truncate">{server.url}</p>
+                <p className="text-lg font-semibold text-text-primary truncate">{server.name}</p>
+                <p className="text-base text-text-secondary truncate">{server.url}</p>
               </div>
 
               <button
                 onClick={e => { e.stopPropagation(); handleEdit(server); }}
                 className="p-2 active:bg-gray-100 rounded-full"
               >
-                <Pencil size={16} className="text-text-secondary" />
+                <Pencil size={18} className="text-text-secondary" />
               </button>
               <button
                 onClick={e => { e.stopPropagation(); setShowDeleteConfirm(server.id); }}
                 className="p-2 active:bg-gray-100 rounded-full"
               >
-                <Trash2 size={16} className="text-text-secondary" />
+                <Trash2 size={18} className="text-text-secondary" />
               </button>
             </motion.div>
           ))
@@ -123,7 +146,7 @@ export default function ServerConfig({ onBack }) {
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={handleAdd}
-          className="w-full py-3 bg-action-black text-white font-semibold rounded-full text-sm flex items-center justify-center gap-2"
+          className="w-full py-3 bg-action-black text-white font-semibold rounded-full text-base flex items-center justify-center gap-2"
         >
           <Plus size={18} />
           添加服务器
@@ -137,56 +160,38 @@ export default function ServerConfig({ onBack }) {
       >
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-text-secondary mb-1 block">服务器名称</label>
+            <label className="text-base font-semibold text-text-secondary mb-1 block">用户名称</label>
             <input
               value={formName}
               onChange={e => setFormName(e.target.value)}
-              placeholder="如：公司主服务器"
-              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
+              placeholder="如：张三"
+              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-base"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-text-secondary mb-1 block">IP 地址</label>
+            <label className="text-base font-semibold text-text-secondary mb-1 block">服务器地址</label>
             <input
               value={formUrl}
               onChange={e => setFormUrl(e.target.value)}
-              placeholder="如：192.168.1.100"
-              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-sm"
+              placeholder=""
+              className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-base"
             />
           </div>
           <motion.button
             whileTap={{ scale: 0.96 }}
             onClick={handleFormSubmit}
-            className="w-full py-3 bg-action-black text-white font-semibold rounded-full text-sm"
+            className="w-full py-3 bg-action-black text-white font-semibold rounded-full text-base"
           >
             确认
           </motion.button>
         </div>
       </FormSheet>
 
-      {/* Delete confirmation */}
       {showDeleteConfirm && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setShowDeleteConfirm(null)} />
-          <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 p-6">
-            <p className="text-center font-semibold text-text-primary mb-2">确认删除</p>
-            <p className="text-center text-sm text-text-secondary mb-6">删除后无法恢复，确定要删除该服务器吗？</p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 py-3 bg-bg-secondary rounded-full text-sm font-semibold"
-              >
-                取消
-              </button>
-              <button
-                onClick={() => handleDelete(showDeleteConfirm)}
-                className="flex-1 py-3 bg-action-black text-white rounded-full text-sm font-semibold"
-              >
-                删除
-              </button>
-            </div>
-          </div>
-        </>
+        <DeleteConfirm
+          onCancel={() => setShowDeleteConfirm(null)}
+          onConfirm={() => handleDelete(showDeleteConfirm)}
+        />
       )}
     </div>
   );

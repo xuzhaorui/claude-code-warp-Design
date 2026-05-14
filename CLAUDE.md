@@ -56,6 +56,10 @@ Layout structure is determined by the task-plan skill based on task complexity. 
 - **Tier 2 (on-demand):** src/data/mockData.js, src/App.jsx, task_plan_*.md
 - **Tier 3 (ignore unless asked):** dist/, node_modules/
 
+## Coding Discipline (编码纪律)
+- **Git 是后悔药**：每次变更需当前分支本地提交
+- **踩坑记录**：`踩坑记录.txt` 记录每次遇到的问题和反脆弱措施，遇到问题时先阅读
+
 ## Coding Rules
 - Named exports only (default export for route-level components)
 - Chinese UI text, English identifiers and comments
@@ -76,3 +80,4 @@ Layout structure is determined by the task-plan skill based on task complexity. 
 - Auth state in localStorage (`currentUser`, `servers`, `activeServer`)
 - Data layer is mockData.js — no real API yet, structure for easy swap
 - Scanner camera stays active during bottom sheet interaction
+- API 只走相对路径（Vite proxy 转发）

@@ -1,13 +1,23 @@
-# Design System: Bumble Core Vibe (Full Protocol 3.0)
+# Design System: Warm Terracotta (仓库管理 WMS)
 
 ## 1. 原子层 (Foundation)
 
-* **Brand Color:** #FFC629 (Bumble Yellow) - 仅用于品牌标识、VIP特权（Premium）强调和选中高亮。
-* **Action Color (New):** #1A1A1A (Solid Black) - 用于绝大多数主操作按钮（如“了解Premium+”）、激活状态的开关（Toggle）和核心 Icon，提供极高的视觉稳定性。
-* **Background Color:** #FFFFFF (Main) / #F2F2F2 (Secondary/Card background).
-* **Text Color:** #222222 (Primary Title) / #757575 (Secondary/Hints/Subtitles).
-* **Typography:** - Font: 现代无衬线体 (如 Inter, Gilroy 或 System Sans-serif).
-* Weight: 标题使用 Bold (700)，正文使用 Medium (500)，标签或微小文字使用 Semi-Bold (600) 配合大字间距（Tracking）。
+* **Accent Color:** #E8986E (Light Terracotta) - 主操作按钮、选中高亮、徽章边框、扫码头部图标区、表单标签。
+* **Surface Color:** #EDE2D5 (Deep Warm Cream) - 扫码按钮底色、表单徽章内层背景。
+* **Background Color:** #FFFBF5 (Warm Cream) - 页面主背景。
+* **Text Color:** #292524 (Warm Dark) / #78716C (Warm Gray) - 主标题与次要文字。
+* **Typography:** Font: Inter, system-ui, sans-serif.
+* Weight: 标题 Bold (700)，正文 Medium (500)，标签 Semi-Bold (600)。
+
+### CSS Theme Tokens (Tailwind @theme)
+```
+--color-brand-yellow: #E8986E    /* accent / buttons / highlights */
+--color-action-black: #E8986E    /* submit buttons / active states */
+--color-bg-main: #FFFBF5         /* page background */
+--color-bg-secondary: #F5F0EB    /* card / secondary surface */
+--color-text-primary: #292524    /* main text */
+--color-text-secondary: #78716C  /* hints / subtitles */
+```
 
 
 * **Corner Radius:** - Small (8px): 用于列表项、内部小图片。
@@ -26,21 +36,21 @@
 
 ### B. 选择卡片 (Selection Cards)
 
-* **Style:** 默认背景为白色或浅灰。选中时边框变为黄色，并出现黄色圆环单选框。
+* **Style:** 默认背景为白色或浅灰。选中时边框变为赤陶色，并出现赤陶色圆环单选框。
 * **Layout:** 横向滚动 (Horizontal Scroll)，每张卡片展示价格、数量和折扣标签。
 * **Badge:** “最热门”等标签使用高对比度的反色小标签，挂载在卡片边缘。
 
 ### C. 设置与数据列表 (Lists & Cells - New)
 
 * **Layout:** 典型的上下分层结构。黑色粗体 Title 在上，灰色常规体 Subtitle 在下，提供极佳的阅读节奏。
-* **Controls:** - **Toggles (开关):** 激活状态为纯黑底色白圆点（非传统的绿色或蓝色），保持克制的工业感。
-* **Chevrons:** 列表右侧使用极简的黑色线性向右箭头表示可进入。
+* **Controls:** - **Toggles (开关):** 激活状态为赤陶色底色白圆点，保持克制的工业感。
+* **Chevrons:** 列表右侧使用极简的暖灰色线性向右箭头表示可进入。
 
 
 
 ### D. 导航与控制器 (Navigation & Segments - New)
 
-* **Segmented Control:** 胶囊状（Pill-shaped）背景，激活项为深色/黑色药丸块，文字反白；未激活项为透明背景，文字深灰。
+* **Segmented Control:** 胶囊状（Pill-shaped）背景，激活项为赤陶色药丸块，文字反白；未激活项为透明背景，文字暖灰。
 * **Bottom Tab Bar:** 纯白底色，线性 Icon（未激活）与 面性 Icon（激活）结合，图标下方带极小字号的文本标签。
 * **Avatar:** 圆形头像外部带有进度环（Progress Ring），用于展示个人档案完善度。
 
@@ -107,8 +117,8 @@
 
 ### F. 视觉层级动效 (Visual Hierarchy Motion)
 
-* **Shared Layout:** 选中状态的黄色边框必须带有 `layoutId="active-pill"`。
-* 确保在不同卡片间切换时，高亮色块是“流动”过去的，而不是渐隐。
+* **Shared Layout:** 选中状态的赤陶色边框必须带有 `layoutId=”active-pill”`。
+* 确保在不同卡片间切换时，高亮色块是”流动”过去的，而不是渐隐。
 
 
 * **Elevation Transition:** 选中状态的卡片需在 0.2s 内完成阴影扩散：

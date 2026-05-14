@@ -4,18 +4,20 @@ import { RotateCw, ChevronUp } from 'lucide-react';
 
 export default function PullToRefresh({ onRefresh, isRefreshing, children, className }) {
   const [pullDistance, setPullDistance] = useState(0);
-  const [isPulling, setIsPulling] = useState(false);
+  const isPulling = useRef(false);
   const startY = useRef(0);
   const threshold = 80;
 
   const handleTouchStart = (e) => {
+    const el = e.currentTarget;
+    if (el.scrollTop > 0) return;
     const touch = e.touches[0];
     startY.current = touch.clientY;
-    setIsPulling(true);
+    isPulling.current = true;
   };
 
   const handleTouchMove = (e) => {
-    if (!isPulling || isRefreshing) return;
+    if (!isPulling.current || isRefreshing) return;
 
     const touch = e.touches[0];
     const currentY = touch.clientY;
@@ -29,14 +31,15 @@ export default function PullToRefresh({ onRefresh, isRefreshing, children, class
   };
 
   const handleTouchEnd = useCallback(() => {
-    setIsPulling(false);
+    isPulling.current = false;
 
-    if (pullDistance >= threshold && !isRefreshing) {
-      onRefresh();
-    }
-
-    setPullDistance(0);
-  }, [pullDistance, threshold, isRefreshing, onRefresh]);
+    setPullDistance(prev => {
+      if (prev >= threshold && !isRefreshing) {
+        onRefresh();
+      }
+      return 0;
+    });
+  }, [threshold, isRefreshing, onRefresh]);
 
   return (
     <div
