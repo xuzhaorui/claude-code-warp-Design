@@ -42,8 +42,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
 
       {/* Right: Form */}
       <div className="flex-1 p-3 flex flex-col gap-3 overflow-y-auto min-w-0">
-        {showCostPrice && <CostBadge value={`¥${item.costPrice.toFixed(2)}`} />}
-
         {/* Method selector */}
         <div className="relative bg-bg-secondary rounded-full p-[3px] flex">
           {['外销', '外借'].map(m => (
@@ -119,6 +117,10 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
           />
         )}
 
+        {showCostPrice && (
+          <p className="text-[13px] text-text-secondary">成本单价：¥{item.costPrice.toFixed(2)}</p>
+        )}
+
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={handleSubmit}
@@ -168,29 +170,4 @@ function BadgeField({ label, value }) {
   );
 }
 
-function CostBadge({ value }) {
-  return (
-    <div>
-      <div className="text-[15px] font-semibold text-text-secondary tracking-wide">成本单价</div>
-      <div className="mt-1" style={{ transform: 'rotate(-1deg)' }}>
-        <div className="rounded-[14px] p-1.5 inline-block" style={{ background: '#E8986E' }}>
-          <div className="rounded-[10px] py-1.5 px-3 text-center inline-block" style={{ background: '#EDE2D5', transform: 'skewX(-5deg)' }}>
-            <span
-              className="inline-block"
-              style={{
-                fontSize: '18px',
-                fontWeight: 900,
-                fontStyle: 'italic',
-                color: '#E8986E',
-                letterSpacing: '-0.5px',
-                transform: 'skewX(8deg)',
-              }}
-            >
-              {value}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+
