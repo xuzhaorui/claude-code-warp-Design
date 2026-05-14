@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { SplashScreen } from './components/Splash';
 import LoginPage from './components/Login/LoginPage';
 import AppShell from './pages/AppShell';
@@ -16,11 +16,11 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="*" element={<AuthFlow />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
