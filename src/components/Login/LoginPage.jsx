@@ -14,11 +14,10 @@ function ActiveServerBar({ onGoToServerConfig }) {
   return (
     <div className="flex items-center justify-between mb-6 px-1">
       <div className="min-w-0">
-        <p className="text-sm text-text-secondary">当前服务器</p>
         {activeServer ? (
           <>
-            <p className="text-base font-semibold text-text-primary truncate">{activeServer.name}</p>
-            <p className="text-sm text-text-secondary truncate">{activeServer.url}</p>
+            <p className="text-sm text-text-secondary">用户名称 · <span className="font-semibold text-text-primary">{activeServer.name}</span></p>
+            <p className="text-sm text-text-secondary">当前服务器 · <span className="font-semibold text-text-primary">{activeServer.url}</span></p>
           </>
         ) : (
           <p className="text-sm text-text-secondary">未配置</p>
@@ -83,7 +82,7 @@ export default function LoginPage({ onLogin, onGoToServerConfig }) {
 
         <form onSubmit={handleSubmit} className="space-y-2">
           <BumbleInput
-            label="用户名"
+            label="用户账号"
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
