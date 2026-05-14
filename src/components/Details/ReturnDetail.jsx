@@ -2,7 +2,7 @@ import { User, Clock } from 'lucide-react';
 
 function Row({ label, value, bold = false, valueColor }) {
   return (
-    <div className="flex items-baseline justify-between" style={{ padding: '11px 0' }}>
+    <div className="flex items-baseline justify-between" style={{ padding: '11px 0', borderBottom: '1px solid #EDE2D5' }}>
       <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
       <span className="text-right" style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524' }}>{value}</span>
     </div>
@@ -34,7 +34,7 @@ function MetaStrip({ operatorName, time, remark }) {
 export default function ReturnDetail({ record }) {
   return (
     <div style={{ padding: '4px 0' }}>
-      <div style={{ padding: '12px 0 10px', borderBottom: '1px solid #F0F0F0' }}>
+      <div style={{ padding: '12px 0 10px', borderBottom: '1px solid #EDE2D5' }}>
         <p style={{ fontSize: '22px', fontWeight: 700, color: '#292524' }}>{record.itemName}</p>
         <p style={{ fontSize: '17px', color: '#888888', marginTop: '4px' }}>{record.spec} · {record.code}</p>
       </div>

@@ -31,7 +31,7 @@ function Row({ label, value, bold = false, valueColor, editable, onEdit }) {
   }, []);
 
   return (
-    <div className="flex items-baseline justify-between" style={{ padding: '11px 0' }}>
+    <div className="flex items-baseline justify-between" style={{ padding: '11px 0', borderBottom: '1px solid #EDE2D5' }}>
       <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
       {editable && (
         <input
@@ -98,12 +98,12 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
       <Row label="仓库" value={record.warehouse} />
       {record.method === '外销' && (
         <>
-          <div style={{ borderTop: '1px solid #F0F0F0' }} />
+          <div style={{ borderTop: '1px solid #EDE2D5' }} />
           <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold editable />
           <Row label="销售单价" value={`¥${record.saleUnitPrice.toFixed(2)}${showCostPrice ? (isLoss ? ' ↓' : ' ↑') : ''}`} bold />
         </>
       )}
-      <div style={{ borderTop: '1px solid #F0F0F0' }} />
+      <div style={{ borderTop: '1px solid #EDE2D5' }} />
       <MetaStrip operatorName={record.operatorName} time={record.time} remark={record.remark} />
     </div>
   );
