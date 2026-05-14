@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { SplashScreen } from './components/Splash';
 import LoginPage from './components/Login/LoginPage';
 import AppShell from './pages/AppShell';
-import BumbleInput from './components/Forms/BumbleInput';
+import ServerSetupScreen from './pages/ServerSetupScreen';
+import { setAuthExpiredHandler, isAuthenticated, clearAuthSession } from './api/auth';
+import { setApiBaseUrl } from './api/config';
+import { getAllowedTabs, canViewCostPrice } from './utils/permissions';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -22,89 +25,76 @@ export default function App() {
 }
 
 function AuthFlow() {
+  const [authStep, setAuthStep] = useState(() =>
+    isAuthenticated() ? 'app' : 'server'
+  );
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
   });
+  const allowedTabs = useMemo(() => getAllowedTabs(user?.profile), [user?.profile]);
+  const showCostPrice = useMemo(() => canViewCostPrice(user?.profile), [user?.profile]);
 
-  const hasServer = (() => {
-    try {
-      const servers = JSON.parse(localStorage.getItem('servers') || '[]');
-      return servers.length > 0;
-    } catch { return false; }
-  })();
+  useEffect(() => {
+    setAuthExpiredHandler(() => {
+      clearAuthSession();
+      setUser(null);
+      setAuthStep('login');
+    });
+    const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+    const activeServer = servers.find(s => s.id === localStorage.getItem('activeServer'));
+    if (activeServer) setApiBaseUrl(activeServer.url);
+  }, []);
 
-  if (!hasServer && !user) {
-    return <SetupFlow onLogin={(u) => setUser(u)} />;
-  }
-
-  if (!user) {
-    return (
-      <div className="h-screen">
-        <LoginPage onLogin={(u) => setUser(u)} />
-      </div>
-    );
-  }
-
-  return <AppShell onLogout={() => setUser(null)} />;
-}
-
-function SetupFlow({ onLogin }) {
-  const [step, setStep] = useState('settings');
-
-  if (step === 'settings') {
-    return (
-      <div className="h-screen">
-        <div className="h-full flex flex-col">
-          <div className="px-5 pt-6 pb-4">
-            <h1 className="text-2xl font-bold text-text-primary">欢迎使用</h1>
-            <p className="text-sm text-text-secondary mt-1">请先配置服务器地址</p>
-          </div>
-          <div className="flex-1">
-            <ServerSetupForm onFinish={() => setStep('login')} />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-screen">
-      <LoginPage onLogin={onLogin} />
-    </div>
-  );
-}
-
-function ServerSetupForm({ onFinish }) {
-  const [name, setName] = useState('');
-  const [url, setUrl] = useState('');
-
-  const handleAdd = () => {
-    if (!name.trim() || !url.trim()) return;
-    const newServer = { id: 'srv-' + Date.now(), name: name.trim(), url: url.trim() };
-    localStorage.setItem('servers', JSON.stringify([newServer]));
-    localStorage.setItem('activeServer', newServer.id);
-    setTimeout(() => onFinish(), 300);
+  const resolveActiveServer = () => {
+    const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+    return servers.find(s => s.id === localStorage.getItem('activeServer'));
   };
 
-  return (
-    <div className="px-5 pt-2">
-      <BumbleInput
-        label="服务器名称"
-        value={name}
-        onChange={e => setName(e.target.value)}
-      />
-      <BumbleInput
-        label="IP 地址"
-        value={url}
-        onChange={e => setUrl(e.target.value)}
-      />
-      <button
-        onClick={handleAdd}
-        disabled={!name.trim() || !url.trim()}
-        className="w-full py-3 bg-action-black text-white font-semibold rounded-full text-sm disabled:opacity-40"
-      >
-        保存并继续
-      </button>
+  const handleServerConfirmed = () => {
+    clearAuthSession();
+    setUser(null);
+    const activeServer = resolveActiveServer();
+    if (activeServer) setApiBaseUrl(activeServer.url);
+    setAuthStep('login');
+  };
+
+  const handleServerChanged = async () => {
+    try {
+      await fetch('/store/logout', { method: 'POST', credentials: 'include' });
+    } catch { /* 服务器不可达时仍继续本地清理 */ }
+    clearAuthSession();
+    setUser(null);
+    const activeServer = resolveActiveServer();
+    if (activeServer) setApiBaseUrl(activeServer.url);
+    setAuthStep('login');
+  };
+
+  if (authStep === 'server') return (
+    <div className="h-screen">
+      <ServerSetupScreen onConfirmed={handleServerConfirmed} />
     </div>
+  );
+
+  if (authStep === 'login') return (
+    <div className="h-screen">
+      <LoginPage
+        onLogin={(u) => { setUser(u); setAuthStep('app'); }}
+        onGoToServerConfig={() => setAuthStep('server')}
+      />
+    </div>
+  );
+
+  return (
+    <AppShell
+      onLogout={async () => {
+        try { await fetch('/store/logout', { method: 'POST', credentials: 'include' }); } catch { }
+        clearAuthSession();
+        setUser(null);
+        setAuthStep('login');
+      }}
+      onServerChanged={handleServerChanged}
+      allowedTabs={allowedTabs}
+      showCostPrice={showCostPrice}
+    />
   );
 }

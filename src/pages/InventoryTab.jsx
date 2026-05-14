@@ -1,55 +1,99 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanLine, ClipboardCheck } from 'lucide-react';
+import { ScanLine, ClipboardCheck, ImageUp } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import DetailSheet from '../components/BottomSheet/DetailSheet';
 import InventoryCheckForm from '../components/Forms/InventoryCheckForm';
 import InventoryCheckDetail from '../components/Details/InventoryCheckDetail';
 import RecordCard from '../components/Records/RecordCard';
 import PullToRefresh from '../components/Shared/PullToRefresh';
-import { getItemByCode, getInventoryCheckRecords, submitInventoryCheck, removeInventoryCheckRecord } from '../data/mockData';
+import { getItemByCode } from '../api/outbound';
+import { getInventoryCheckRecords, submitInventoryCheck } from '../api/inventory';
+import { showToast } from '../components/Shared/Toast';
+import ScanFrameIcon from '../components/Shared/ScanFrameIcon';
 
-export default function InventoryTab() {
+export default function InventoryTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [scannedItem, setScannedItem] = useState(null);
   const [records, setRecords] = useState([]);
   const [formError, setFormError] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [skipCamera, setSkipCamera] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      const scanner = new Html5Qrcode('inventory-file-scanner');
+      const code = await scanner.scanFile(file, false);
+      scanner.clear();
+      setSkipCamera(true);
+      setScanning(true);
+      await handleScan(code);
+    } catch {
+      setFormError('无法识别图片中的二维码');
+    }
+    e.target.value = '';
+  };
 
   const loadRecords = useCallback(async () => {
     const data = await getInventoryCheckRecords();
-    setRecords(data);
+    const displayName = (() => {
+      try {
+        const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        const profile = user.profile || {};
+        return profile.nickName || profile.user?.nickName || user.username || '未知';
+      } catch { return '未知'; }
+    })();
+    setRecords(data.map(r => ({ ...r, operatorName: r.operatorName || displayName })));
   }, []);
 
   useEffect(() => { loadRecords(); }, [loadRecords]);
 
   const operatorName = (() => {
-    try { return JSON.parse(localStorage.getItem('currentUser') || '{}').username || '未知'; } catch { return '未知'; }
+    try {
+      const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      const profile = user.profile || {};
+      return profile.nickName || profile.user?.nickName || user.username || '未知';
+    } catch { return '未知'; }
   })();
 
   const handleScan = useCallback(async (code) => {
-    const item = await getItemByCode(code);
-    if (item) {
-      setScannedItem(item);
-      setFormError('');
-    } else {
+    try {
+      const item = await getItemByCode(code);
+      if (item) {
+        setScannedItem(item);
+        setFormError('');
+      } else {
+        setScannedItem(null);
+        setFormError('未找到该编号对应的库存货物');
+      }
+    } catch {
       setScannedItem(null);
-      setFormError('未找到该编号对应的库存货物');
+      setFormError('查询失败，请检查网络连接');
     }
   }, []);
 
   const handleSubmit = async (record) => {
-    await submitInventoryCheck(record);
-    setScanning(false);
-    setScannedItem(null);
-    await loadRecords();
+    try {
+      await submitInventoryCheck(record);
+      setScanning(false);
+      showToast('盘点成功');
+      setScannedItem(null);
+      setSubmitError('');
+      await loadRecords();
+    } catch (err) {
+      setSubmitError(err.message || '盘点提交失败');
+    }
   };
 
-  const handleRemoveRecord = useCallback(async (id) => {
+  const handleRemoveRecord = useCallback((id) => {
     setRecords(prev => prev.filter(r => r.id !== id));
-    await removeInventoryCheckRecord(id);
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -59,12 +103,19 @@ export default function InventoryTab() {
   }, [loadRecords]);
 
   const sheetContent = scannedItem ? (
-    <InventoryCheckForm
-      item={scannedItem}
-      operatorName={operatorName}
-      onSubmit={handleSubmit}
-      onClose={() => setScannedItem(null)}
-    />
+    <>
+      <InventoryCheckForm
+        item={scannedItem}
+        operatorName={operatorName}
+        onSubmit={handleSubmit}
+        onClose={() => { setScannedItem(null); setSubmitError(''); }}
+      />
+      {submitError && (
+        <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3">
+          <p className="text-sm text-amber-800">{submitError}</p>
+        </div>
+      )}
+    </>
   ) : formError ? (
     <div className="text-center py-6">
       <p className="text-red-500 text-sm">{formError}</p>
@@ -74,18 +125,36 @@ export default function InventoryTab() {
   return (
     <div className="h-full flex flex-col bg-bg-main">
       <div className="px-5 pt-5 pb-4">
-        <h1 className="text-2xl font-bold text-text-primary mb-4">盘点</h1>
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          onClick={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
-          className="w-full bg-brand-yellow rounded-3xl p-6 flex flex-col items-center gap-3"
+        <motion.div
+          whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+          onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
+          className="w-full rounded-[20px] flex flex-col relative cursor-pointer"
+          style={{ background: '#EDE2D5', padding: '20px' }}
         >
-          <div className="w-20 h-20 rounded-3xl bg-white/30 flex items-center justify-center">
-            <ScanLine size={36} className="text-action-black" />
+          <span
+            className="relative z-10 self-start rounded-[10px] font-black italic"
+            style={{ background: '#E8986E', color: '#FFFFFF', padding: '6px 14px', fontSize: '20px' }}
+          >
+            盘点
+          </span>
+          <div
+            className="absolute flex items-center justify-center"
+            style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '115px', height: '115px', background: '#E8986E', borderRadius: '16px' }}
+          >
+            <span className="text-white"><ScanFrameIcon size={91} animated /></span>
           </div>
-          <span className="text-base font-bold text-action-black">点击扫码盘点</span>
-        </motion.button>
+          <div style={{ height: '120px' }} />
+        </motion.div>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="flex items-center gap-1.5 mx-auto mt-3 text-base text-text-secondary active:opacity-60"
+        >
+          <ImageUp size={16} />
+          <span>从图片识别</span>
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleFileUpload} />
       </div>
+      <div id="inventory-file-scanner" style={{ display: 'none' }} />
 
       <PullToRefresh
         onRefresh={handleRefresh}
@@ -94,26 +163,21 @@ export default function InventoryTab() {
       >
         <div className="px-5 pb-2 flex items-center gap-2.5">
           <div className="w-1 h-5 rounded-full bg-brand-yellow" />
-          <h2 className="text-sm font-bold text-text-primary">盘点记录</h2>
+          <h2 className="text-base font-bold text-text-primary">盘点记录</h2>
         </div>
         {records.length === 0 ? (
-          <p className="text-center text-text-secondary text-sm py-8">暂无盘点记录</p>
+          <p className="text-center text-text-secondary text-base py-8">暂无盘点记录</p>
         ) : (
-          <div className="px-5 flex flex-col gap-2">
+          <div className="px-5 flex flex-col" style={{ gap: '12px' }}>
             <AnimatePresence mode="popLayout">
               {records.map((record, idx) => (
                 <RecordCard
                   key={record.id}
-                  icon={ClipboardCheck}
-                  badge={record.difference > 0 ? `+${record.difference}` : record.difference}
-                  title={`${record.warehouse}  ${record.time.split(' ')[0]}`}
-                  subtitle={record.itemName}
-                  extra={`盘点数量：${record.actualQty}`}
+                  title={record.itemName}
+                  detail={`实盘 ${record.actualQty} 件 · 差值 ${record.difference > 0 ? '+' : ''}${record.difference} 件`}
                   status={record.status}
                   index={idx}
                   onClick={() => { setSelectedRecord(record); setShowDetail(true); }}
-                  onSwipeLeft={() => handleRemoveRecord(record.id)}
-                  onSwipeRight={() => handleRemoveRecord(record.id)}
                 />
               ))}
             </AnimatePresence>
@@ -123,11 +187,12 @@ export default function InventoryTab() {
 
       <ScannerOverlay
         isOpen={scanning}
-        onClose={() => { setScanning(false); setScannedItem(null); setFormError(''); }}
+        skipCamera={skipCamera}
+        onClose={() => { setScanning(false); setScannedItem(null); setFormError(''); setSkipCamera(false); }}
         onScanSuccess={handleScan}
         sheetTitle={scannedItem ? '盘点登记' : formError ? '提示' : ''}
         sheetContent={sheetContent}
-        onSheetClose={() => { setScannedItem(null); setFormError(''); }}
+        onSheetClose={() => { setScannedItem(null); setFormError(''); setSkipCamera(false); }}
       />
 
       <DetailSheet
@@ -135,7 +200,7 @@ export default function InventoryTab() {
         onClose={() => { setShowDetail(false); setSelectedRecord(null); }}
         title="盘点详情"
       >
-        {selectedRecord && <InventoryCheckDetail record={selectedRecord} />}
+        {selectedRecord && <InventoryCheckDetail record={selectedRecord} showCostPrice={showCostPrice} />}
       </DetailSheet>
     </div>
   );

@@ -1,9 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockLogin } from '../../data/mockData';
+import { login, setAuthSession, getAuthSession } from '../../api/auth';
 import BumbleInput from '../Forms/BumbleInput';
 
-export default function LoginPage({ onLogin }) {
+function ActiveServerBar({ onGoToServerConfig }) {
+  const activeServer = (() => {
+    try {
+      const servers = JSON.parse(localStorage.getItem('servers') || '[]');
+      return servers.find(s => s.id === localStorage.getItem('activeServer')) || null;
+    } catch { return null; }
+  })();
+
+  return (
+    <div className="flex items-center justify-between mb-6 px-1">
+      <div className="min-w-0">
+        {activeServer ? (
+          <>
+            <p className="text-sm text-text-secondary">用户名称 · <span className="font-semibold text-text-primary">{activeServer.name}</span></p>
+            <p className="text-sm text-text-secondary">当前服务器 · <span className="font-semibold text-text-primary">{activeServer.url}</span></p>
+          </>
+        ) : (
+          <p className="text-sm text-text-secondary">未配置</p>
+        )}
+      </div>
+      <motion.button
+        type="button"
+        whileTap={{ scale: 0.96 }}
+        onClick={onGoToServerConfig}
+        className="ml-3 text-sm font-semibold text-text-secondary shrink-0 px-3 py-1.5 bg-gray-100 rounded-full"
+      >
+        更换服务器
+      </motion.button>
+    </div>
+  );
+}
+
+export default function LoginPage({ onLogin, onGoToServerConfig }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,19 +46,27 @@ export default function LoginPage({ onLogin }) {
     setError('');
     setLoading(true);
     try {
-      const user = await mockLogin(username, password);
-      if (user) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        onLogin(user);
+      const result = await login(username, password);
+      if (result && result.success) {
+        const userData = result.data || {};
+        setAuthSession({ username, profile: userData });
+        onLogin({ id: username, username, profile: userData });
       } else {
-        setError('登录失败，请重试');
+        setError('用户名或密码错误');
       }
-    } catch {
-      setError('登录失败，请重试');
+    } catch (err) {
+      setError(err.message || '登录失败，请重试');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const session = getAuthSession();
+    if (session) {
+      onLogin({ id: session.username, username: session.username, profile: session.profile });
+    }
+  }, []);
 
   return (
     <div className="h-full flex flex-col items-center justify-center px-8 bg-brand-yellow">
@@ -36,11 +76,13 @@ export default function LoginPage({ onLogin }) {
         transition={{ duration: 0.4 }}
         className="w-full max-w-sm bg-white rounded-3xl p-8"
       >
-        <h1 className="text-2xl font-bold text-text-primary text-center mb-8">登录</h1>
+        <h1 className="text-3xl font-bold text-text-primary text-center mb-6">登录</h1>
+
+        <ActiveServerBar onGoToServerConfig={onGoToServerConfig} />
 
         <form onSubmit={handleSubmit} className="space-y-2">
           <BumbleInput
-            label="用户名"
+            label="用户账号"
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
@@ -53,22 +95,18 @@ export default function LoginPage({ onLogin }) {
           />
 
           {error && (
-            <p className="text-action-black text-xs text-center font-semibold">{error}</p>
+            <p className="text-action-black text-sm text-center font-semibold">{error}</p>
           )}
 
           <motion.button
             type="submit"
             disabled={loading}
             whileTap={{ scale: 0.96 }}
-            className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-sm disabled:opacity-50"
+            className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-base disabled:opacity-50"
           >
             {loading ? '登录中...' : '登录'}
           </motion.button>
         </form>
-
-        <p className="text-xs text-text-secondary text-center mt-6">
-          任意账号密码均可登录
-        </p>
       </motion.div>
     </div>
   );

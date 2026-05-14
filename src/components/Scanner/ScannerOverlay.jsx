@@ -22,13 +22,16 @@ function playBeep() {
   } catch {}
 }
 
-export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTitle, sheetContent, onSheetClose }) {
+export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTitle, sheetContent, onSheetClose, skipCamera }) {
   const scannerRef = useRef(null);
   const [error, setError] = useState('');
   const [scanned, setScanned] = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const mountedRef = useRef(true);
   const scanningRef = useRef(false);
+  const activeRef = useRef(true);
+  const [sheetHeight, setSheetHeight] = useState(null);
+  const [closing, setClosing] = useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -39,6 +42,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   useEffect(() => {
     if (!sheetContent && showSheet) {
       setShowSheet(false);
+      setSheetHeight(null);
       const timer = setTimeout(() => {
         if (mountedRef.current) {
           setScanned(false);
@@ -48,40 +52,83 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
       return () => clearTimeout(timer);
     }
     if (sheetContent && !showSheet) {
+      setClosing(false);
+      setSheetHeight(window.innerHeight * 0.85);
       setShowSheet(true);
     }
   }, [sheetContent]);
 
-  const resumeScanning = useCallback(() => {
-    const scanner = scannerRef.current;
-    if (!scanner) return;
+  // Lock sheet height against keyboard resize
+  useEffect(() => {
+    if (!showSheet || !sheetHeight) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => {
+      if (!mountedRef.current) return;
+      const sheet = document.querySelector('[data-sheet-lock]');
+      if (sheet) {
+        sheet.style.maxHeight = sheetHeight + "px";
+        sheet.style.top = vv.offsetTop + "px";
+      }
+    };
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    return () => {
+      vv.removeEventListener("resize", onResize);
+      vv.removeEventListener("scroll", onResize);
+    };
+  }, [showSheet, sheetHeight]);
+
+  const restartScanner = useCallback(async () => {
+    const oldScanner = scannerRef.current;
+    if (oldScanner) {
+      try { await oldScanner.stop(); } catch {}
+    }
+    activeRef.current = true;
+    scanningRef.current = false;
     try {
-      scanner.resume?.();
-    } catch {}
-    // Re-start scanning loop if paused
-    try {
-      scanner.start(
+      const newScanner = new Html5Qrcode('seamless-scanner');
+      scannerRef.current = newScanner;
+      await newScanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 320, height: 320 } },
         (decodedText) => {
-          if (!mountedRef.current || scanningRef.current) return;
+          if (!activeRef.current || scanningRef.current) return;
           scanningRef.current = true;
+          activeRef.current = false;
           setScanned(true);
           try { navigator.vibrate?.([100, 50, 100]); } catch {}
           playBeep();
-          try { scanner.pause(true); } catch {}
+          try { newScanner.pause(true); } catch {}
           onScanSuccess?.(decodedText);
         },
         () => {}
-      ).catch(() => {});
-    } catch {}
+      );
+    } catch (err) {
+      if (mountedRef.current) setError('摄像头恢复失败，请检查权限设置');
+    }
   }, [onScanSuccess]);
 
+  const resumeScanning = useCallback(() => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+    activeRef.current = true;
+    scanningRef.current = false;
+    try {
+      const result = scanner.resume?.();
+      if (result && typeof result.then === 'function') {
+        result.catch(() => restartScanner());
+      }
+    } catch {
+      restartScanner();
+    }
+  }, [restartScanner]);
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || skipCamera) return;
 
     let scanner = null;
-    let active = true;
+    activeRef.current = true;
     setScanned(false);
     setShowSheet(false);
     setError('');
@@ -95,9 +142,9 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           { facingMode: 'environment' },
           { fps: 10, qrbox: { width: 320, height: 320 } },
           (decodedText) => {
-            if (!active || scanningRef.current) return;
+            if (!activeRef.current || scanningRef.current) return;
             scanningRef.current = true;
-            active = false;
+            activeRef.current = false;
             setScanned(true);
             try { navigator.vibrate?.([100, 50, 100]); } catch {}
             playBeep();
@@ -107,7 +154,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           () => {}
         );
       } catch (err) {
-        if (active) {
+        if (activeRef.current) {
           setError('无法访问摄像头，请检查权限设置');
           console.error('Scanner error:', err);
         }
@@ -117,13 +164,32 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     startScan();
 
     return () => {
-      active = false;
+      activeRef.current = false;
       scanningRef.current = false;
       if (scanner) {
         scanner.stop().catch(() => {});
       }
     };
   }, [isOpen]);
+
+  // Recover camera when page returns from background
+  useEffect(() => {
+    if (!isOpen || skipCamera) return;
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!mountedRef.current || scanned) return;
+      const scanner = scannerRef.current;
+      if (!scanner) return;
+      try {
+        const tracks = scanner.getRunningTrackSettings?.() || scanner.getRunningTrackCapabilities?.();
+        if (!tracks) restartScanner();
+      } catch {
+        restartScanner();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [isOpen, scanned, restartScanner, skipCamera]);
 
   const handleManualClose = useCallback(() => {
     setShowSheet(false);
@@ -132,17 +198,20 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   }, [onClose, onSheetClose]);
 
   const handleSheetClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
     setShowSheet(false);
     onSheetClose?.();
     const timer = setTimeout(() => {
       if (mountedRef.current) {
+        setClosing(false);
         setScanned(false);
         scanningRef.current = false;
         resumeScanning();
       }
     }, 350);
     return () => clearTimeout(timer);
-  }, [onSheetClose, resumeScanning]);
+  }, [onSheetClose, resumeScanning, closing]);
 
   return (
     <AnimatePresence>
@@ -155,12 +224,13 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex flex-col"
         >
           {/* Camera view with blur on scan */}
+          {!skipCamera && (
           <div className={`flex-1 relative transition-all duration-300 ${scanned ? 'blur-[5px] brightness-50' : ''}`}>
             <div className="flex-1 flex items-center justify-center h-full">
               {error ? (
                 <div className="text-center text-white/80 px-8">
                   <p className="text-lg mb-2">{error}</p>
-                  <button onClick={onClose} className="mt-4 px-6 py-2 bg-white/20 rounded-full text-white">
+                  <button onPointerDown={onClose} className="mt-4 px-6 py-2 bg-white/20 rounded-full text-white">
                     关闭
                   </button>
                 </div>
@@ -170,20 +240,20 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   {/* L-shaped corner brackets */}
                   <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute top-0 left-0 w-10 h-10">
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
                     </div>
                     <div className="absolute top-0 right-0 w-10 h-10">
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
                     </div>
                     <div className="absolute bottom-0 left-0 w-10 h-10">
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
                     </div>
                     <div className="absolute bottom-0 right-0 w-10 h-10">
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 40, height: 6, background: '#FFC629', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 6, height: 40, background: '#FFC629', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
                     </div>
                   </div>
                   {/* Animated scan line */}
@@ -204,18 +274,12 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
               )}
             </div>
           </div>
-
-          {/* Hint text */}
-          {!scanned && !error && (
-            <div className="absolute bottom-8 left-0 right-0 text-center text-white/60 text-sm">
-              将二维码对准扫描框
-            </div>
           )}
 
           {/* Exit button - frosted glass */}
           <button
-            onClick={handleManualClose}
-            className="absolute top-4 left-4 px-4 py-2 rounded-full text-white text-sm font-semibold backdrop-blur-xl bg-white/15 border border-white/20 active:bg-white/25"
+            onPointerDown={handleManualClose}
+            className="absolute top-4 left-4 z-50 px-4 py-2 rounded-full text-white text-sm font-semibold backdrop-blur-xl bg-white/15 border border-white/20 active:bg-white/25"
           >
             退出扫码
           </button>
@@ -230,26 +294,26 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
                   className="absolute inset-0 bg-black"
-                  onClick={handleSheetClose}
+                  onPointerDown={handleSheetClose}
                 />
                 <motion.div
-                  initial={{ y: '100%' }}
+                  initial={{ y: '-100%' }}
                   animate={{ y: 0 }}
-                  exit={{ y: '100%' }}
+                  exit={{ y: '-100%' }}
                   transition={SPRING}
-                  drag="y"
-                  dragConstraints={{ top: 0 }}
+                  drag={closing ? false : "y"}
+                  dragConstraints={{ bottom: 0 }}
                   dragElastic={0.15}
                   onDragEnd={(_, info) => {
-                    if (info.offset.y > 150 || info.velocity.y > 500) handleSheetClose();
+                    if (info.offset.y < -150 || info.velocity.y < -500) handleSheetClose();
                   }}
-                  className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col"
+                  className="absolute top-0 left-0 right-0 bg-white rounded-b-3xl flex flex-col" data-sheet-lock style={{ maxHeight: sheetHeight ? sheetHeight + "px" : "85vh" }}
                 >
                   <div className="flex flex-col items-center pt-3 pb-2 border-b border-gray-100 shrink-0">
                     <div className="w-10 h-1 rounded-full bg-gray-300 mb-3" />
                     <div className="flex items-center justify-between w-full px-5">
                       <h2 className="text-lg font-bold text-text-primary">{sheetTitle}</h2>
-                      <button onClick={handleSheetClose} className="p-1 -mr-1 active:bg-gray-100 rounded-full">
+                      <button onPointerDown={handleSheetClose} className="p-1 -mr-1 active:bg-gray-100 rounded-full">
                         <X size={20} className="text-text-secondary" />
                       </button>
                     </div>
