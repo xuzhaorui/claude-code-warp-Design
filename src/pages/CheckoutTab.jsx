@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanLine, LogOut, ImageUp } from 'lucide-react';
+import { ImageUp } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import DetailSheet from '../components/BottomSheet/DetailSheet';
 import CheckoutForm from '../components/Forms/CheckoutForm';

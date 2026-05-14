@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RotateCcw, ImageUp } from 'lucide-react';
+import { ImageUp } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import DetailSheet from '../components/BottomSheet/DetailSheet';
 import BorrowerSelect from '../components/Forms/BorrowerSelect';
@@ -92,10 +92,6 @@ export default function ReturnTab({ showCostPrice = true }) {
       setSubmitError(err.message || '归还提交失败');
     }
   };
-
-  const handleRemoveRecord = useCallback((id) => {
-    setRecords(prev => prev.filter(r => r.id !== id));
-  }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);

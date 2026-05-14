@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+wms-app/
+*cookies.txt
 *.local
 
 # Editor directories and files

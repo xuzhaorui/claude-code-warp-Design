@@ -11,18 +11,6 @@ export async function getBorrowersByQrcode(qrcode) {
   return normalizeTableRows(borrowers).map(mapBorrowerCandidate);
 }
 
-export async function getBorrowerDetail(inventoryId, borrowerUserId) {
-  const response = await fetch(buildApiUrl(`/inventory/loan/${inventoryId}/${borrowerUserId}`), {
-    method: 'GET',
-    credentials: 'include',
-  });
-
-  const payload = await parseJsonResponse(response);
-  ensureAjaxSuccess(payload, '获取借用人详情失败');
-  const data = payload?.data ?? payload;
-  return mapBorrowerDetail(data);
-}
-
 export async function submitReturn(record) {
   const response = await fetch(buildApiUrl('/inventory/loan/loanReturnInbound'), {
     method: 'POST',
@@ -56,25 +44,6 @@ export async function getReturnRecords() {
 }
 
 function mapBorrowerCandidate(item) {
-  return {
-    id: item.id,
-    loanId: item.id,
-    inventoryId: item.inventoryId,
-    borrowerUserId: item.borrowerUserId,
-    itemName: item.freightName || '',
-    warehouse: item.storageName || '',
-    freightId: item.freightId,
-    storageId: item.storageId,
-    code: item.freightNumber || '',
-    spec: item.specification || '',
-    borrowQty: Number(item.loanQuantity || 0),
-    costPrice: Number(item.loanPrice || 0),
-    borrower: item.userName || '',
-    borrowTime: item.recentLoanInboundTime || '',
-  };
-}
-
-function mapBorrowerDetail(item) {
   return {
     id: item.id,
     loanId: item.id,

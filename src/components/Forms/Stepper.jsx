@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 
-export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize = 1, label, hint, error, unit, inputMode = 'numeric', controls = true }) {
+export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize = 1, label, error, unit, inputMode = 'numeric', controls = true }) {
   const holdTimer = useRef(null);
   const intervalTimer = useRef(null);
   const [bounce, setBounce] = useState(false);
@@ -94,9 +94,6 @@ export default function Stepper({ value, onChange, min = 1, max = 9999, stepSize
           <span className="text-sm font-semibold text-text-secondary mr-1 shrink-0">{unit}</span>
         )}
       </div>
-      {hint && !error && (
-        <p className="text-[13px] text-text-secondary mt-2 pl-1">{hint}</p>
-      )}
     </div>
   );
 }

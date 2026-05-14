@@ -10,10 +10,8 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
   const bookQty = item.stockQty;
   const actual = actualQty;
   const difference = actual - bookQty;
-  const canSubmit = true;
 
   const handleSubmit = () => {
-    if (!canSubmit) return;
     onSubmit({
       inventoryId: item.id,
       actualQty: actualQty,
@@ -58,8 +56,7 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-sm disabled:opacity-40 mt-auto"
+          className="w-full py-3.5 bg-action-black text-white font-semibold rounded-full text-sm mt-auto"
         >
           提交盘点
         </motion.button>

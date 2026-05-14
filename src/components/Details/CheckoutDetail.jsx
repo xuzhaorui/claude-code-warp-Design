@@ -1,63 +1,12 @@
-import { useState, useRef, useCallback } from 'react';
 import { User, Clock } from 'lucide-react';
 
-function Row({ label, value, bold = false, valueColor, editable, onEdit }) {
-  const [editing, setEditing] = useState(false);
-  const [editValue, setEditValue] = useState('');
-  const inputRef = useRef(null);
-
-  const handleFocus = useCallback(() => {
-    if (!editable) return;
-    setEditValue(String(value).replace(/[^0-9.]/g, ''));
-    setEditing(true);
-    requestAnimationFrame(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    });
-  }, [editable, value]);
-
-  const handleBlur = useCallback(() => {
-    setEditing(false);
-    if (editValue && onEdit) {
-      onEdit(parseFloat(editValue));
-    }
-  }, [editValue, onEdit]);
-
-  const handleKeyDown = useCallback((event) => {
-    if (event.key === 'Enter') {
-      event.target.blur();
-    }
-  }, []);
-
+function Row({ label, value, bold = false, valueColor }) {
   return (
     <div className="flex items-baseline justify-between" style={{ padding: '11px 0', borderBottom: '1px solid #EDE2D5' }}>
       <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
-      {editable && (
-        <input
-          ref={inputRef}
-          type="text"
-          inputMode="decimal"
-          value={editing ? editValue : String(value).replace(/[^0-9.]/g, '')}
-          onChange={(e) => setEditValue(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          className="text-right bg-transparent outline-none"
-          style={{
-            fontSize: '18px',
-            fontWeight: bold ? 700 : 400,
-            color: valueColor ?? '#292524',
-            width: '120px',
-            caretColor: editing ? 'auto' : 'transparent',
-          }}
-        />
-      )}
-      {!editable && (
-        <span className="text-right" style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524' }}>
-          {value}
-        </span>
-      )}
+      <span className="text-right" style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524' }}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -99,7 +48,7 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
       {record.method === '外销' && (
         <>
           <div style={{ borderTop: '1px solid #EDE2D5' }} />
-          <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold editable />
+          <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold />
           <Row label="销售单价" value={`¥${record.saleUnitPrice.toFixed(2)}${showCostPrice ? (isLoss ? ' ↓' : ' ↑') : ''}`} bold />
         </>
       )}

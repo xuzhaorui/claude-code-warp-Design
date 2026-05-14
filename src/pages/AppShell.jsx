@@ -35,15 +35,6 @@ export default function AppShell({ onLogout, onServerChanged, allowedTabs, showC
       case 'return': return <ReturnTab showCostPrice={showCostPrice} />;
       case 'inventory': return <InventoryTab showCostPrice={showCostPrice} />;
       case 'settings': return <SettingsTab onLogout={handleLogout} onServerChanged={onServerChanged} />;
-      default: return visibleTabs[0] ? renderTab(visibleTabs[0].key) : null;
-    }
-  };
-
-  const renderTab = (key) => {
-    switch (key) {
-      case 'checkout': return <CheckoutTab showCostPrice={showCostPrice} />;
-      case 'return': return <ReturnTab showCostPrice={showCostPrice} />;
-      case 'inventory': return <InventoryTab showCostPrice={showCostPrice} />;
       default: return null;
     }
   };

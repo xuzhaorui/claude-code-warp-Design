@@ -3,12 +3,7 @@ import { ChevronRight } from 'lucide-react';
 
 const STATUS_COLORS = {
   '正常':   { background: '#F0F0F0', color: '#888888' },
-  '已完成': { background: '#F0F0F0', color: '#888888' },
-  '异常':   { background: '#E8986E', color: '#FFFFFF' },
-  '亏损':   { background: '#E8986E', color: '#FFFFFF' },
   '已撤销': { background: '#FFF0F0', color: '#FF4444' },
-  '进行中': { background: '#F0F0F0', color: '#888888' },
-  '待处理': { background: '#F0F0F0', color: '#888888' },
 };
 
 export default function RecordCard({ title, detail, status, onClick, index = 0 }) {

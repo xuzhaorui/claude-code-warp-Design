@@ -56,12 +56,6 @@ input:focus, textarea:focus {
   background: #F5F5F5;
   box-shadow: none;
 }
-.bumble-input.error-flash { animation: errorFlash 0.2s ease; }
-@keyframes errorFlash {
-  0%   { background: #F5F5F5; }
-  30%  { background: #EFEFEF; }
-  100% { background: #F5F5F5; }
-}
 
 /* §7 Underline expansion */
 .bumble-input-underline {
@@ -111,16 +105,6 @@ input:focus, textarea:focus {
   font-weight: 700;
   letter-spacing: 0.5px;
   color: #E8986E;
-}
-
-@keyframes pulse-scale {
-  0%, 100% { transform: scale(0.9); }
-  50% { transform: scale(1.15); }
-}
-
-@keyframes scan-line {
-  0% { top: 0; }
-  100% { top: 100%; }
 }
 
 @keyframes scanLineMove {

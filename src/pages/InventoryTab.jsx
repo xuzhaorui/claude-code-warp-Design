@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ScanLine, ClipboardCheck, ImageUp } from 'lucide-react';
+import { ImageUp } from 'lucide-react';
 import ScannerOverlay from '../components/Scanner/ScannerOverlay';
 import DetailSheet from '../components/BottomSheet/DetailSheet';
 import InventoryCheckForm from '../components/Forms/InventoryCheckForm';
@@ -91,10 +91,6 @@ export default function InventoryTab({ showCostPrice = true }) {
       setSubmitError(err.message || '盘点提交失败');
     }
   };
-
-  const handleRemoveRecord = useCallback((id) => {
-    setRecords(prev => prev.filter(r => r.id !== id));
-  }, []);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);

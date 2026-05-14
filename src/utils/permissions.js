@@ -1,24 +1,24 @@
-export function extractPermissions(profile) {
+function extractPermissions(profile) {
   if (!profile) return [];
   const perms = profile.permissions;
   if (Array.isArray(perms)) return perms;
   return [];
 }
 
-export function extractRoles(profile) {
+function extractRoles(profile) {
   if (!profile) return [];
   const roles = profile.roles;
   if (Array.isArray(roles)) return roles;
   return [];
 }
 
-export function hasPermission(profile, permission) {
+function hasPermission(profile, permission) {
   const perms = extractPermissions(profile);
   if (perms.includes('*:*:*')) return true;
   return perms.includes(permission);
 }
 
-export function hasRole(profile, roleKey) {
+function hasRole(profile, roleKey) {
   const roles = extractRoles(profile);
   return roles.some(r => r.roleKey === roleKey);
 }

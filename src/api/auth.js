@@ -24,16 +24,6 @@ export async function login(username, password) {
   };
 }
 
-export async function logout() {
-  const response = await fetch(buildApiUrl('/logout'), {
-    method: 'POST',
-    credentials: 'include',
-  });
-
-  await parseJsonResponse(response);
-  clearAuthSession();
-}
-
 export function clearAuthSession() {
   localStorage.removeItem('currentUser');
   localStorage.removeItem('api-base-url');
