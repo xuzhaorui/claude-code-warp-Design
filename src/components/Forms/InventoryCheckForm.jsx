@@ -39,7 +39,6 @@ export default function InventoryCheckForm({ item, operatorName, onSubmit, onClo
           min={0}
           max={99999}
           label="盘点真实数量"
-          hint={`账面：${bookQty} 件`}
           unit="件"
         />
 

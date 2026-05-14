@@ -71,7 +71,6 @@ export default function CheckoutForm({ item, operatorName, showCostPrice = true,
           min={1}
           max={item.stockQty}
           label="出库数量"
-          hint={`库存：${item.stockQty} 件`}
           error={overStock}
         />
         {overStock && (

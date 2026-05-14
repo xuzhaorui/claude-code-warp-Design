@@ -42,7 +42,6 @@ export default function ReturnForm({ borrowRecord, operatorName, showCostPrice =
           min={1}
           max={borrowRecord.borrowQty}
           label="归还数量"
-          hint={`在借：${borrowRecord.borrowQty} 件`}
           error={overQty}
           unit="件"
         />

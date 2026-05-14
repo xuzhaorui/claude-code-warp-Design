@@ -160,11 +160,11 @@ export default function ServerConfig({ onBack, hideBackButton, onActiveIdChange,
       >
         <div className="space-y-4">
           <div>
-            <label className="text-base font-semibold text-text-secondary mb-1 block">服务器名称</label>
+            <label className="text-base font-semibold text-text-secondary mb-1 block">用户名称</label>
             <input
               value={formName}
               onChange={e => setFormName(e.target.value)}
-              placeholder="如：公司主服务器"
+              placeholder="如：张三"
               className="w-full px-4 py-3 bg-bg-secondary rounded-2xl text-base"
             />
           </div>
