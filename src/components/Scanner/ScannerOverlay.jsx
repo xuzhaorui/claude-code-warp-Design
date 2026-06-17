@@ -25,6 +25,7 @@ const CAMERA_CONSTRAINTS = {
     { exposureMode: 'continuous' },
   ],
 };
+const BASIC_CAMERA_CONSTRAINTS = { facingMode: 'environment' };
 const AUTO_ZOOM_TARGET = 2;
 
 function createScanner() {
@@ -62,6 +63,35 @@ async function tuneCameraForSmallLabels(scanner) {
   } catch {
     // Zoom is optional and should not block scanning on unsupported devices.
   }
+}
+
+async function startScanner(scanner, onDecodedText) {
+  try {
+    await scanner.start(
+      CAMERA_CONSTRAINTS,
+      SCANNER_OPTIONS,
+      onDecodedText,
+      () => {}
+    );
+  } catch {
+    await scanner.start(
+      BASIC_CAMERA_CONSTRAINTS,
+      SCANNER_OPTIONS,
+      onDecodedText,
+      () => {}
+    );
+  }
+  await tuneCameraForSmallLabels(scanner);
+}
+
+function getCameraAccessErrorMessage() {
+  if (!window.isSecureContext) {
+    return '当前访问不是可信 HTTPS，浏览器会禁止摄像头';
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return '当前浏览器不支持摄像头扫码';
+  }
+  return '无法访问摄像头，请检查权限设置';
 }
 
 function playBeep() {
@@ -148,9 +178,8 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     try {
       const newScanner = createScanner();
       scannerRef.current = newScanner;
-      await newScanner.start(
-        CAMERA_CONSTRAINTS,
-        SCANNER_OPTIONS,
+      await startScanner(
+        newScanner,
         (decodedText) => {
           if (!activeRef.current || scanningRef.current) return;
           scanningRef.current = true;
@@ -160,12 +189,10 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           playBeep();
           try { newScanner.pause(true); } catch {}
           onScanSuccess?.(decodedText);
-        },
-        () => {}
+        }
       );
-      await tuneCameraForSmallLabels(newScanner);
-    } catch (err) {
-      if (mountedRef.current) setError('摄像头恢复失败，请检查权限设置');
+    } catch {
+      if (mountedRef.current) setError(getCameraAccessErrorMessage());
     }
   }, [onScanSuccess]);
 
@@ -198,9 +225,8 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
       try {
         scanner = createScanner();
         scannerRef.current = scanner;
-        await scanner.start(
-          CAMERA_CONSTRAINTS,
-          SCANNER_OPTIONS,
+        await startScanner(
+          scanner,
           (decodedText) => {
             if (!activeRef.current || scanningRef.current) return;
             scanningRef.current = true;
@@ -210,14 +236,11 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
             playBeep();
             try { scanner.pause(true); } catch {}
             onScanSuccess?.(decodedText);
-          },
-          () => {}
+          }
         );
-        await tuneCameraForSmallLabels(scanner);
-      } catch (err) {
+      } catch {
         if (activeRef.current) {
-          setError('无法访问摄像头，请检查权限设置');
-          console.error('Scanner error:', err);
+          setError(getCameraAccessErrorMessage());
         }
       }
     };
