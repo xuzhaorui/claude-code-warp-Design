@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { ScannerCameraControls } from './ScannerCameraControls';
 
 const SPRING = { type: 'spring', stiffness: 200, damping: 25, mass: 1 };
 const SCANNER_ELEMENT_ID = 'seamless-scanner';
@@ -11,6 +12,12 @@ const SCANNER_OPTIONS = {
 };
 const BASIC_CAMERA_CONSTRAINTS = { facingMode: 'environment' };
 const AUTO_ZOOM_TARGET = 2;
+const DEFAULT_CAMERA_CONTROLS = {
+  torchSupported: false,
+  torchEnabled: false,
+  zoomSupported: false,
+  zoomEnabled: false,
+};
 
 function createScanner() {
   return new Html5Qrcode(SCANNER_ELEMENT_ID, {
@@ -45,6 +52,23 @@ async function startScanner(scanner, onDecodedText) {
     () => {}
   );
   await tuneCameraForSmallLabels(scanner);
+}
+
+function readCameraControls(scanner) {
+  try {
+    const capabilities = scanner.getRunningTrackCapabilities?.();
+    const settings = scanner.getRunningTrackSettings?.() || {};
+    const zoomValue = getSupportedZoomValue(capabilities);
+    const minZoom = capabilities?.zoom?.min ?? 1;
+    return {
+      torchSupported: Boolean(capabilities?.torch),
+      torchEnabled: Boolean(settings.torch),
+      zoomSupported: Boolean(zoomValue),
+      zoomEnabled: Boolean(settings.zoom && settings.zoom > minZoom),
+    };
+  } catch {
+    return DEFAULT_CAMERA_CONTROLS;
+  }
 }
 
 function getCameraAccessErrorMessage() {
@@ -84,6 +108,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
   const activeRef = useRef(true);
   const [sheetHeight, setSheetHeight] = useState(null);
   const [closing, setClosing] = useState(false);
+  const [cameraControls, setCameraControls] = useState(DEFAULT_CAMERA_CONTROLS);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -138,6 +163,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     }
     activeRef.current = true;
     scanningRef.current = false;
+    setCameraControls(DEFAULT_CAMERA_CONTROLS);
     try {
       const newScanner = createScanner();
       scannerRef.current = newScanner;
@@ -154,6 +180,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
           onScanSuccess?.(decodedText);
         }
       );
+      setCameraControls(readCameraControls(newScanner));
     } catch {
       if (mountedRef.current) setError(getCameraAccessErrorMessage());
     }
@@ -182,6 +209,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     setScanned(false);
     setShowSheet(false);
     setError('');
+    setCameraControls(DEFAULT_CAMERA_CONTROLS);
     scanningRef.current = false;
 
     const startScan = async () => {
@@ -201,6 +229,7 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
             onScanSuccess?.(decodedText);
           }
         );
+        setCameraControls(readCameraControls(scanner));
       } catch {
         if (activeRef.current) {
           setError(getCameraAccessErrorMessage());
@@ -244,6 +273,33 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
     onClose();
   }, [onClose, onSheetClose]);
 
+  const handleToggleTorch = useCallback(async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+    const nextTorchEnabled = !cameraControls.torchEnabled;
+    try {
+      await scanner.applyVideoConstraints({ advanced: [{ torch: nextTorchEnabled }] });
+      setCameraControls({ ...readCameraControls(scanner), torchEnabled: nextTorchEnabled });
+    } catch {
+      setCameraControls(readCameraControls(scanner));
+    }
+  }, [cameraControls.torchEnabled]);
+
+  const handleToggleZoom = useCallback(async () => {
+    const scanner = scannerRef.current;
+    if (!scanner) return;
+    try {
+      const capabilities = scanner.getRunningTrackCapabilities?.();
+      const minZoom = capabilities?.zoom?.min ?? 1;
+      const targetZoom = cameraControls.zoomEnabled ? minZoom : getSupportedZoomValue(capabilities);
+      if (!targetZoom) return;
+      await scanner.applyVideoConstraints({ advanced: [{ zoom: targetZoom }] });
+      setCameraControls(readCameraControls(scanner));
+    } catch {
+      setCameraControls(readCameraControls(scanner));
+    }
+  }, [cameraControls.zoomEnabled]);
+
   const handleSheetClose = useCallback(() => {
     if (closing) return;
     setClosing(true);
@@ -282,41 +338,48 @@ export default function ScannerOverlay({ isOpen, onClose, onScanSuccess, sheetTi
                   </button>
                 </div>
               ) : (
-                <div className="relative">
-                  <div id={SCANNER_ELEMENT_ID} className="w-80 h-80 rounded-2xl overflow-hidden" />
-                  {/* L-shaped corner brackets */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-0 left-0 w-10 h-10">
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative">
+                    <div id={SCANNER_ELEMENT_ID} className="w-80 h-80 rounded-2xl overflow-hidden" />
+                    {/* L-shaped corner brackets */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute top-0 left-0 w-10 h-10">
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
+                      </div>
+                      <div className="absolute top-0 right-0 w-10 h-10">
+                        <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                        <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
+                      </div>
+                      <div className="absolute bottom-0 left-0 w-10 h-10">
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                        <div style={{ position: 'absolute', bottom: 0, left: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
+                      </div>
+                      <div className="absolute bottom-0 right-0 w-10 h-10">
+                        <div style={{ position: 'absolute', bottom: 0, right: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
+                        <div style={{ position: 'absolute', bottom: 0, right: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
+                      </div>
                     </div>
-                    <div className="absolute top-0 right-0 w-10 h-10">
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', top: 0, right: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
-                    </div>
-                    <div className="absolute bottom-0 left-0 w-10 h-10">
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
-                    </div>
-                    <div className="absolute bottom-0 right-0 w-10 h-10">
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 40, height: 6, background: '#E8986E', borderRadius: 2 }} />
-                      <div style={{ position: 'absolute', bottom: 0, right: 0, width: 6, height: 40, background: '#E8986E', borderRadius: 2 }} />
-                    </div>
+                    {/* Animated scan line */}
+                    {!scanned && (
+                      <motion.div
+                        className="absolute h-[2px]"
+                        style={{
+                          left: '10%',
+                          right: '10%',
+                          background: 'rgba(255, 60, 60, 0.8)',
+                          boxShadow: '0 0 8px rgba(255,60,60,0.6), 0 0 20px rgba(255,60,60,0.3)',
+                        }}
+                        animate={{ top: ['0%', '95%', '0%'] }}
+                        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                    )}
                   </div>
-                  {/* Animated scan line */}
-                  {!scanned && (
-                    <motion.div
-                      className="absolute h-[2px]"
-                      style={{
-                        left: '10%',
-                        right: '10%',
-                        background: 'rgba(255, 60, 60, 0.8)',
-                        boxShadow: '0 0 8px rgba(255,60,60,0.6), 0 0 20px rgba(255,60,60,0.3)',
-                      }}
-                      animate={{ top: ['0%', '95%', '0%'] }}
-                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                  )}
+                  <ScannerCameraControls
+                    controls={cameraControls}
+                    onToggleTorch={handleToggleTorch}
+                    onToggleZoom={handleToggleZoom}
+                  />
                 </div>
               )}
             </div>
