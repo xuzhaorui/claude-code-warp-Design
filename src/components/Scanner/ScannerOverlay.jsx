@@ -6,24 +6,8 @@ import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 const SPRING = { type: 'spring', stiffness: 200, damping: 25, mass: 1 };
 const SCANNER_ELEMENT_ID = 'seamless-scanner';
 const SCANNER_OPTIONS = {
-  fps: 18,
-  qrbox: (viewfinderWidth, viewfinderHeight) => {
-    const shortestSide = Math.min(viewfinderWidth, viewfinderHeight);
-    const size = Math.max(220, Math.min(280, Math.floor(shortestSide * 0.78)));
-    return { width: size, height: size };
-  },
-  aspectRatio: 1,
-  disableFlip: true,
-};
-const CAMERA_CONSTRAINTS = {
-  facingMode: { ideal: 'environment' },
-  width: { ideal: 1920 },
-  height: { ideal: 1080 },
-  aspectRatio: { ideal: 4 / 3 },
-  advanced: [
-    { focusMode: 'continuous' },
-    { exposureMode: 'continuous' },
-  ],
+  fps: 10,
+  qrbox: { width: 320, height: 320 },
 };
 const BASIC_CAMERA_CONSTRAINTS = { facingMode: 'environment' };
 const AUTO_ZOOM_TARGET = 2;
@@ -31,7 +15,6 @@ const AUTO_ZOOM_TARGET = 2;
 function createScanner() {
   return new Html5Qrcode(SCANNER_ELEMENT_ID, {
     formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-    useBarCodeDetectorIfSupported: true,
   });
 }
 
@@ -44,17 +27,6 @@ function getSupportedZoomValue(capabilities) {
 
 async function tuneCameraForSmallLabels(scanner) {
   try {
-    await scanner.applyVideoConstraints({
-      advanced: [
-        { focusMode: 'continuous' },
-        { exposureMode: 'continuous' },
-      ],
-    });
-  } catch {
-    // Some mobile browsers expose camera tracks but reject focus/exposure constraints.
-  }
-
-  try {
     const capabilities = scanner.getRunningTrackCapabilities?.();
     const zoom = getSupportedZoomValue(capabilities);
     if (zoom) {
@@ -66,21 +38,12 @@ async function tuneCameraForSmallLabels(scanner) {
 }
 
 async function startScanner(scanner, onDecodedText) {
-  try {
-    await scanner.start(
-      CAMERA_CONSTRAINTS,
-      SCANNER_OPTIONS,
-      onDecodedText,
-      () => {}
-    );
-  } catch {
-    await scanner.start(
-      BASIC_CAMERA_CONSTRAINTS,
-      SCANNER_OPTIONS,
-      onDecodedText,
-      () => {}
-    );
-  }
+  await scanner.start(
+    BASIC_CAMERA_CONSTRAINTS,
+    SCANNER_OPTIONS,
+    onDecodedText,
+    () => {}
+  );
   await tuneCameraForSmallLabels(scanner);
 }
 
