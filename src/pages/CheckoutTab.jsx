@@ -10,6 +10,7 @@ import PullToRefresh from '../components/Shared/PullToRefresh';
 import { getItemByCode, getCheckoutRecords, submitCheckout } from '../api/outbound';
 import { showToast } from '../components/Shared/Toast';
 import ScanFrameIcon from '../components/Shared/ScanFrameIcon';
+import { scanImageFileRobust } from '../utils/scanImageFileRobust';
 
 export default function CheckoutTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
@@ -27,10 +28,7 @@ export default function CheckoutTab({ showCostPrice = true }) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('checkout-file-scanner');
-      const code = await scanner.scanFile(file, false);
-      scanner.clear();
+      const code = await scanImageFileRobust(file, 'checkout-file-scanner');
       setSkipCamera(true);
       setScanning(true);
       await handleScan(code);
@@ -154,7 +152,7 @@ export default function CheckoutTab({ showCostPrice = true }) {
           <ImageUp size={16} />
           <span>从图片识别</span>
         </button>
-        <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleFileUpload} />
+        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" hidden onChange={handleFileUpload} />
       </div>
       <div id="checkout-file-scanner" style={{ display: 'none' }} />
 

@@ -11,6 +11,7 @@ import PullToRefresh from '../components/Shared/PullToRefresh';
 import { getBorrowersByQrcode, getReturnRecords, submitReturn } from '../api/return';
 import { showToast } from '../components/Shared/Toast';
 import ScanFrameIcon from '../components/Shared/ScanFrameIcon';
+import { scanImageFileRobust } from '../utils/scanImageFileRobust';
 
 export default function ReturnTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
@@ -29,10 +30,7 @@ export default function ReturnTab({ showCostPrice = true }) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('return-file-scanner');
-      const code = await scanner.scanFile(file, false);
-      scanner.clear();
+      const code = await scanImageFileRobust(file, 'return-file-scanner');
       setSkipCamera(true);
       setScanning(true);
       await handleScan(code);
@@ -158,7 +156,7 @@ export default function ReturnTab({ showCostPrice = true }) {
           <ImageUp size={16} />
           <span>从图片识别</span>
         </button>
-        <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleFileUpload} />
+        <input ref={fileInputRef} type="file" accept="image/*" capture="environment" hidden onChange={handleFileUpload} />
       </div>
       <div id="return-file-scanner" style={{ display: 'none' }} />
 
