@@ -22,3 +22,30 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets — never commit signing keys or credentials (migration doc 02 §8)
+*.jks
+*.keystore
+key.properties
+warehouse-release.jks
+
+# Web build output (regenerable via npm run build; bundled into flutter_shell/assets)
+wms-app/
+certs/
+
+# Local install / dev logs
+.flutter-install.log
+.vite-dev.out.log
+.vite-dev.err.log
+
+# Deprecated Capacitor project (superseded by Flutter shell — still on disk, not tracked)
+android/
+mobile/
+
+# Flutter shell build artifacts (project's own .gitignore also applies)
+flutter_shell/build/
+flutter_shell/.dart_tool/
+flutter_shell/android/.gradle/
+flutter_shell/android/captures/
+flutter_shell/android/local.properties
+
