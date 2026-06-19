@@ -12,6 +12,7 @@ import { getBorrowersByQrcode, getReturnRecords, submitReturn } from '../api/ret
 import { showToast } from '../components/Shared/Toast';
 import ScanFrameIcon from '../components/Shared/ScanFrameIcon';
 import { scanImageFileRobust } from '../utils/scanImageFileRobust';
+import { isFlutterScannerAvailable, scanWarehouseCode } from '../utils/warehouseScannerBridge';
 
 export default function ReturnTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
@@ -77,6 +78,24 @@ export default function ReturnTab({ showCostPrice = true }) {
     }
   }, []);
 
+  const startScan = useCallback(async () => {
+    setBorrowers([]);
+    setSelectedBorrower(null);
+    setScanError('');
+    if (isFlutterScannerAvailable()) {
+      try {
+        const result = await scanWarehouseCode({ mode: 'return' });
+        setSkipCamera(true);
+        setScanning(true);
+        await handleScan(result.text);
+      } catch {
+        // operator cancelled or Flutter scan failed — stay on current view
+      }
+      return;
+    }
+    setScanning(true);
+  }, [handleScan]);
+
   const handleSubmitReturn = async (record) => {
     try {
       await submitReturn(record);
@@ -131,7 +150,7 @@ export default function ReturnTab({ showCostPrice = true }) {
       <div className="px-5 pt-5 pb-4">
         <motion.div
           whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
-          onPointerDown={() => { setScanning(true); setBorrowers([]); setSelectedBorrower(null); setScanError(''); }}
+          onPointerDown={startScan}
           className="w-full rounded-[20px] flex flex-col relative cursor-pointer"
           style={{ background: '#EDE2D5', padding: '20px' }}
         >

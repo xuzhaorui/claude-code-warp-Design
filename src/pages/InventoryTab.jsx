@@ -12,6 +12,7 @@ import { getInventoryCheckRecords, submitInventoryCheck } from '../api/inventory
 import { showToast } from '../components/Shared/Toast';
 import ScanFrameIcon from '../components/Shared/ScanFrameIcon';
 import { scanImageFileRobust } from '../utils/scanImageFileRobust';
+import { isFlutterScannerAvailable, scanWarehouseCode } from '../utils/warehouseScannerBridge';
 
 export default function InventoryTab({ showCostPrice = true }) {
   const [scanning, setScanning] = useState(false);
@@ -77,6 +78,23 @@ export default function InventoryTab({ showCostPrice = true }) {
     }
   }, []);
 
+  const startScan = useCallback(async () => {
+    setScannedItem(null);
+    setFormError('');
+    if (isFlutterScannerAvailable()) {
+      try {
+        const result = await scanWarehouseCode({ mode: 'inventory' });
+        setSkipCamera(true);
+        setScanning(true);
+        await handleScan(result.text);
+      } catch {
+        // operator cancelled or Flutter scan failed — stay on current view
+      }
+      return;
+    }
+    setScanning(true);
+  }, [handleScan]);
+
   const handleSubmit = async (record) => {
     try {
       await submitInventoryCheck(record);
@@ -125,7 +143,7 @@ export default function InventoryTab({ showCostPrice = true }) {
       <div className="px-5 pt-5 pb-4">
         <motion.div
           whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
-          onPointerDown={() => { setScanning(true); setScannedItem(null); setFormError(''); }}
+          onPointerDown={startScan}
           className="w-full rounded-[20px] flex flex-col relative cursor-pointer"
           style={{ background: '#EDE2D5', padding: '20px' }}
         >

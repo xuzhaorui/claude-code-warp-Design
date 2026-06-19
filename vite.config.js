@@ -44,6 +44,9 @@ const dynamicProxyPlugin = {
 }
 
 export default defineConfig({
+  // Relative base so the built index.html loads ./assets/... when bundled as a
+  // Flutter WebView asset (migration spec §8). Absolute /assets/ would 404 there.
+  base: './',
   plugins: [
     basicSsl(),
     react(),
