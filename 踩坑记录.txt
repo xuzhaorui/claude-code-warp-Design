@@ -54,3 +54,57 @@
 【反脆弱措施】
 - 遇到位置描述有歧义时（"同一行"、"并排"），先确认是在父容器内部还是外部
 - 被纠正过一次的位置关系，必须作为明确的上下文记忆，不再重复犯错
+
+---
+
+#004 | 2026-06-19 | gitignore 规则过宽：`android/` 误伤 flutter_shell/android/
+
+【问题】
+为忽略废弃的 Capacitor 目录，在根 .gitignore 加了 `android/`。
+该规则匹配任意深度的 android/ 目录，把整个 `flutter_shell/android/`（gradle 配置、AndroidManifest、签名配置、镜像配置）全部忽略。
+提交 f5bbb51 后才发现 android 配置一个都没进库（git ls-files flutter_shell/android/ = 0）。
+
+【根因】
+- gitignore 的 `name/` 模式是"任意层级匹配"，不是"仅根目录"
+- 想限定根目录必须前导斜杠 `/android/`
+- 没在 commit 后用 git ls-files 校验关键目录是否真进了库
+
+【反脆弱措施】
+- gitignore 忽略"根目录专属目录"时一律用 `/name/`（前导斜杠锚定根）
+- 大批 add 后，用 `git ls-files <关键目录> | wc -l` 或 `git diff --cached --name-only | grep` 校验关键路径确实进库
+- 已修：`/android/`、`/mobile/`（commit 4d9718c 补回 19 个 android 文件）
+
+---
+
+#005 | 2026-06-19 | Flutter 引擎制品走默认 googleapis 超时，漏设 FLUTTER_STORAGE_BASE_URL
+
+【问题】
+`flutter build apk` 在 `:app:checkDebugDuplicateClasses` 阶段失败：
+Could not GET 'https://storage.googleapis.com/download.flutter.io/io/flutter/armeabi_v7a_debug/...'
+原因：那次构建命令里漏设 FLUTTER_STORAGE_BASE_URL，Gradle 用默认 storage.googleapis.com 拉 Flutter 引擎 Maven 制品，超时。
+
+【根因】
+- 以为 FLUTTER_STORAGE_BASE_URL 只影响 flutter 工具自身下载，实际 Flutter Gradle 插件也用它构造引擎制品仓库 URL（FlutterPlugin.kt:90-92: System.getenv("FLUTTER_STORAGE_BASE_URL") ?: "https://storage.googleapis.com"）
+- 多个构建命令分别写 env preamble，漏一个就出问题
+- Gradle daemon 只继承启动进程的 env；改 env 后旧 daemon 还用旧值
+
+【反脆弱措施】
+- 中国网络下任何 flutter 构建命令都必须带 FLUTTER_STORAGE_BASE_URL + PUB_HOSTED_URL（写进构建脚本，见 scripts/build_flutter_assets.*）
+- 改 env 后必须 `gradlew --stop` 再重建
+- 三处镜像都要配：gradle wrapper（tencent）、maven（aliyun）、flutter 引擎（FLUTTER_STORAGE_BASE_URL）
+
+---
+
+#006 | 2026-06-19 | Kotlin 增量编译跨盘（C: pub cache vs D: 项目）导致构建极慢
+
+【问题】
+首次 flutter build 编译插件（mobile_scanner、webview_flutter_android）极慢（>15 分钟），日志刷满 "this and base files have different roots" + 增量缓存 close 异常，每个插件都回退 compileNonIncrementally。
+
+【根因】
+- pub 包缓存在 C:\Users\Lenovo\AppData\Local\Pub\Cache，项目在 D:\claude-code-warp\Design，不同盘
+- Kotlin 增量编译器要算源文件相对项目根的相对路径，跨盘算不出，反复报错 + 全量回退
+
+【反脆弱措施】
+- flutter_shell/android/gradle.properties 加 `kotlin.incremental=false`，干净全量编译，反而更快
+- 根本解法：把 PUB_CACHE 设到 D: 盘（与项目同盘），未来可去掉该开关
+- 首次构建慢属正常（下载 Gradle + 编译全部插件）；后续增量会快
