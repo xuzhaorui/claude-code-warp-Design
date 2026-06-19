@@ -38,9 +38,10 @@ certs/
 .vite-dev.out.log
 .vite-dev.err.log
 
-# Deprecated Capacitor project (superseded by Flutter shell — still on disk, not tracked)
-android/
-mobile/
+# Deprecated Capacitor project (superseded by Flutter shell — still on disk, not tracked).
+# Leading slash anchors to repo root so flutter_shell/android/ is NOT matched.
+/android/
+/mobile/
 
 # Flutter shell build artifacts (project's own .gitignore also applies)
 flutter_shell/build/
