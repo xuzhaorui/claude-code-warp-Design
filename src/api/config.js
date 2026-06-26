@@ -4,16 +4,28 @@ function normalizeServerUrl(raw) {
   return url;
 }
 
+// Running inside the Flutter APK? The WebView exposes window.ScannerChannel.
+// There the app is served by Flutter's local HTTP server (not file://), which
+// reverse-proxies /store to the configured backend — same-origin, no CORS.
+function isFlutterHost() {
+  return typeof window !== 'undefined' && Boolean(window.ScannerChannel);
+}
+
 export function setApiBaseUrl(rawUrl) {
   const url = normalizeServerUrl(rawUrl);
   localStorage.setItem('api-base-url', url);
-  // /__proxy-target is a Vite dev-only endpoint — skip in production to avoid 405
   if (import.meta.env.DEV) {
+    // Vite dev proxy: tell the dev server which backend to route /store to.
     fetch('/__proxy-target', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ target: url }),
     }).catch(() => {});
+  } else if (isFlutterHost()) {
+    // APK: tell the Flutter local server which backend to reverse-proxy /store to.
+    try {
+      window.ScannerChannel.postMessage(JSON.stringify({ type: 'setApiTarget', url }));
+    } catch {}
   }
 }
 
@@ -22,6 +34,9 @@ export function buildApiUrl(path) {
 
   // Dev: Vite proxy handles cross-server routing via /__proxy-target
   if (import.meta.env.DEV) return `/store${normalizedPath}`;
+  // APK: Flutter local server reverse-proxies /store. Relative path is
+  // same-origin to the WebView (no CORS / mixed-content).
+  if (isFlutterHost()) return `/store${normalizedPath}`;
 
   const storedBase = localStorage.getItem('api-base-url');
   if (storedBase) {

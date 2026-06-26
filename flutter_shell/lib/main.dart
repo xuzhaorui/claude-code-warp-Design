@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'design/app_theme.dart';
 import 'pages/web_shell_page.dart';
 
 void main() {
@@ -11,10 +12,11 @@ class WarehouseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: '仓库管理',
       debugShowCheckedModeBanner: false,
-      home: WebShellPage(),
+      theme: AppTheme.light,
+      home: const WebShellPage(),
     );
   }
 }

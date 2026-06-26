@@ -1,83 +1,113 @@
-# Warehouse Management App (仓库管理)
+# Warehouse Flutter Parity Rules
 
-## Project Overview
-B2B 仓库管理移动端 Web APP，面向仓库操作员的出库/归还/盘点流程。
-React 19 (JSX) + Vite 8 + Tailwind CSS 4 + Framer Motion 12 + Lucide React + html5-qrcode
-优化优先级：操作流畅度 > 交互反馈 > 视觉细节
-验证标准：操作员单手完成出库/归还全流程，无卡顿，无歧义
+## Mission
 
-## Do NOT Introduce Unless Explicitly Requested
-- TypeScript — project is plain JSX
-- CSS-in-JS (styled-components, emotion, CSS modules) — use Tailwind only
-- State management (Redux, MobX, Zustand) — use React useState/useContext
-- UI libraries (MUI, Ant Design, Chakra) — all components are custom
-- Other CSS frameworks (Bootstrap, Bulma)
-- SSR frameworks (Next.js, Remix) — this is a SPA
-- Routing libraries besides react-router-dom
+当前分支目标：将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。
 
-## UI Reference Chain (UI 构建必读)
-When building or modifying any UI component, follow this decision tree:
+核心流程：出库 / 归还 / 盘点 / 扫码 / 服务器配置。
 
-1. **Read Design.md** — design specification: colors, typography, corner radius, motion physics, component rules
-2. **Read design-system.html** — runnable HTML/CSS reference implementations of Design.md components
-3. If Design.md + design-system.html cover the needed component → build directly in React, following both sources
-4. If neither covers it → read `Using Claude Code_ The Unreasonable Effectiveness of HTML.md`
-5. **Propose** modifications to design-system.html (include: what to add, why, design rationale)
-6. **Wait** for user to review and approve the proposal
-7. After approval: update design-system.html first, then build in React
+第一性原理：
 
-All animation/motion parameters must follow Design.md exactly — never invent values.
+> 人类给方向，`Design.md` 给设计契约，现有 Web 代码给行为参考，Flutter 编译器 / Analyzer / Linter 给真实裁判。
 
-## UI Task Planning (UI 任务规划)
-When planning UI building, refactoring, or visual modification tasks, the task-plan skill MUST produce an HTML plan file instead of a markdown plan:
+## Source of Truth
 
-1. **Output**: `plans/{name}.html` — a single self-contained HTML file (inline CSS/JS, no external deps except CDN fonts)
-2. **Component Mapping Table**: Explicit mapping of `design-system.html §X component → src/components/Y.jsx` with change type (New/Modify/Delete)
-3. **Page Composition Views**: Rendered HTML+CSS mockups showing multiple components composed into full pages, with toggle between "current" and "planned" states
-4. **Interactive State Diagram**: HTML+CSS+JS flowchart showing state transitions (idle → focused → error → loading), clickable to reveal component variations, connected with CSS arrows
-5. **Execution Steps**: ACTION/GATE/NEXT format embedded in styled HTML cards, with visual GATE checks (screenshot/mocking comparisons where applicable)
-6. **Design tokens**: Use same CSS variables as design-system.html (--bumble-yellow, --action-black, etc.)
+1. `CLAUDE.md` — Agent 执行纪律。
+2. `Design.md` — 唯一设计物理契约，包含可 lint 的 token、组件规则、Flutter 映射。
+3. `src/pages/`、`src/components/`、`src/api/` — Web 行为与接口参考，不是 Flutter 技术约束。
+4. `flutter_shell/lib/` — Flutter 实现目标。
 
-7. **Mapping Completeness (映射完整性)**: Before writing §1, read `design-system.html` to identify the exact `§X` section number for each component. Every component that will be Modified or Created MUST appear in the table with a verified section reference. Section numbers must not be inferred from memory — they must be read from the file.
-8. **Composition Coverage (组合覆盖)**: §2 must include one composition view per app tab/page that contains a modified component. Composition must render at 375px mobile width with phone frame border, using design-system.html CSS tokens.
-9. **Interaction Diagram Type (交互图类型)**: §3 uses one of two diagram types — choose based on task nature: (a) **State Machine**: for component state transitions (idle → focused → error → loading → disabled); (b) **Execution Flowchart**: for sequential workflows with branch points (Step → Gate? → continue or rollback). Label the chosen type at the top of the diagram.
+禁止把旧 Web 技术栈、HTML 样例、截图主观观感当成 Flutter 设计契约。
 
-Layout structure is determined by the task-plan skill based on task complexity. Non-UI tasks continue to use standard `.md` plan format.
+## CLI Toolchain Contract
 
-## Architecture
-- `src/App.jsx` — Splash → Auth → AppShell entry point
-- `src/pages/` — Tab pages (CheckoutTab, ReturnTab, InventoryTab, AppShell)
-- `src/components/` — Scanner, Records, BottomSheet, Forms, Details, Settings, Login, Splash
-- `src/data/mockData.js` — Mock data layer + CRUD functions (swap target for real API)
-- `src/index.css` — Tailwind `@theme` tokens (brand-yellow, action-black, etc.)
+工具链契约见：`docs/flutter-scanner-migration/cli-toolchain-contract.md`。
 
-## Context Tiers
-- **Tier 1 (always load):** CLAUDE.md, Design.md, design-system.html, src/index.css
-- **Tier 2 (on-demand):** src/data/mockData.js, src/App.jsx, task_plan_*.md
-- **Tier 3 (ignore unless asked):** dist/, node_modules/
+本项目默认不依赖 Android Studio。Android Studio 未安装不是阻塞项。
 
-## Coding Discipline (编码纪律)
-- **Git 是后悔药**：每次变更需当前分支本地提交
-- **踩坑记录**：`踩坑记录.txt` 记录每次遇到的问题和反脆弱措施，遇到问题时先阅读
+Agent 涉及 Flutter 环境、Android SDK、真机、APK、签名时，必须先按该契约验证，不得凭经验假设环境可用。
 
-## Coding Rules
-- Named exports only (default export for route-level components)
-- Chinese UI text, English identifiers and comments
-- Component file ≤ 200 lines (split if exceeded)
-- async/await, no Promise chains
-- Full variable names, no abbreviations (except id/url/ctx)
-- No console.log, no commented-out code blocks
-- Tailwind utility classes exclusively — no inline styles except dynamic values
-- Framer Motion for all animations — no CSS transitions except keyframes in index.css
-- Mobile-first: 375px–428px width
-- All motion/gesture/animation params: follow Design.md, not this file
+真正阻塞项只有：Android toolchain 缺失、SDK licenses 未接受、adb 无法识别设备、Flutter analyze/test/build 失败、签名文件误提交 Git。
 
-## Branches
-- `main` — stable
-- `feature/*` — feature development
+## Physical Gate Protocol
+
+任意一轮实现、重构、UI 迁移或修复后，必须执行：
+
+```bash
+npm run design:lint
+cd flutter_shell && flutter analyze
+```
+
+阶段交付前优先执行：
+
+```bash
+npm run physical:lint
+cd flutter_shell && flutter test
+cd flutter_shell && flutter build apk --debug
+```
+
+规则：
+
+- 未跑物理门禁，视为未完成。
+- `Design.md` lint 失败，先修 token / 引用 / 对比度 / 结构。
+- `flutter analyze` 失败，先修 Flutter 静态问题。
+- 有测试文件就跑 `flutter test`；没有测试文件必须说明，不得伪造通过。
+- 不允许用“看起来一致”“应该没问题”“AI 认为完成”作为验收。
+
+## Failure Protocol
+
+- 第 1 次失败：读取报错，直接修。
+- 第 2 次失败：收缩范围，只查相关文件、token、组件边界。
+- 第 3 次失败：停止扩大改动，写 handoff：失败命令、完整错误日志、已改文件、当前判断，交给顶级模型纠偏。
+
+## Iteration Protocol
+
+每轮只做一个最小闭环：
+
+```text
+读契约 -> 选一个页面/组件 -> 实现 -> 跑门禁 -> 修复 -> 记录结果
+```
+
+迁移顺序：
+
+1. Flutter design token 基础设施。
+2. Flutter 基础组件。
+3. Flutter 页面壳层。
+4. 出库 / 归还 / 盘点主流程。
+5. 替换 WebView 兼容桥。
+
+禁止一次性大爆炸重构。
+
+## Flutter Boundaries
+
+允许：
+
+- 在 `flutter_shell/lib/design/` 建立 token 文件。
+- 在 `flutter_shell/lib/components/` 建立原生组件。
+- 在 `flutter_shell/lib/pages/` 建立原生页面。
+- 保留 `WebShellPage` 作为过渡兼容层。
+
+禁止：
+
+- 重新设计视觉风格。
+- 引入与 `Design.md` 不一致的新颜色、字号、圆角、间距。
+- 使用 Material 默认蓝色、随机灰色、随机阴影作为产品 UI。
+- 为了 Flutter 方便而改变既有业务流程。
+- 在 Widget 中散落硬编码 `Color(0x...)`、`TextStyle(fontSize: ...)`、`EdgeInsets.all(...)`、`BorderRadius.circular(...)`。
+- 引入大型状态管理、UI 框架或新架构，除非用户明确要求。
+
+## Coding Discipline
+
+- 中文 UI 文案，英文代码标识。
+- 不伪造测试、构建、lint 通过结果。
+- 遇到问题先读 `踩坑记录.txt`，新问题写回。
+- 每次有效变更后应本地提交。
 
 ## Key Invariants
-- Auth state in localStorage (`currentUser`, `servers`, `activeServer`)
-- Data layer is mockData.js — no real API yet, structure for easy swap
-- Scanner camera stays active during bottom sheet interaction
-- API 只走相对路径（Vite proxy 转发）
+
+- 出库 / 归还 / 盘点主流程不能被破坏。
+- 扫码能力是核心入口，不能退化。
+- 服务器配置与接口目标不能被破坏。
+- API 路径和代理策略不得随意更改。
+- UI 保持 375px–428px 移动端单手操作优先。
+- `Design.md` token 与 Flutter token 文件必须可追踪对应。

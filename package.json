@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "design:lint": "npx -y -p @google/design.md@0.3.0 designmd lint Design.md",
+    "design:export:dtcg": "npx -y -p @google/design.md@0.3.0 designmd export --format dtcg Design.md",
+    "flutter:analyze": "cd flutter_shell && flutter analyze",
+    "physical:lint": "npm run design:lint && npm run flutter:analyze"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",

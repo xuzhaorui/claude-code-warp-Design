@@ -1,128 +1,396 @@
-# Design System: Warm Terracotta (仓库管理 WMS)
+---
+version: alpha
+name: Warehouse Flutter Parity
+description: Machine-readable design contract for migrating the warehouse web app to native Flutter while preserving the existing UI/UX.
+colors:
+  primary: "#E8986E"
+  primary-soft: "#EDE2D5"
+  background: "#FFFBF5"
+  surface: "#FFFFFF"
+  surface-muted: "#F5F0EB"
+  text-primary: "#292524"
+  text-secondary: "#78716C"
+  border-muted: "#E5DED7"
+  overlay: "rgba(41, 37, 36, 0.50)"
+  scanner-dark: "#0A0A0A"
+  scanner-light: "#FFFFFF"
+typography:
+  display:
+    fontFamily: Inter
+    fontSize: 28px
+    fontWeight: 700
+    lineHeight: 36px
+    letterSpacing: -0.02em
+  title:
+    fontFamily: Inter
+    fontSize: 22px
+    fontWeight: 700
+    lineHeight: 30px
+    letterSpacing: -0.01em
+  body:
+    fontFamily: Inter
+    fontSize: 16px
+    fontWeight: 500
+    lineHeight: 24px
+    letterSpacing: 0em
+  label:
+    fontFamily: Inter
+    fontSize: 13px
+    fontWeight: 600
+    lineHeight: 18px
+    letterSpacing: 0.02em
+  caption:
+    fontFamily: Inter
+    fontSize: 12px
+    fontWeight: 500
+    lineHeight: 16px
+    letterSpacing: 0em
+rounded:
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  pill: 999px
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 12px
+  lg: 16px
+  xl: 24px
+  xxl: 32px
+components:
+  app-page:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.body}"
+    padding: 16px
+  card-default:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.body}"
+    rounded: "{rounded.lg}"
+    padding: 16px
+  card-muted:
+    backgroundColor: "{colors.surface-muted}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: 16px
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    height: 52px
+    padding: 16px
+  button-secondary:
+    backgroundColor: "{colors.primary-soft}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    height: 48px
+    padding: 16px
+  input-default:
+    backgroundColor: "{colors.surface-muted}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    height: 58px
+    padding: 16px
+  helper-text:
+    backgroundColor: "{colors.background}"
+    textColor: "{colors.text-secondary}"
+    typography: "{typography.caption}"
+    rounded: "{rounded.sm}"
+    padding: 4px
+  bottom-sheet:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.body}"
+    rounded: "{rounded.xl}"
+    padding: 24px
+  segmented-control:
+    backgroundColor: "{colors.surface-muted}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    height: 44px
+    padding: 4px
+  segmented-control-active:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.text-primary}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    height: 36px
+    padding: 12px
+  divider-line:
+    backgroundColor: "{colors.border-muted}"
+    textColor: "{colors.text-primary}"
+    rounded: "{rounded.sm}"
+    height: 1px
+    width: 1px
+  modal-overlay:
+    backgroundColor: "{colors.overlay}"
+    textColor: "{colors.scanner-light}"
+    rounded: "{rounded.sm}"
+    padding: 0px
+  scanner-surface:
+    backgroundColor: "{colors.scanner-dark}"
+    textColor: "{colors.scanner-light}"
+    typography: "{typography.label}"
+    rounded: "{rounded.pill}"
+    padding: 12px
+---
 
-## 1. 原子层 (Foundation)
+## Overview
 
-* **Accent Color:** #E8986E (Light Terracotta) - 主操作按钮、选中高亮、徽章边框、扫码头部图标区、表单标签。
-* **Surface Color:** #EDE2D5 (Deep Warm Cream) - 扫码按钮底色、表单徽章内层背景。
-* **Background Color:** #FFFBF5 (Warm Cream) - 页面主背景。
-* **Text Color:** #292524 (Warm Dark) / #78716C (Warm Gray) - 主标题与次要文字。
-* **Typography:** Font: Inter, system-ui, sans-serif.
-* Weight: 标题 Bold (700)，正文 Medium (500)，标签 Semi-Bold (600)。
+This file is the physical design contract for `feature/warehouse-app`.
 
-### CSS Theme Tokens (Tailwind @theme)
+The branch target is not a refreshed product. The target is a Flutter adaptation of the current warehouse web app with visual and interaction parity. The existing React/Vite UI is the reference implementation; Flutter is the new runtime.
+
+First-principle constraint:
+
+> Do not ask an AI whether the Flutter UI “looks consistent”. Encode consistency as tokens, component mappings, lint commands, analyzer rules, and repeatable gates.
+
+Normative source order:
+
+1. YAML front matter in this file — machine-readable design constants.
+2. `design-system.html` — visual reference implementation and component behavior reference.
+3. Existing React pages/components — current product interaction reference.
+4. Flutter implementation — must consume the same constants; it must not invent a second design system.
+
+Migration intent:
+
+- Preserve the warm terracotta warehouse UI.
+- Preserve mobile-first operation rhythm for 375px–428px screens.
+- Preserve scanner-first flows: 出库, 归还, 盘点.
+- Replace WebView-only dependency gradually with native Flutter screens.
+- Make every visual constant traceable to a token.
+
+## Colors
+
+The palette remains the existing warm terracotta system:
+
+- `primary #E8986E` — main action, active tab, selected state, scan highlight, form focus.
+- `primary-soft #EDE2D5` — secondary action and soft scan/form surfaces.
+- `background #FFFBF5` — app page background.
+- `surface #FFFFFF` — cards, sheets, lists, tab shell.
+- `surface-muted #F5F0EB` — input background, segmented control base, secondary card.
+- `text-primary #292524` — titles, button text on terracotta, high-emphasis content.
+- `text-secondary #78716C` — helper text and low-emphasis labels. Use on `background`, not on `surface-muted` when WCAG AA text contrast is required.
+- `border-muted #E5DED7` — divider and low-emphasis outline.
+- `overlay rgba(41, 37, 36, 0.50)` — bottom-sheet/modal scrim.
+- `scanner-dark #0A0A0A` and `scanner-light #FFFFFF` — native scanner full-screen surface and controls.
+
+Flutter mapping:
+
+```dart
+class AppDesignColors {
+  static const primary = Color(0xFFE8986E);
+  static const primarySoft = Color(0xFFEDE2D5);
+  static const background = Color(0xFFFFFBF5);
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceMuted = Color(0xFFF5F0EB);
+  static const textPrimary = Color(0xFF292524);
+  static const textSecondary = Color(0xFF78716C);
+  static const borderMuted = Color(0xFFE5DED7);
+  static const scannerDark = Color(0xFF0A0A0A);
+  static const scannerLight = Color(0xFFFFFFFF);
+  static const overlay = Color(0x80292524);
+}
 ```
---color-brand-yellow: #E8986E    /* accent / buttons / highlights */
---color-action-black: #E8986E    /* submit buttons / active states */
---color-bg-main: #FFFBF5         /* page background */
---color-bg-secondary: #F5F0EB    /* card / secondary surface */
---color-text-primary: #292524    /* main text */
---color-text-secondary: #78716C  /* hints / subtitles */
+
+Flutter rule: direct `Color(0x...)`, `Colors.orange`, `Colors.brown`, `Colors.grey`, `Colors.white`, and `Colors.black` are forbidden in app UI except inside the generated token file or scanner plugin boundary.
+
+## Typography
+
+Typeface stays `Inter` with system fallback. Flutter should map this into `ThemeData.textTheme`, not per-widget ad hoc styles.
+
+Token usage:
+
+- `display` — splash, major page title, empty-state headline.
+- `title` — page section title, sheet title, detail title.
+- `body` — form body, list title/subtitle base, normal content.
+- `label` — button text, tab label, badge text, input floating label.
+- `caption` — helper text, metadata, record timestamp.
+
+Flutter mapping:
+
+```dart
+class AppTextStyles {
+  static const display = TextStyle(fontSize: 28, fontWeight: FontWeight.w700, height: 36 / 28, letterSpacing: -0.56);
+  static const title = TextStyle(fontSize: 22, fontWeight: FontWeight.w700, height: 30 / 22, letterSpacing: -0.22);
+  static const body = TextStyle(fontSize: 16, fontWeight: FontWeight.w500, height: 24 / 16);
+  static const label = TextStyle(fontSize: 13, fontWeight: FontWeight.w600, height: 18 / 13, letterSpacing: 0.26);
+  static const caption = TextStyle(fontSize: 12, fontWeight: FontWeight.w500, height: 16 / 12);
+}
 ```
 
+Flutter rule: no inline `TextStyle(fontSize: ...)` outside `app_text_styles.dart` unless the value is derived from a token and the exception is documented beside the widget.
 
-* **Corner Radius:** - Small (8px): 用于列表项、内部小图片。
-* Medium (16px): 用于大尺寸的人像展示卡片。
-* Large (24px - 32px): 用于主功能卡片和弹窗容器。
-* Full (50% / Pill): 用于操作按钮、分段控制器（Segmented Control）。
+## Layout & Spacing
 
+Base spacing is an 8px rhythm with a small 4px escape hatch.
 
+- `xs 4px` — micro gaps, icon/text gap, divider insets.
+- `sm 8px` — compact vertical spacing, tab/icon stack.
+- `md 12px` — card internal rhythm, row gap.
+- `lg 16px` — normal page padding and form field gap.
+- `xl 24px` — bottom sheet/content section padding.
+- `xxl 32px` — large empty-state or splash spacing.
 
-## 2. 组件层 (Components)
+Flutter mapping:
 
-### A. 底部抽屉与模态框 (Bottom Sheet / Modal)
+```dart
+class AppSpacing {
+  static const xs = 4.0;
+  static const sm = 8.0;
+  static const md = 12.0;
+  static const lg = 16.0;
+  static const xl = 24.0;
+  static const xxl = 32.0;
+}
+```
 
-* **Behavior:** 向上滑动弹出，背景带有 50% 透明度的深灰色遮罩。
-* **Header:** 带有明确的关闭图标 (X) 或向下的滑动指示条。顶部常伴随带有暗角渐变（Dark Gradient Overlay）的 Hero Image。
+Mobile invariant:
 
-### B. 选择卡片 (Selection Cards)
+- Design width: 375px.
+- Supported comfortable width: 375px–428px.
+- Primary controls must be reachable with one hand.
+- Bottom actions must respect safe-area insets.
+- Avoid desktop/tablet-first breakpoints during Flutter migration.
 
-* **Style:** 默认背景为白色或浅灰。选中时边框变为赤陶色，并出现赤陶色圆环单选框。
-* **Layout:** 横向滚动 (Horizontal Scroll)，每张卡片展示价格、数量和折扣标签。
-* **Badge:** “最热门”等标签使用高对比度的反色小标签，挂载在卡片边缘。
+Flutter rule: direct `EdgeInsets.all(17)`, `SizedBox(height: 23)`, and random dimensions are forbidden. Use token constants unless the dimension is a physical device/system value such as safe-area, keyboard inset, or camera preview size.
 
-### C. 设置与数据列表 (Lists & Cells - New)
+## Elevation & Depth
 
-* **Layout:** 典型的上下分层结构。黑色粗体 Title 在上，灰色常规体 Subtitle 在下，提供极佳的阅读节奏。
-* **Controls:** - **Toggles (开关):** 激活状态为赤陶色底色白圆点，保持克制的工业感。
-* **Chevrons:** 列表右侧使用极简的暖灰色线性向右箭头表示可进入。
+The existing UI is mostly flat, warm, and tactile. Depth is used to express active selection and sheet layering, not decoration.
 
+Allowed shadows:
 
+- Default cards: none or border-only.
+- Active/selected cards: soft shadow equivalent to `0 20px 25px -5px rgba(0, 0, 0, 0.10)`.
+- Bottom sheet: scrim + top radius, not heavy drop shadow.
+- Scanner: no shadow; use contrast and overlay geometry.
 
-### D. 导航与控制器 (Navigation & Segments - New)
+Flutter mapping:
 
-* **Segmented Control:** 胶囊状（Pill-shaped）背景，激活项为赤陶色药丸块，文字反白；未激活项为透明背景，文字暖灰。
-* **Bottom Tab Bar:** 纯白底色，线性 Icon（未激活）与 面性 Icon（激活）结合，图标下方带极小字号的文本标签。
-* **Avatar:** 圆形头像外部带有进度环（Progress Ring），用于展示个人档案完善度。
+```dart
+class AppElevation {
+  static const none = 0.0;
+  static const selected = 8.0;
+  static const sheet = 0.0;
+}
+```
 
-### E. 媒体卡片 (Media Cards - New)
+Flutter rule: `BoxShadow` is not allowed unless it maps to `selected` state or a documented bottom-sheet exception.
 
-* **Discovery Cards:** 满版图片排布，底部叠加从黑色到透明的渐变遮罩（Gradient Overlay），确保其上的白色名字与年龄文字绝对清晰。
+## Shapes
 
-*(注：第 3、4、5 部分的动效与交互协议保持你之前确认的最佳物理参数不变)*
+Radii preserve the previous UI feel:
 
-## 3. 动态属性 (Motion & Interaction)
+- `sm 8px` — list items, small image/scan chips, internal controls.
+- `md 16px` — input fields, selection cards, normal cards.
+- `lg 24px` — primary cards and large panels.
+- `xl 32px` — bottom sheet top corners and prominent containers.
+- `pill 999px` — buttons, segmented controls, scanner toolbar buttons.
 
-* **Transition:** 使用 `Cubic-bezier(0.4, 0, 0.2, 1)` 或 `Spring(mass: 1, tension: 120, friction: 14)`。
-* **Hover/Touch State:** 按钮点击时应有轻微的 0.98x 缩放反馈。
-* **Loading:** 采用脉冲式 (Pulse) 骨架屏，而非旋转进度条。
+Flutter mapping:
 
-## 4. 商业模式布局 (Pattern)
+```dart
+class AppRadii {
+  static const sm = Radius.circular(8);
+  static const md = Radius.circular(16);
+  static const lg = Radius.circular(24);
+  static const xl = Radius.circular(32);
+  static const pill = Radius.circular(999);
+}
+```
 
-* **Information Hierarchy:** 顶部为利益点（如“浏览量提升10倍”），中间为选择方案，底部为明确的支付行动点按钮。
+Flutter rule: direct `BorderRadius.circular(...)` outside `app_radii.dart` is forbidden except for plugin camera-preview clipping when documented.
 
-## 5. 深度交互协议 (Advanced Motion Protocol)
+## Components
 
-### A. 物理引擎参数 (Framer Motion Base)
+Component migration map:
 
-* **Primary Spring:** 使用 `type: "spring"`。
-* `stiffness: 200` (保证响应灵敏)
-* `damping: 25` (消除多余抖动，增加稳重感)
-* `mass: 1`
+| Web reference | Flutter target | Contract |
+| --- | --- | --- |
+| `AppShell.jsx` | `WarehouseShell` | Same bottom-tab rhythm, warm background, no desktop layout. |
+| `CheckoutTab.jsx` | `CheckoutPage` | Scanner-first flow, same primary action hierarchy. |
+| `ReturnTab.jsx` | `ReturnPage` | Same record/detail rhythm as web. |
+| `InventoryTab.jsx` | `InventoryPage` | Same check-card and status feedback logic. |
+| `BottomSheet/*` | `AppBottomSheet` | 50% warm dark overlay, top radius `xl`, drag-to-dismiss physics. |
+| `Forms/*` | `AppTextField`, `AppSelectCard`, flow-specific forms | Same floating-label/input behavior. |
+| `Records/RecordCard.jsx` | `RecordCard` | Same title/subtitle/timestamp hierarchy. |
+| `Scanner/ScannerOverlay.jsx` | `ScannerPage` overlay widgets | Native scanner may differ internally, but visual controls must use tokens. |
+| `Settings/*` | `SettingsPage` | Same list cell hierarchy and server-config interaction. |
+| `Splash/*` | `SplashPage` | Same launch brand color, timing, and page transition intent. |
 
+Motion contract for Flutter:
 
-* **Tap Feedback:** 所有的可交互元素必须具备 `whileTap={{ scale: 0.96 }}`，反馈延迟需控制在 50ms 以内。
+- Tap feedback: scale to `0.96`; delay must feel under 50ms.
+- Bottom sheet enter: `y: 100% -> 0`, scrim opacity `0 -> 0.50`.
+- Gesture dismiss threshold: close when drag distance exceeds `150px` or downward velocity exceeds `500px/s`.
+- Segmented control active state must move, not flash.
+- Lists may stagger at `index * 50ms`, but must not block operation.
 
-### B. 容器转换逻辑 (Transitions)
+Native Flutter implementation boundary:
 
-* **Bottom Sheet:** 必须支持从 `y: "100%"` 到 `y: 0` 的弹性滑入，且带有背景遮罩（Overlay）的渐变（Opacity: 0.5）。
-* **Layout Animations:** 切换选中状态时，必须使用 Framer Motion 的 `layout` 属性，确保背景高亮色块是“流动”过去的，而不是闪现。
+- The current `WebShellPage` can remain as a compatibility bridge during migration.
+- New UI code should live under `flutter_shell/lib/` and consume generated or hand-maintained token constants.
+- Do not use Material default colors as product identity.
+- Do not introduce a second visual language while converting from web to Flutter.
 
-### C. 滑动与吸附 (Swipe & Snap)
+Physical gates:
 
-* **Horizontal Draggable:** - 必须具备边缘阻尼感（`dragElastic: 0.2`）。
-* 必须实现“释放后吸附”（Snap on drag end）：根据滑动速度（Velocity）和位移（Offset）自动计算并吸附到最近的卡片中心。
+```bash
+npm run design:lint
+npm run physical:lint
+cd flutter_shell && flutter analyze
+```
 
+`design:lint` is the first gate. If it fails, do not ask an AI whether the design is acceptable; fix the broken token, section order, reference, or contrast finding.
 
+Recommended local file structure for Flutter migration:
 
-### D. 物理弹性与韧性 (Elasticity & Resilience)
+```text
+flutter_shell/lib/design/app_design_colors.dart
+flutter_shell/lib/design/app_text_styles.dart
+flutter_shell/lib/design/app_spacing.dart
+flutter_shell/lib/design/app_radii.dart
+flutter_shell/lib/design/app_theme.dart
+flutter_shell/lib/components/
+flutter_shell/lib/pages/
+```
 
-* **Overscroll Behavior:** 所有的拖拽容器（如选项卡）必须配置 `dragElastic: 0.15`。
-* 目的：模拟物理边界的“橡皮筋”效果，滑动到尽头时应允许 10% 的溢出并带有强回弹。
+## Do's and Don'ts
 
+Do:
 
-* **Snap Logic:** 滑动结束时必须结合速度（Velocity）计算：
-* `power: 0.8`
-* `timeConstant: 200`
-* 确保卡片始终平滑吸附至容器中心对齐。
+- Use this file as the first design input for every Flutter UI task.
+- Run `npm run design:lint` before implementation and after design-token changes.
+- Keep the web app and Flutter app visually traceable to the same token names.
+- Build small Flutter components that can be inspected independently.
+- Treat analyzer/linter output as the evaluator.
+- Escalate to a stronger model only after three failed physical attempts with logs.
 
+Don't:
 
+- Do not ask an AI to “make it more consistent” without changing tokens or lintable rules.
+- Do not hard-code new colors, spacing, radii, or text sizes in Flutter widgets.
+- Do not switch to Material default blue, default grey, or random Android platform styling.
+- Do not redesign the product during migration.
+- Do not judge Flutter parity by prose alone; use token lint, analyzer, screenshots, and human spot checks.
+- Do not keep WebView as the final architecture if the explicit task is native Flutter adaptation.
 
-### E. 手势关闭协议 (Gesture Dismissal)
+Agent execution loop:
 
-* **Vertical Drag:** 底部抽屉 (Bottom Sheet) 需支持 `drag="y"`。
-* **关闭阈值：** 当 `y > 150px` 或 `vy > 500px/s` (向下快速挥动) 时，触发 `exit` 动画，同时背景遮罩同步淡出。
-* **阻尼限制：** 向上拖拽应设置 `dragConstraints={{ top: 0 }}` 且具备高阻尼，防止抽屉被拉离底部。
+```text
+Intent -> DESIGN.md token contract -> design.md lint -> Flutter token constants -> Flutter screens -> flutter analyze -> screenshot / human spot check -> iterate
+```
 
+Failure policy:
 
-
-### F. 视觉层级动效 (Visual Hierarchy Motion)
-
-* **Shared Layout:** 选中状态的赤陶色边框必须带有 `layoutId=”active-pill”`。
-* 确保在不同卡片间切换时，高亮色块是”流动”过去的，而不是渐隐。
-
-
-* **Elevation Transition:** 选中状态的卡片需在 0.2s 内完成阴影扩散：
-* `box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1)`。
-
-
-* **Staggered Entrance:** 列表项进入时延迟公式：`delay: index * 0.05s`。
+- 1st failure: read the linter/analyzer error and fix directly.
+- 2nd failure: inspect the exact file and token/component boundary.
+- 3rd failure: package the failing command, output, changed files, and this contract for top-model review.

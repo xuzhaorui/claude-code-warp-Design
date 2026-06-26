@@ -58,6 +58,11 @@ export default defineConfig({
     port: 5173,
   },
   build: {
+    // Target the bundled app at the Android WebView engine. The MI 8 test device
+    // runs Chrome 83; Vite's default (chrome87) keeps logical-assignment (||=,
+    // ??=, &&= = ES2021/Chrome 85+) which Chrome 83 can't parse → white-screen
+    // SyntaxError. es2020 transpiles those while keeping Chrome 80+ features.
+    target: 'es2020',
     outDir: 'wms-app',
     emptyOutDir: true,
   },
