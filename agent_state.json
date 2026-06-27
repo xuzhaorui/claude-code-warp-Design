@@ -241,11 +241,31 @@
         "flutterTest": "pass: 91/91",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-011-checkout-form-ui-min",
+      "goal": "创建 Flutter 原生 CheckoutFormMin UI 并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/checkout/checkout_form.dart",
+        "flutter_shell/test/features/checkout/checkout_form_test.dart",
+        "flutter_shell/lib/features/checkout/checkout_form_rules.dart"
+      ],
+      "tests": {
+        "checkoutFormMinTests": 17,
+        "totalFlutterTests": 108
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 108/108",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-010-app-segmented-control",
-    "lastCompletedGoal": "创建 Flutter 原生 AppSegmentedControl 并补齐测试。",
+    "lastCompletedIterationId": "iter-011-checkout-form-ui-min",
+    "lastCompletedGoal": "创建 Flutter 原生 CheckoutFormMin UI 并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -256,7 +276,7 @@
       "AppFormSection",
       "AppSegmentedControl"
     ],
-    "testCount": 91,
+    "testCount": 108,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
@@ -439,9 +459,19 @@
     {
       "id": "task-010-checkout-form-min",
       "title": "Minimal CheckoutForm (出库表单)",
-      "goal": "创建 Flutter 原生 CheckoutForm（出库表单）最小流程并补齐测试。",
-      "status": "in_progress",
-      "nextStage": "checkout-form-ui-min"
+      "goal": "创建 Flutter 原生 CheckoutFormMin UI 并补齐测试。",
+      "status": "complete",
+      "stages": [
+        "stage-1: rules layer",
+        "stage-1.5: segmented control",
+        "stage-2: UI widget"
+      ]
+    },
+    {
+      "id": "task-011-return-form-rules",
+      "title": "ReturnForm rules (归还表单规则层)",
+      "goal": "创建 Flutter 归还未表单业务规则层并补齐测试。",
+      "status": "next"
     },
     {
       "id": "task-007-app-bottom-sheet",
