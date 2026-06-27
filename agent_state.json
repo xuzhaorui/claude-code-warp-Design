@@ -222,11 +222,30 @@
         "flutterTest": "pass: 82/82",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-010-app-segmented-control",
+      "goal": "创建 Flutter 原生 AppSegmentedControl 并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/app_segmented_control.dart",
+        "flutter_shell/test/app_segmented_control_test.dart"
+      ],
+      "tests": {
+        "appSegmentedControlTests": 9,
+        "totalFlutterTests": 91
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 91/91",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-010-checkout-form-rules",
-    "lastCompletedGoal": "创建 Flutter 出库表单纯业务规则层并补齐测试。",
+    "lastCompletedIterationId": "iter-010-app-segmented-control",
+    "lastCompletedGoal": "创建 Flutter 原生 AppSegmentedControl 并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -234,9 +253,10 @@
       "AppSelectCard",
       "AppBottomSheet",
       "AppStepper",
-      "AppFormSection"
+      "AppFormSection",
+      "AppSegmentedControl"
     ],
-    "testCount": 82,
+    "testCount": 91,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
@@ -420,7 +440,7 @@
       "id": "task-010-checkout-form-min",
       "title": "Minimal CheckoutForm (出库表单)",
       "goal": "创建 Flutter 原生 CheckoutForm（出库表单）最小流程并补齐测试。",
-      "status": "in_progress_stage_1",
+      "status": "in_progress",
       "nextStage": "checkout-form-ui-min"
     },
     {
