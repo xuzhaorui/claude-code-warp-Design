@@ -184,20 +184,40 @@
         "flutterTest": "pass: 55/55",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-009-app-form-section",
+      "goal": "创建 Flutter 原生 AppFormSection 表单区块容器并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/app_form_section.dart",
+        "flutter_shell/test/app_form_section_test.dart"
+      ],
+      "tests": {
+        "appFormSectionTests": 12,
+        "totalFlutterTests": 67
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 67/67",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-008-app-stepper",
-    "lastCompletedGoal": "创建 Flutter 原生 AppStepper 数值步进器并补齐测试。",
+    "lastCompletedIterationId": "iter-009-app-form-section",
+    "lastCompletedGoal": "创建 Flutter 原生 AppFormSection 表单区块容器并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
       "AppButton",
       "AppSelectCard",
       "AppBottomSheet",
-      "AppStepper"
+      "AppStepper",
+      "AppFormSection"
     ],
-    "testCount": 55,
+    "testCount": 67,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
@@ -345,7 +365,42 @@
     {
       "id": "task-009-form-section",
       "title": "Form section (checkout form composite)",
-      "goal": "创建 Flutter 原生 CheckoutFormSection（出库表单区块）并补齐测试。",
+      "goal": "创建 Flutter 原生 AppFormSection 表单区块容器并补齐测试。",
+      "status": "complete",
+      "scope": {
+        "allowedFiles": [
+          "flutter_shell/lib/components/app_form_section.dart",
+          "flutter_shell/test/app_form_section_test.dart"
+        ],
+        "readReferences": [
+          "CLAUDE.md",
+          "Design.md",
+          "flutter_shell/lib/design/",
+          "flutter_shell/lib/components/app_button.dart",
+          "flutter_shell/lib/components/app_text_field.dart",
+          "flutter_shell/lib/components/app_select_card.dart",
+          "flutter_shell/lib/components/app_stepper.dart",
+          "src/components/Forms/CheckoutForm.jsx",
+          "src/components/Forms/ReturnForm.jsx",
+          "src/components/Forms/InventoryCheckForm.jsx"
+        ],
+        "forbidden": [
+          "不改 Web/Android/package.json",
+          "不实现 CheckoutForm/ReturnForm/InventoryForm/WarehouseShell"
+        ]
+      },
+      "acceptanceCriteria": [
+        "title / subtitle / child / actions / errorText / disabled / compact / leading / trailing / footer",
+        "使用 Design.md card-muted / helper-text token",
+        "不硬编码 Color/TextStyle/EdgeInsets/BorderRadius",
+        "新增 app_form_section_test.dart",
+        "通过 design:lint / flutter analyze / flutter test / debug build"
+      ]
+    },
+    {
+      "id": "task-010-checkout-form-min",
+      "title": "Minimal CheckoutForm (出库表单)",
+      "goal": "创建 Flutter 原生 CheckoutForm（出库表单）最小流程并补齐测试。",
       "status": "next"
     },
     {
