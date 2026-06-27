@@ -120,20 +120,21 @@ void main() {
     // 14. payload 映射 actualQty 正确
     test('payload contains actualQty', () {
       final input = InventoryCheckFormInput(actualQty: '75');
-      final p = InventoryCheckFormRules.buildPayload(input: input, item: item);
-      expect(p, isNotNull);
-      expect(p!.actualQty, 75);
+      final result = InventoryCheckFormRules.buildPayload(input: input, item: item);
+      expect(result, isNotNull);
+      final p = result!;
+      expect(p.actualQty, 75);
     });
 
     // 15. payload does NOT include stockQty/systemQty (Web only sends actualQty)
     test('payload does not send stockQty (matches Web)', () {
       final input = InventoryCheckFormInput(actualQty: '100');
-      final p = InventoryCheckFormRules.buildPayload(input: input, item: item);
-      expect(p, isNotNull);
+      final result = InventoryCheckFormRules.buildPayload(input: input, item: item);
+      expect(result, isNotNull);
+      final p = result!;
       // stockQty is not a field on InventoryCheckSubmitPayload
-      // This test verifies only the fields the Web sends are present.
-      expect(p!.inventoryId, 42);
-      expect(p!.actualQty, 100);
+      expect(p.inventoryId, 42);
+      expect(p.actualQty, 100);
     });
 
     // 16. payload 映射 diffQty — diffQty is NOT in payload (Web only uses
@@ -183,12 +184,13 @@ void main() {
     // 20. submit payload matches Web: inventoryId + actualQty + remark
     test('submit payload fields match Web InventoryCheckForm.jsx', () {
       final input = InventoryCheckFormInput(actualQty: '80', remark: '测试');
-      final p = InventoryCheckFormRules.buildPayload(input: input, item: item);
-      expect(p, isNotNull);
+      final result = InventoryCheckFormRules.buildPayload(input: input, item: item);
+      expect(result, isNotNull);
+      final p = result!;
       // Web line 17-21: { inventoryId: item.id, actualQty, remark }
-      expect(p!.inventoryId, 42);
-      expect(p!.actualQty, 80);
-      expect(p!.remark, '测试');
+      expect(p.inventoryId, 42);
+      expect(p.actualQty, 80);
+      expect(p.remark, '测试');
     });
   });
 }

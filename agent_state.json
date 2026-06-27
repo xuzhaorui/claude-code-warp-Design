@@ -318,11 +318,30 @@
         "flutterTest": "pass: 156/156",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-015-inventory-check-form-ui-min",
+      "goal": "创建 Flutter 原生 InventoryCheckFormMin UI 并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/inventory_check/inventory_check_form.dart",
+        "flutter_shell/test/features/inventory_check/inventory_check_form_test.dart"
+      ],
+      "tests": {
+        "inventoryCheckFormMinTests": 15,
+        "totalFlutterTests": 171
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 171/171",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-014-inventory-check-form-rules",
-    "lastCompletedGoal": "创建 Flutter 盘点表单纯业务规则层并补齐测试。",
+    "lastCompletedIterationId": "iter-015-inventory-check-form-ui-min",
+    "lastCompletedGoal": "创建 Flutter 原生 InventoryCheckFormMin UI 并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -546,6 +565,12 @@
       "id": "task-014-inventory-check-form-ui-min",
       "title": "Minimal InventoryCheckForm UI (盘点表单 UI)",
       "goal": "创建 Flutter 原生 InventoryCheckFormMin UI 并补齐测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-015-business-forms-bottom-sheet-integration",
+      "title": "Business forms bottom sheet integration",
+      "goal": "将 CheckoutFormMin / ReturnFormMin / InventoryCheckFormMin 接入 AppBottomSheet 并补齐集成测试。",
       "status": "next"
     },
     {
