@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "project": "warehouse-app Flutter parity migration",
+  "singleSourceOfTruth": true,
+  "updatedAt": "2026-06-27T04:15:35Z",
+  "globalGoal": {
+    "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
+    "nonGoals": [
+      "不重新设计视觉风格",
+      "不继续扩展 Web 版作为主目标",
+      "不绕过 Design.md token 契约",
+      "不使用 AI 主观判断代替物理门禁"
+    ],
+    "successDefinition": [
+      "Flutter 原生组件覆盖出库、归还、盘点、扫码、服务器配置主流程",
+      "Design.md lint 0 errors / 0 warnings",
+      "flutter analyze 无问题",
+      "flutter test 通过全部测试",
+      "flutter build apk --debug 可构建",
+      "每个迁移组件都有对应 widget test"
+    ]
+  },
+  "contracts": {
+    "executionRules": "CLAUDE.md",
+    "designContract": "Design.md",
+    "toolchainContract": "docs/flutter-scanner-migration/cli-toolchain-contract.md",
+    "stateFile": "agent_state.json"
+  },
+  "physicalGates": {
+    "requiredEveryIteration": [
+      "npm run design:lint",
+      "cd flutter_shell && flutter analyze",
+      "cd flutter_shell && flutter test"
+    ],
+    "requiredBeforeStageHandoff": [
+      "cd flutter_shell && flutter build apk --debug"
+    ]
+  },
+  "completedIterations": [
+    {
+      "id": "iter-001-token-foundation",
+      "goal": "创建 Flutter design token 基础设施并让 main.dart 使用 AppTheme。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/design/app_design_colors.dart",
+        "flutter_shell/lib/design/app_text_styles.dart",
+        "flutter_shell/lib/design/app_spacing.dart",
+        "flutter_shell/lib/design/app_radii.dart",
+        "flutter_shell/lib/design/app_theme.dart",
+        "flutter_shell/lib/main.dart",
+        "docs/flutter-scanner-migration/cli-toolchain-contract.md",
+        "Design.md"
+      ],
+      "gates": {
+        "designLint": "pass: 0 errors, 1 pre-existing warning",
+        "flutterAnalyze": "pass",
+        "flutterTest": "no test directory at that time",
+        "debugBuild": "pass after setting FLUTTER_STORAGE_BASE_URL mirror"
+      }
+    },
+    {
+      "id": "iter-002-record-card",
+      "goal": "创建 Flutter 原生 RecordCard 组件。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/record_card.dart"
+      ],
+      "gates": {
+        "designLint": "pass: 0 errors, 1 warning at that time",
+        "flutterAnalyze": "pass",
+        "flutterTest": "no test directory at that time"
+      }
+    },
+    {
+      "id": "iter-003-record-card-tests-and-hardcode-convergence",
+      "goal": "收敛 RecordCard 硬编码并建立 Flutter 测试基础设施。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/record_card.dart",
+        "flutter_shell/test/record_card_test.dart",
+        "Design.md"
+      ],
+      "tests": {
+        "recordCardTests": 7
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 7/7",
+        "debugBuild": "pass"
+      }
+    },
+    {
+      "id": "iter-004-app-text-field",
+      "goal": "创建 Flutter 原生 AppTextField 组件并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/app_text_field.dart",
+        "flutter_shell/test/app_text_field_test.dart"
+      ],
+      "tests": {
+        "appTextFieldTests": 9,
+        "totalFlutterTests": 16
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 16/16",
+        "debugBuild": "pass"
+      }
+    },
+    {
+      "id": "iter-005-app-button",
+      "goal": "创建 Flutter 原生 AppButton 组件并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/app_button.dart",
+        "flutter_shell/test/app_button_test.dart"
+      ],
+      "tests": {
+        "appButtonTests": 8,
+        "totalFlutterTests": 24
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 24/24",
+        "debugBuild": "pass"
+      }
+    }
+  ],
+  "currentState": {
+    "lastCompletedIterationId": "iter-005-app-button",
+    "lastCompletedGoal": "创建 Flutter 原生 AppButton 组件并补齐测试。",
+    "availableFlutterComponents": [
+      "RecordCard",
+      "AppTextField",
+      "AppButton"
+    ],
+    "testCount": 24,
+    "designLintWarnings": 0,
+    "knownWarnings": [
+      "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
+    ]
+  },
+  "taskQueue": [
+    {
+      "id": "task-005-app-button",
+      "title": "Create AppButton",
+      "goal": "创建 Flutter 原生 AppButton 组件并补齐测试。",
+      "status": "complete",
+      "whyNow": "AppButton 是所有表单和流程的交互 primitive，耦合低于 WarehouseShell。",
+      "scope": {
+        "allowedFiles": [
+          "flutter_shell/lib/components/app_button.dart",
+          "flutter_shell/test/app_button_test.dart"
+        ],
+        "readReferences": [
+          "CLAUDE.md",
+          "Design.md",
+          "agent_state.json",
+          "flutter_shell/lib/design/",
+          "flutter_shell/lib/components/app_text_field.dart",
+          "flutter_shell/lib/components/record_card.dart",
+          "src/components/Forms/",
+          "src/components/BottomSheet/"
+        ],
+        "forbidden": [
+          "不要修改 WarehouseShell 或创建页面壳层",
+          "不要迁移新页面",
+          "不要读取 design-system.html",
+          "不要重复修改 AppTextField 作为本轮目标"
+        ]
+      },
+      "acceptanceCriteria": [
+        "支持 primary / secondary / disabled / loading / icon + text",
+        "loading 状态禁止点击",
+        "不散落硬编码 Color/TextStyle/EdgeInsets/BorderRadius",
+        "新增 app_button_test.dart",
+        "通过 design:lint / flutter analyze / flutter test / debug build"
+      ]
+    },
+    {
+      "id": "task-006-app-select-card",
+      "title": "Create AppSelectCard",
+      "goal": "创建 Flutter 原生 AppSelectCard 选择卡片并补齐测试。",
+      "status": "next"
+    },
+    {
+      "id": "task-007-app-bottom-sheet",
+      "title": "Create AppBottomSheet",
+      "goal": "创建 Flutter 原生 AppBottomSheet 并补齐测试。",
+      "status": "pending"
+    },
+    {
+      "id": "task-008-warehouse-shell",
+      "title": "Create WarehouseShell",
+      "goal": "创建 Flutter 原生 WarehouseShell 底部导航壳层。",
+      "status": "blocked_until_primitives_ready",
+      "blockedBy": [
+        "task-005-app-button",
+        "task-006-app-select-card",
+        "task-007-app-bottom-sheet"
+      ]
+    }
+  ],
+  "iterationIdentityGate": {
+    "requiredBeforeCoding": true,
+    "rules": [
+      "每轮开始必须读取 agent_state.json",
+      "输出 previousGoal 与 currentGoal",
+      "如果 currentGoal 等于 lastCompletedGoal，立即停止并输出 [iteration_conflict_detected]",
+      "如果本轮目标不等于 taskQueue 中 status=next 的任务，立即停止并说明原因",
+      "每轮完成后必须更新 completedIterations、currentState、taskQueue"
+    ]
+  }
+}
