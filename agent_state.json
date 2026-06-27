@@ -356,11 +356,30 @@
         "flutterTest": "pass: 182/182",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-017-warehouse-shell-min",
+      "goal": "创建 Flutter 原生 WarehouseShellMin 底部导航壳层。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart"
+      ],
+      "tests": {
+        "warehouseShellMinTests": 15,
+        "totalFlutterTests": 197
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 197/197",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-016-business-forms-bottom-sheet-integration",
-    "lastCompletedGoal": "创建 Flutter 业务表单 BottomSheet 集成层。",
+    "lastCompletedIterationId": "iter-017-warehouse-shell-min",
+    "lastCompletedGoal": "创建 Flutter 原生 WarehouseShellMin 底部导航壳层。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -596,6 +615,12 @@
       "id": "task-016-warehouse-shell-min",
       "title": "Minimal WarehouseShell (底部导航壳层)",
       "goal": "创建 Flutter 原生 WarehouseShell 底部导航壳层并补齐测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-017-shell-business-form-wiring",
+      "title": "Shell business form wiring",
+      "goal": "将 WarehouseShellMin 的 callback 接入 BusinessFormSheets 并补齐集成测试。",
       "status": "next"
     },
     {
