@@ -127,17 +127,37 @@
         "flutterTest": "pass: 24/24",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-006-app-select-card",
+      "goal": "创建 Flutter 原生 AppSelectCard 选择卡片并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/app_select_card.dart",
+        "flutter_shell/test/app_select_card_test.dart"
+      ],
+      "tests": {
+        "appSelectCardTests": 10,
+        "totalFlutterTests": 34
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 34/34",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-005-app-button",
-    "lastCompletedGoal": "创建 Flutter 原生 AppButton 组件并补齐测试。",
+    "lastCompletedIterationId": "iter-006-app-select-card",
+    "lastCompletedGoal": "创建 Flutter 原生 AppSelectCard 选择卡片并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
-      "AppButton"
+      "AppButton",
+      "AppSelectCard"
     ],
-    "testCount": 24,
+    "testCount": 34,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
@@ -184,6 +204,42 @@
       "id": "task-006-app-select-card",
       "title": "Create AppSelectCard",
       "goal": "创建 Flutter 原生 AppSelectCard 选择卡片并补齐测试。",
+      "status": "complete",
+      "scope": {
+        "allowedFiles": [
+          "flutter_shell/lib/components/app_select_card.dart",
+          "flutter_shell/test/app_select_card_test.dart"
+        ],
+        "readReferences": [
+          "CLAUDE.md",
+          "Design.md",
+          "agent_state.json",
+          "flutter_shell/lib/design/",
+          "flutter_shell/lib/components/app_button.dart",
+          "flutter_shell/lib/components/record_card.dart",
+          "src/components/Forms/BorrowerSelect.jsx",
+          "src/components/Forms/Stepper.jsx",
+          "src/components/Settings/ServerConfig.jsx"
+        ],
+        "forbidden": [
+          "不要修改 Design.md",
+          "不要修改 Web 文件",
+          "不要修改 Android 工程文件"
+        ]
+      },
+      "acceptanceCriteria": [
+        "支持 title/subtitle/selected/disabled/error/leadingIcon/trailing/onTap/compact",
+        "selected 使用 primary-soft/primary/text-primary token",
+        "disabled 降低交互，不引入随机灰色",
+        "不散落硬编码 Color/TextStyle/EdgeInsets/BorderRadius",
+        "新增 app_select_card_test.dart",
+        "通过 design:lint / flutter analyze / flutter test / debug build"
+      ]
+    },
+    {
+      "id": "task-007-app-bottom-sheet",
+      "title": "Create AppBottomSheet",
+      "goal": "创建 Flutter 原生 AppBottomSheet 并补齐测试。",
       "status": "next"
     },
     {
