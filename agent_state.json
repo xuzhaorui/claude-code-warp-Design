@@ -432,11 +432,30 @@
         "flutterTest": "pass: 253/253",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-021-real-mobile-scanner-adapter-min",
+      "goal": "创建 RealMobileScannerAdapter 最小实现。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/scanner/mobile_scanner_adapter.dart",
+        "flutter_shell/test/features/scanner/mobile_scanner_adapter_test.dart"
+      ],
+      "tests": {
+        "mobileScannerAdapterTests": 21,
+        "totalFlutterTests": 274
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 274/274",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-020-real-scanner-adapter-contract",
-    "lastCompletedGoal": "创建真实扫码能力的 Adapter Contract 层。",
+    "lastCompletedIterationId": "iter-021-real-mobile-scanner-adapter-min",
+    "lastCompletedGoal": "创建 RealMobileScannerAdapter 最小实现。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -696,6 +715,12 @@
       "id": "task-020-real-mobile-scanner-adapter-min",
       "title": "Real MobileScanner adapter",
       "goal": "创建基于 mobile_scanner 的真实 ScannerAdapter 实现并补齐测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-021-scanner-page-adapter-wiring",
+      "title": "Scanner page adapter wiring",
+      "goal": "将 ScannerPage 与 RealMobileScannerAdapter 接线并补齐集成测试。",
       "status": "next"
     },
     {
