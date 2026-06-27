@@ -20,7 +20,11 @@ class CheckoutItemSnapshot {
   const CheckoutItemSnapshot({
     required this.id,
     required this.stockQty,
-    required this.costPrice,
+    this.costPrice = 0.0,
+    this.itemName = '',
+    this.warehouse = '',
+    this.code = '',
+    this.spec = '',
   });
 
   /// Inventory item database id.
@@ -31,6 +35,18 @@ class CheckoutItemSnapshot {
 
   /// Unit cost price from the server (may be 0).
   final double costPrice;
+
+  /// Item name (货物名称).
+  final String itemName;
+
+  /// Warehouse name (仓库).
+  final String warehouse;
+
+  /// Item code / freight number (编号).
+  final String code;
+
+  /// Specification (规格).
+  final String spec;
 }
 
 /// Raw user inputs to the checkout form (may be empty / invalid).

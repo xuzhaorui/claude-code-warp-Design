@@ -318,9 +318,8 @@ void main() {
 
     // 17. onClose renders (if implemented with close button)
     testWidgets('form renders with onClose callback', (tester) async {
-      bool closed = false;
       await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item, onClose: () => closed = true),
+        CheckoutFormMin(item: _item, onClose: () {}),
       ));
       // Verify the form renders without crash when onClose is provided.
       expect(find.byType(CheckoutFormMin), findsOneWidget);
