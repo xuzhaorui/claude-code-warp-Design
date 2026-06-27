@@ -146,18 +146,38 @@
         "flutterTest": "pass: 34/34",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-007-app-bottom-sheet",
+      "goal": "创建 Flutter 原生 AppBottomSheet 并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/app_bottom_sheet.dart",
+        "flutter_shell/test/app_bottom_sheet_test.dart"
+      ],
+      "tests": {
+        "appBottomSheetTests": 11,
+        "totalFlutterTests": 45
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 45/45",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-006-app-select-card",
-    "lastCompletedGoal": "创建 Flutter 原生 AppSelectCard 选择卡片并补齐测试。",
+    "lastCompletedIterationId": "iter-007-app-bottom-sheet",
+    "lastCompletedGoal": "创建 Flutter 原生 AppBottomSheet 并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
       "AppButton",
-      "AppSelectCard"
+      "AppSelectCard",
+      "AppBottomSheet"
     ],
-    "testCount": 34,
+    "testCount": 45,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
@@ -240,6 +260,41 @@
       "id": "task-007-app-bottom-sheet",
       "title": "Create AppBottomSheet",
       "goal": "创建 Flutter 原生 AppBottomSheet 并补齐测试。",
+      "status": "complete",
+      "scope": {
+        "allowedFiles": [
+          "flutter_shell/lib/components/app_bottom_sheet.dart",
+          "flutter_shell/test/app_bottom_sheet_test.dart"
+        ],
+        "readReferences": [
+          "CLAUDE.md",
+          "Design.md",
+          "agent_state.json",
+          "flutter_shell/lib/design/",
+          "flutter_shell/lib/components/app_button.dart",
+          "flutter_shell/lib/components/app_select_card.dart",
+          "src/components/BottomSheet/FormSheet.jsx",
+          "src/components/BottomSheet/DetailSheet.jsx"
+        ],
+        "forbidden": [
+          "不要迁移 CheckoutForm/ReturnForm/InventoryForm",
+          "不要实现 WarehouseShell",
+          "不要引入路由/状态管理/扫码/API 逻辑"
+        ]
+      },
+      "acceptanceCriteria": [
+        "AppBottomSheetFrame + showAppBottomSheet",
+        "支持 title/subtitle/child/actions/showDragHandle/showCloseButton/scrollable/safeArea",
+        "使用 Design.md bottom-sheet token",
+        "不散落硬编码 Color/TextStyle/EdgeInsets/BorderRadius",
+        "新增 app_bottom_sheet_test.dart",
+        "通过 design:lint / flutter analyze / flutter test / debug build"
+      ]
+    },
+    {
+      "id": "task-008-stepper-form-section",
+      "title": "Stepper form section (quantity stepper + fields)",
+      "goal": "创建 Flutter 原生 AppStepper（数值步进+表单区块）并补齐测试。",
       "status": "next"
     },
     {
