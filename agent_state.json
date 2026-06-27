@@ -261,11 +261,30 @@
         "flutterTest": "pass: 108/108",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-012-return-form-rules",
+      "goal": "创建 Flutter 归还表单纯业务规则层并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/return_form/return_form_rules.dart",
+        "flutter_shell/test/features/return_form/return_form_rules_test.dart"
+      ],
+      "tests": {
+        "returnFormRulesTests": 15,
+        "totalFlutterTests": 123
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 123/123",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-011-checkout-form-ui-min",
-    "lastCompletedGoal": "创建 Flutter 原生 CheckoutFormMin UI 并补齐测试。",
+    "lastCompletedIterationId": "iter-012-return-form-rules",
+    "lastCompletedGoal": "创建 Flutter 归还表单纯业务规则层并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -470,7 +489,13 @@
     {
       "id": "task-011-return-form-rules",
       "title": "ReturnForm rules (归还表单规则层)",
-      "goal": "创建 Flutter 归还未表单业务规则层并补齐测试。",
+      "goal": "创建 Flutter 归还表单纯业务规则层并补齐测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-012-return-form-ui-min",
+      "title": "Minimal ReturnForm UI (归还表单 UI)",
+      "goal": "创建 Flutter 原生 ReturnFormMin UI 并补齐测试。",
       "status": "next"
     },
     {
