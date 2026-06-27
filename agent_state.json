@@ -280,11 +280,30 @@
         "flutterTest": "pass: 123/123",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-013-return-form-ui-min",
+      "goal": "创建 Flutter 原生 ReturnFormMin UI 并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/return_form/return_form.dart",
+        "flutter_shell/test/features/return_form/return_form_test.dart"
+      ],
+      "tests": {
+        "returnFormMinTests": 13,
+        "totalFlutterTests": 136
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 136/136",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-012-return-form-rules",
-    "lastCompletedGoal": "创建 Flutter 归还表单纯业务规则层并补齐测试。",
+    "lastCompletedIterationId": "iter-013-return-form-ui-min",
+    "lastCompletedGoal": "创建 Flutter 原生 ReturnFormMin UI 并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -496,7 +515,7 @@
       "id": "task-012-return-form-ui-min",
       "title": "Minimal ReturnForm UI (归还表单 UI)",
       "goal": "创建 Flutter 原生 ReturnFormMin UI 并补齐测试。",
-      "status": "next"
+      "status": "complete"
     },
     {
       "id": "task-007-app-bottom-sheet",
