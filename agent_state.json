@@ -299,11 +299,30 @@
         "flutterTest": "pass: 136/136",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-014-inventory-check-form-rules",
+      "goal": "创建 Flutter 盘点表单纯业务规则层并补齐测试。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/inventory_check/inventory_check_form_rules.dart",
+        "flutter_shell/test/features/inventory_check/inventory_check_form_rules_test.dart"
+      ],
+      "tests": {
+        "inventoryCheckFormRulesTests": 20,
+        "totalFlutterTests": 156
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 156/156",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-013-return-form-ui-min",
-    "lastCompletedGoal": "创建 Flutter 原生 ReturnFormMin UI 并补齐测试。",
+    "lastCompletedIterationId": "iter-014-inventory-check-form-rules",
+    "lastCompletedGoal": "创建 Flutter 盘点表单纯业务规则层并补齐测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -516,6 +535,18 @@
       "title": "Minimal ReturnForm UI (归还表单 UI)",
       "goal": "创建 Flutter 原生 ReturnFormMin UI 并补齐测试。",
       "status": "complete"
+    },
+    {
+      "id": "task-013-inventory-check-form-rules",
+      "title": "InventoryCheckForm rules (盘点表单规则层)",
+      "goal": "创建 Flutter 盘点表单纯业务规则层并补齐测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-014-inventory-check-form-ui-min",
+      "title": "Minimal InventoryCheckForm UI (盘点表单 UI)",
+      "goal": "创建 Flutter 原生 InventoryCheckFormMin UI 并补齐测试。",
+      "status": "next"
     },
     {
       "id": "task-007-app-bottom-sheet",
