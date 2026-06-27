@@ -413,11 +413,30 @@
         "flutterTest": "pass: 233/233",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-020-real-scanner-adapter-contract",
+      "goal": "创建真实扫码能力的 Adapter Contract 层。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/scanner/scanner_adapter.dart",
+        "flutter_shell/test/features/scanner/scanner_adapter_test.dart"
+      ],
+      "tests": {
+        "scannerAdapterContractTests": 20,
+        "totalFlutterTests": 253
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 253/253",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-019-scanner-shell-entry-min",
-    "lastCompletedGoal": "创建 Flutter Scanner Shell Entry 最小接线层。",
+    "lastCompletedIterationId": "iter-020-real-scanner-adapter-contract",
+    "lastCompletedGoal": "创建真实扫码能力的 Adapter Contract 层。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -671,6 +690,12 @@
       "id": "task-019-real-scanner-adapter-contract",
       "title": "Real scanner adapter contract",
       "goal": "定义 Flutter 真实扫码接入契约（ScannerService / ScannerAdapter 接口）并补齐测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-020-real-mobile-scanner-adapter-min",
+      "title": "Real MobileScanner adapter",
+      "goal": "创建基于 mobile_scanner 的真实 ScannerAdapter 实现并补齐测试。",
       "status": "next"
     },
     {
