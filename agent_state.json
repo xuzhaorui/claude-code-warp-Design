@@ -337,11 +337,30 @@
         "flutterTest": "pass: 171/171",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-016-business-forms-bottom-sheet-integration",
+      "goal": "创建 Flutter 业务表单 BottomSheet 集成层。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/business_forms/business_form_sheets.dart",
+        "flutter_shell/test/features/business_forms/business_form_sheets_test.dart"
+      ],
+      "tests": {
+        "businessFormSheetsTests": 11,
+        "totalFlutterTests": 182
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 182/182",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-015-inventory-check-form-ui-min",
-    "lastCompletedGoal": "创建 Flutter 原生 InventoryCheckFormMin UI 并补齐测试。",
+    "lastCompletedIterationId": "iter-016-business-forms-bottom-sheet-integration",
+    "lastCompletedGoal": "创建 Flutter 业务表单 BottomSheet 集成层。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -571,6 +590,12 @@
       "id": "task-015-business-forms-bottom-sheet-integration",
       "title": "Business forms bottom sheet integration",
       "goal": "将 CheckoutFormMin / ReturnFormMin / InventoryCheckFormMin 接入 AppBottomSheet 并补齐集成测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-016-warehouse-shell-min",
+      "title": "Minimal WarehouseShell (底部导航壳层)",
+      "goal": "创建 Flutter 原生 WarehouseShell 底部导航壳层并补齐测试。",
       "status": "next"
     },
     {
