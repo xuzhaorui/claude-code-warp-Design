@@ -1,53 +1,44 @@
-// Scanner shell entry wiring layer.
+// Warehouse shell ↔ real ScannerPage wiring layer.
 //
-// Composes [WarehouseShellFormWiring] with a placeholder scanner panel.
-// When the user taps the scan entry button in the shell, a full-screen
-// scanner panel appears with a mock scan button for testing.
+// Composes [WarehouseShellFormWiring] with the real [ScannerPage].
+// When the user taps the scan entry button in the shell, a
+// [Navigator.push] opens [ScannerPage] with a [RealMobileScannerAdapter]
+// (or an injected mock adapter for testing).
 //
-// No real camera, no mobile_scanner, no API calls.
+// No API calls, no business logic.
 
 import 'package:flutter/material.dart';
 
-import '../../design/app_design_colors.dart';
-import '../../design/app_radii.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_text_styles.dart';
+import '../../pages/scanner_page.dart';
 import '../checkout/checkout_form_rules.dart';
 import '../inventory_check/inventory_check_form_rules.dart';
 import '../return_form/return_form_rules.dart';
+import '../scanner/mobile_scanner_adapter.dart';
+import '../scanner/scanner_adapter.dart';
 import 'warehouse_shell_form_wiring.dart';
-
-// ── Component-local constants ──
-
-class _SE {
-  _SE._();
-  static const mockScanCode = 'SKU-TEST-001';
-}
 
 // ── Public widget ──
 
-/// Wires [WarehouseShellFormWiring] with a placeholder scanner panel.
+/// Wires [WarehouseShellFormWiring] to [ScannerPage].
 ///
-/// Renders the full warehouse shell.  When the user taps a scan entry
-/// button, a scanner placeholder panel slides up.  It provides a mock
-/// scan button that fires [onScanResult] with a test code and a close
-/// button to dismiss.
-///
-/// All form submit callbacks are forwarded to [WarehouseShellFormWiring].
-class WarehouseShellScannerEntry extends StatefulWidget {
+/// When the user taps a scan entry button, a full-screen [ScannerPage] is
+/// pushed via [Navigator.push].  The scanner uses [RealMobileScannerAdapter]
+/// by default, or an injected [adapter] for testing.
+class WarehouseShellScannerEntry extends StatelessWidget {
   const WarehouseShellScannerEntry({
     super.key,
-    this.onScanRequested,
+    this.adapter,
     this.onScanResult,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
   });
 
-  /// Fired when the user taps the scan entry in the shell.
-  final VoidCallback? onScanRequested;
+  /// Optional scanner adapter (inject [MockScannerAdapter] for tests).
+  /// When null, a [RealMobileScannerAdapter] is used.
+  final ScannerAdapter? adapter;
 
-  /// Fired when a mock scan produces a result code.
+  /// Fired when a scan result is received from [ScannerPage].
   final ValueChanged<String>? onScanResult;
 
   /// Forwarded to [WarehouseShellFormWiring].
@@ -60,135 +51,25 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   final ValueChanged<InventoryCheckSubmitPayload>? onInventoryCheckSubmit;
 
   @override
-  State<WarehouseShellScannerEntry> createState() =>
-      _WarehouseShellScannerEntryState();
-}
-
-class _WarehouseShellScannerEntryState
-    extends State<WarehouseShellScannerEntry> {
-  bool _scanning = false;
-
-  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Shell + forms (always visible when not scanning)
-        WarehouseShellFormWiring(
-          onCheckoutSubmit: widget.onCheckoutSubmit,
-          onReturnSubmit: widget.onReturnSubmit,
-          onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
-          onScanRequested: () {
-            setState(() => _scanning = true);
-            widget.onScanRequested?.call();
-          },
-        ),
-        // Scanner overlay
-        if (_scanning) _ScannerPanel(
-          onClose: () => setState(() => _scanning = false),
-          onMockScan: () {
-            widget.onScanResult?.call(_SE.mockScanCode);
-          },
-        ),
-      ],
+    return WarehouseShellFormWiring(
+      onCheckoutSubmit: onCheckoutSubmit,
+      onReturnSubmit: onReturnSubmit,
+      onInventoryCheckSubmit: onInventoryCheckSubmit,
+      onScanRequested: () => _openScanner(context),
     );
   }
-}
 
-// ── Scanner panel ──
-
-class _ScannerPanel extends StatelessWidget {
-  const _ScannerPanel({
-    required this.onClose,
-    required this.onMockScan,
-  });
-
-  final VoidCallback onClose;
-  final VoidCallback onMockScan;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppDesignColors.background,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Expanded(
-                    child: Text('扫码',
-                        style: AppTextStyles.title),
-                  ),
-                  IconButton(
-                    onPressed: onClose,
-                    icon: const Icon(Icons.close,
-                        color: AppDesignColors.textPrimary),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              // Description
-              Text(
-                '此处将接入真实扫码能力',
-                style: AppTextStyles.body.copyWith(
-                  color: AppDesignColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              // Mock scan button
-              Center(
-                child: SizedBox(
-                  width: double.infinity,
-                  child: _ActionCard(
-                    label: '模拟扫码 (SKU-TEST-001)',
-                    icon: Icons.qr_code_scanner,
-                    onTap: onMockScan,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Reusable action card ──
-
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
-    required this.label,
-    required this.icon,
-    this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppDesignColors.surfaceMuted,
-      borderRadius: BorderRadius.all(AppRadii.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.all(AppRadii.md),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Row(
-            children: [
-              Icon(icon, size: 24, color: AppDesignColors.textPrimary),
-              const SizedBox(width: AppSpacing.md),
-              Text(label,
-                  style: AppTextStyles.body
-                      .copyWith(fontWeight: FontWeight.w600)),
-            ],
-          ),
+  void _openScanner(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => ScannerPage(
+          adapter: adapter ?? RealMobileScannerAdapter(),
+          onScanResult: (code) {
+            onScanResult?.call(code);
+            Navigator.of(context).pop();
+          },
+          onClose: () => Navigator.of(context).pop(),
         ),
       ),
     );

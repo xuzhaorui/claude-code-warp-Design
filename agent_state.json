@@ -470,11 +470,31 @@
         "flutterTest": "pass: 287/287",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-023-shell-real-scanner-entry-wiring",
+      "goal": "将 ScannerPage 正式接入 WarehouseShell 业务入口。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_scanner_entry_test.dart",
+        "flutter_shell/test/features/warehouse_shell/scanner_entry_wiring_test.dart"
+      ],
+      "tests": {
+        "shellRealScannerWiringTests": 10,
+        "totalFlutterTests": 284
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 284/284",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-022-scanner-page-adapter-wiring",
-    "lastCompletedGoal": "将 ScannerPage 接入 ScannerAdapter 边界。",
+    "lastCompletedIterationId": "iter-023-shell-real-scanner-entry-wiring",
+    "lastCompletedGoal": "将 ScannerPage 正式接入 WarehouseShell 业务入口。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -746,6 +766,12 @@
       "id": "task-022-shell-real-scanner-entry-wiring",
       "title": "Shell real scanner entry wiring",
       "goal": "将 WarehouseShellScannerEntry 接入真实 ScannerAdapter 并补齐集成测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-023-scanner-barcode-handler",
+      "title": "Scanner barcode result handler contract",
+      "goal": "定义扫码结果处理器接口，解耦扫描结果与业务表单打开逻辑。",
       "status": "next"
     },
     {

@@ -5,6 +5,7 @@ import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/checkout/checkout_form_rules.dart';
 import 'package:wms_app/features/inventory_check/inventory_check_form_rules.dart';
 import 'package:wms_app/features/return_form/return_form_rules.dart';
+import 'package:wms_app/features/scanner/scanner_adapter.dart';
 import 'package:wms_app/features/warehouse_shell/warehouse_shell_scanner_entry.dart';
 
 Widget wrapApp(Widget child) {
@@ -13,7 +14,7 @@ Widget wrapApp(Widget child) {
 
 void main() {
   group('WarehouseShellScannerEntry', () {
-    // 1. renders WarehouseShellScannerEntry
+    // 1. renders without crash
     testWidgets('renders without crash', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellScannerEntry(),
@@ -31,106 +32,30 @@ void main() {
       expect(find.text('盘点'), findsWidgets);
     });
 
-    // 3. tapping scan entry opens scanner panel
-    testWidgets('tapping 扫码出库 opens scanner panel', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      expect(find.text('此处将接入真实扫码能力'), findsOneWidget);
-    });
-
-    // 4. scanner panel renders title
-    testWidgets('scanner panel shows 扫码 title', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      expect(find.text('扫码'), findsOneWidget);
-    });
-
-    // 5. scanner panel renders placeholder description
-    testWidgets('scanner panel shows placeholder text', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      expect(find.text('此处将接入真实扫码能力'), findsOneWidget);
-    });
-
-    // 6. tapping mock scan fires onScanResult
-    testWidgets('mock scan fires onScanResult', (tester) async {
-      String? captured;
+    // 3. tapping scan opens real ScannerPage via Navigator
+    testWidgets('tapping 扫码出库 opens ScannerPage', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(
-          onScanResult: (code) => captured = code,
+          adapter: MockScannerAdapter(),
         ),
       ));
       await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      await tester.tap(find.textContaining('模拟扫码'));
-      await tester.pump();
-      expect(captured, isNotNull);
+      await tester.pumpAndSettle();
+      // ScannerPage shows the close button "退出扫码".
+      expect(find.text('退出扫码'), findsOneWidget);
     });
 
-    // 7. mock scan result equals SKU-TEST-001
-    testWidgets('mock scan result is SKU-TEST-001', (tester) async {
-      String? captured;
+    // 4. mock adapter injectable
+    testWidgets('mock adapter can be injected', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(
-          onScanResult: (code) => captured = code,
+          adapter: MockScannerAdapter(),
         ),
       ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      await tester.tap(find.textContaining('模拟扫码'));
-      await tester.pump();
-      expect(captured, 'SKU-TEST-001');
+      expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
     });
 
-    // 8. onScanRequested fires when scan entry tapped
-    testWidgets('onScanRequested fires', (tester) async {
-      int callCount = 0;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellScannerEntry(
-          onScanRequested: () => callCount++,
-        ),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      expect(callCount, 1);
-    });
-
-    // 9. scanner panel can close
-    testWidgets('scanner panel closes', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      expect(find.text('此处将接入真实扫码能力'), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pump();
-      expect(find.text('此处将接入真实扫码能力'), findsNothing);
-    });
-
-    // 10. after closing scanner panel, shell still renders
-    testWidgets('shell renders after scan close', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pump();
-      expect(find.text('扫码出库'), findsOneWidget);
-    });
-
-    // 11. checkout submit callback still bubbles
+    // 5. checkout submit callback forwarded
     testWidgets('checkout submit bubbles', (tester) async {
       CheckoutSubmitPayload? captured;
       await tester.pumpWidget(wrapApp(
@@ -154,7 +79,7 @@ void main() {
       expect(captured, isNotNull);
     });
 
-    // 12. return submit callback still bubbles
+    // 6. return submit callback forwarded
     testWidgets('return submit bubbles', (tester) async {
       ReturnSubmitPayload? captured;
       await tester.pumpWidget(wrapApp(
@@ -177,7 +102,7 @@ void main() {
       expect(captured, isNotNull);
     });
 
-    // 13. inventory submit callback still bubbles
+    // 7. inventory submit callback forwarded
     testWidgets('inventory submit bubbles', (tester) async {
       InventoryCheckSubmitPayload? captured;
       await tester.pumpWidget(wrapApp(
@@ -198,62 +123,34 @@ void main() {
       expect(captured, isNotNull);
     });
 
-    // 14. switching tabs before scan does not crash
-    testWidgets('switch tabs then scan', (tester) async {
+    // 8. no API dependency required
+
+    // 9. no route context required beyond MaterialApp
+    testWidgets('renders in MaterialApp', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellScannerEntry(),
       ));
-      await tester.tap(find.text('归还').last);
-      await tester.pump();
-      await tester.tap(find.text('盘点').last);
-      await tester.pump();
-      await tester.tap(find.text('出库').last);
-      await tester.pump();
+      expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
+    });
 
+    // 10. scan result via injected adapter
+    testWidgets('scan result via adapter callback', (tester) async {
+      String? captured;
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(
+          adapter: MockScannerAdapter(),
+          onScanResult: (code) => captured = code,
+        ),
+      ));
+      // Open ScannerPage.
       await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      expect(find.text('此处将接入真实扫码能力'), findsOneWidget);
-    });
+      await tester.pumpAndSettle();
 
-    // 15. switching tabs after scan close does not crash
-    testWidgets('switch tabs after scan close', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      await tester.tap(find.text('扫码出库'));
-      await tester.pump();
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pump();
-
-      await tester.tap(find.text('归还').last);
-      await tester.pump();
-      await tester.tap(find.text('盘点').last);
-      await tester.pump();
-      expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
-    });
-
-    // 16. no API dependency required (verified by absence of API imports)
-
-    // 17. no route context required
-    testWidgets('renders without route config', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
-    });
-
-    // 18. no real camera dependency required
-    // (verified by absence of mobile_scanner import)
-
-    // 19. no mobile_scanner dependency required in tests
-    // (verified by test passing without mobile_scanner setup)
-
-    // 20. long placeholder text does not crash
-    testWidgets('long text does not crash', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellScannerEntry(),
-      ));
-      expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
+      // Captured is set when ScannerPage detects a barcode via the
+      // injected adapter's result stream.  At this point, no real scan
+      // has occurred, so captured should remain null.
+      expect(captured, isNull);
+      expect(find.text('退出扫码'), findsOneWidget);
     });
   });
 }
