@@ -451,11 +451,30 @@
         "flutterTest": "pass: 274/274",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-022-scanner-page-adapter-wiring",
+      "goal": "将 ScannerPage 接入 ScannerAdapter 边界。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/pages/scanner_page.dart",
+        "flutter_shell/test/features/scanner/scanner_page_adapter_wiring_test.dart"
+      ],
+      "tests": {
+        "scannerPageAdapterWiringTests": 13,
+        "totalFlutterTests": 287
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 287/287",
+        "debugBuild": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-021-real-mobile-scanner-adapter-min",
-    "lastCompletedGoal": "创建 RealMobileScannerAdapter 最小实现。",
+    "lastCompletedIterationId": "iter-022-scanner-page-adapter-wiring",
+    "lastCompletedGoal": "将 ScannerPage 接入 ScannerAdapter 边界。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -721,6 +740,12 @@
       "id": "task-021-scanner-page-adapter-wiring",
       "title": "Scanner page adapter wiring",
       "goal": "将 ScannerPage 与 RealMobileScannerAdapter 接线并补齐集成测试。",
+      "status": "complete"
+    },
+    {
+      "id": "task-022-shell-real-scanner-entry-wiring",
+      "title": "Shell real scanner entry wiring",
+      "goal": "将 WarehouseShellScannerEntry 接入真实 ScannerAdapter 并补齐集成测试。",
       "status": "next"
     },
     {
