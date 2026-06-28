@@ -490,11 +490,34 @@
         "flutterTest": "pass: 284/284",
         "debugBuild": "pass"
       }
+    },
+    {
+      "id": "iter-024-physical-gate-runtime",
+      "goal": "把物理门禁沉淀为可执行脚本与机器可读结果。",
+      "status": "complete",
+      "files": [
+        "scripts/physical-gate.ps1",
+        "scripts/report-git-state.ps1",
+        "physical-gate.config.json",
+        "docs/physical-gate-runtime.md",
+        "package.json"
+      ],
+      "tests": {
+        "totalFlutterTests": 284
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 284/284",
+        "debugBuild": "pass",
+        "physicalGateDryRun": "pass",
+        "physicalGateReport": "pass"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-023-shell-real-scanner-entry-wiring",
-    "lastCompletedGoal": "将 ScannerPage 正式接入 WarehouseShell 业务入口。",
+    "lastCompletedIterationId": "iter-024-physical-gate-runtime",
+    "lastCompletedGoal": "把物理门禁沉淀为可执行脚本与机器可读结果。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",

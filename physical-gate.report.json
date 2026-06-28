@@ -1,0 +1,23 @@
+﻿{
+    "durationSeconds":  33.6,
+    "head":  "369e3607b6238d0a786cc21b9f5241085a5219ff",
+    "timestamp":  "2026-06-28T11:50:42Z",
+    "unexpectedDirty":  [
+
+                        ],
+    "ok":  true,
+    "branch":  "feature/warehouse-app",
+    "allowedDirty":  [
+                         "CLAUDE.md"
+                     ],
+    "checks":  {
+                   "flutterAnalyze":  "pass",
+                   "flutterBuildDebugApk":  "pass",
+                   "unexpectedDirty":  [
+
+                                       ],
+                   "gitScopedStatus":  "pass",
+                   "designLint":  "pass",
+                   "flutterTest":  "pass"
+               }
+}

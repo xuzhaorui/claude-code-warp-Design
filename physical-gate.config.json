@@ -1,0 +1,24 @@
+{
+  "allowedDirty": ["CLAUDE.md"],
+  "scopedStatusPaths": [
+    "CLAUDE.md",
+    "package.json",
+    "Design.md",
+    "agent_state.json",
+    "flutter_shell/pubspec.yaml",
+    "flutter_shell/pubspec.lock",
+    "flutter_shell/lib",
+    "flutter_shell/test",
+    "flutter_shell/android",
+    "scripts",
+    "physical-gate.config.json",
+    "physical-gate.report.json"
+  ],
+  "checks": [
+    "design:lint",
+    "flutter analyze",
+    "flutter test",
+    "flutter build apk --debug"
+  ],
+  "testCount": 284
+}
