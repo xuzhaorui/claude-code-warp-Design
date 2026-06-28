@@ -37,7 +37,9 @@ machine consumption.
 
 ## Report Output
 
-`physical-gate.report.json` is generated after each `physical:gate` run:
+`physical-gate.report.json` is generated **at runtime** after each `physical:gate` run.
+It is **not tracked** by Git (ignored via `.gitignore`).
+An example schema is at `physical-gate.report.example.json`.
 
 ```json
 {

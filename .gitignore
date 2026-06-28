@@ -50,3 +50,6 @@ flutter_shell/android/.gradle/
 flutter_shell/android/captures/
 flutter_shell/android/local.properties
 
+
+# Physical gate runtime report (regenerable via npm run physical:gate)
+physical-gate.report.json

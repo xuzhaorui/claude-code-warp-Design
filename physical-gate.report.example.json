@@ -1,0 +1,16 @@
+{
+    "ok": true,
+    "timestamp": "2026-06-28T11:50:42Z",
+    "durationSeconds": 33.6,
+    "branch": "feature/warehouse-app",
+    "head": "369e3607b6238d0a786cc21b9f5241085a5219ff",
+    "checks": {
+        "designLint": "pass",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass",
+        "flutterBuildDebugApk": "pass",
+        "gitScopedStatus": "pass"
+    },
+    "allowedDirty": ["CLAUDE.md"],
+    "unexpectedDirty": []
+}
