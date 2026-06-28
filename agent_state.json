@@ -492,13 +492,14 @@
       }
     },
     {
-      "id": "iter-024-claude-md-trim",
-      "goal": "删减 CLAUDE.md 中已 runtime 化的流程协议，退回边界与原则文件。",
+      "id": "iter-025-delivery-finalization",
+      "goal": "生成最终交付说明、版本标签建议、PR 摘要和交付前验证报告。",
       "status": "complete",
       "files": [
-        "CLAUDE.md",
-        "scripts/physical-gate.ps1",
-        "physical-gate.baseline.json",
+        "docs/delivery/warehouse-app-final-delivery.md",
+        "docs/delivery/pr-summary-feature-warehouse-app.md",
+        "docs/delivery/release-checklist.md",
+        "docs/delivery/device-smoke-report-xiaomi8.md",
         "agent_state.json"
       ],
       "gates": {
@@ -509,16 +510,12 @@
         "baselineVerify": "pass",
         "physicalGate": "ALL PASS (6 checks)"
       },
-      "claudeMdChanges": {
-        "beforeLines": 137,
-        "afterLines": 90,
-        "reduction": "34%"
-      }
+      "testCount": 284
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-024-claude-md-trim",
-    "lastCompletedGoal": "删减 CLAUDE.md 中已 runtime 化的流程协议，退回边界与原则文件。",
+    "lastCompletedIterationId": "iter-025-delivery-finalization",
+    "lastCompletedGoal": "生成最终交付说明、版本标签建议、PR 摘要和交付前验证报告。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
