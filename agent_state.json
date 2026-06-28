@@ -492,30 +492,38 @@
       }
     },
     {
-      "id": "iter-025-delivery-finalization",
-      "goal": "生成最终交付说明、版本标签建议、PR 摘要和交付前验证报告。",
+      "id": "iter-026-device-acceptance-test",
+      "goal": "在小米 8 真机上完成 Warehouse Flutter App 的正式交付验收测试。",
       "status": "complete",
       "files": [
-        "docs/delivery/warehouse-app-final-delivery.md",
-        "docs/delivery/pr-summary-feature-warehouse-app.md",
-        "docs/delivery/release-checklist.md",
-        "docs/delivery/device-smoke-report-xiaomi8.md",
+        "docs/delivery/device-acceptance-test-xiaomi8.md",
+        "physical-gate.baseline.json",
         "agent_state.json"
       ],
-      "gates": {
-        "designLint": "pass: 0 errors, 0 warnings",
-        "flutterAnalyze": "pass",
-        "flutterTest": "pass: 284/284",
-        "debugBuild": "pass",
-        "baselineVerify": "pass",
-        "physicalGate": "ALL PASS (6 checks)"
+      "device": {
+        "model": "小米 8",
+        "android": "10 (API 29)",
+        "id": "d96a5413",
+        "scanCodes": ["P293", "SKU-TEST-001"],
+        "verdict": "PASS"
       },
-      "testCount": 284
+      "acceptanceResults": {
+        "shellNavigation": "PASS",
+        "businessForms": "PASS",
+        "scannerEntry": "PASS",
+        "scannerRecognition": "PASS",
+        "regressionStability": "PASS"
+      },
+      "testCount": 284,
+      "gates": {
+        "prePhysicalGate": "ALL PASS (6 checks)",
+        "postPhysicalGate": "ALL PASS (6 checks)"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-025-delivery-finalization",
-    "lastCompletedGoal": "生成最终交付说明、版本标签建议、PR 摘要和交付前验证报告。",
+    "lastCompletedIterationId": "iter-026-device-acceptance-test",
+    "lastCompletedGoal": "在小米 8 真机上完成 Warehouse Flutter App 的正式交付验收测试。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
