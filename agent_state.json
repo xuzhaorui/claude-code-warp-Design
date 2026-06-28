@@ -492,15 +492,16 @@
       }
     },
     {
-      "id": "iter-024-physical-gate-runtime",
-      "goal": "把物理门禁沉淀为可执行脚本与机器可读结果。",
+      "id": "iter-024-final-state-lock",
+      "goal": "建立可重复验证的 clean state 基线锁定（baseline lock）。",
       "status": "complete",
       "files": [
         "scripts/physical-gate.ps1",
-        "scripts/report-git-state.ps1",
-        "physical-gate.config.json",
+        "physical-gate.baseline.json",
         "docs/physical-gate-runtime.md",
-        "package.json"
+        "package.json",
+        ".gitignore",
+        "physical-gate.report.example.json"
       ],
       "tests": {
         "totalFlutterTests": 284
@@ -510,14 +511,16 @@
         "flutterAnalyze": "pass",
         "flutterTest": "pass: 284/284",
         "debugBuild": "pass",
-        "physicalGateDryRun": "pass",
-        "physicalGateReport": "pass"
-      }
+        "baselineVerify": "pass",
+        "physicalGate": "ALL PASS (6 checks)"
+      },
+      "baselineCommit": "7327918c538c7c53c3cb7e453c06049502b21596",
+      "baselineHash": "C073F611E4D4C9B35A862BD5C527EFDFA9EDCD94816EDE1DD35EF1942233272B"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-024-physical-gate-runtime",
-    "lastCompletedGoal": "把物理门禁沉淀为可执行脚本与机器可读结果。",
+    "lastCompletedIterationId": "iter-024-final-state-lock",
+    "lastCompletedGoal": "建立可重复验证的 clean state 基线锁定（baseline lock）。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
