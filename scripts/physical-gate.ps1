@@ -103,9 +103,15 @@ function VerifyBaseline {
 
     $drift = @()
 
-    # 1. Check git status hash
+    # 1. Check git status hash (filter out allowed-dirty files)
     $currentLines = GetScopedStatus -paths $scoped
-    $currentHash = GetScopedStatusHash -lines $currentLines
+    $allowed = $config.allowedDirty
+    $filteredLines = $currentLines | Where-Object {
+        $file = ($_ -replace '^.. ', '').Trim()
+        $isAllowed = $allowed | Where-Object { $file -like $_ }
+        -not $isAllowed
+    }
+    $currentHash = GetScopedStatusHash -lines $filteredLines
     if ($currentHash -ne $baseline.gitStatusHash) {
         $drift += "git status hash differs (baseline=$($baseline.gitStatusHash), current=$currentHash)"
     }
