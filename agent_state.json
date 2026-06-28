@@ -492,20 +492,15 @@
       }
     },
     {
-      "id": "iter-024-final-state-lock",
-      "goal": "建立可重复验证的 clean state 基线锁定（baseline lock）。",
+      "id": "iter-024-claude-md-trim",
+      "goal": "删减 CLAUDE.md 中已 runtime 化的流程协议，退回边界与原则文件。",
       "status": "complete",
       "files": [
+        "CLAUDE.md",
         "scripts/physical-gate.ps1",
         "physical-gate.baseline.json",
-        "docs/physical-gate-runtime.md",
-        "package.json",
-        ".gitignore",
-        "physical-gate.report.example.json"
+        "agent_state.json"
       ],
-      "tests": {
-        "totalFlutterTests": 284
-      },
       "gates": {
         "designLint": "pass: 0 errors, 0 warnings",
         "flutterAnalyze": "pass",
@@ -514,13 +509,16 @@
         "baselineVerify": "pass",
         "physicalGate": "ALL PASS (6 checks)"
       },
-      "baselineCommit": "7327918c538c7c53c3cb7e453c06049502b21596",
-      "baselineHash": "C073F611E4D4C9B35A862BD5C527EFDFA9EDCD94816EDE1DD35EF1942233272B"
+      "claudeMdChanges": {
+        "beforeLines": 137,
+        "afterLines": 90,
+        "reduction": "34%"
+      }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-024-final-state-lock",
-    "lastCompletedGoal": "建立可重复验证的 clean state 基线锁定（baseline lock）。",
+    "lastCompletedIterationId": "iter-024-claude-md-trim",
+    "lastCompletedGoal": "删减 CLAUDE.md 中已 runtime 化的流程协议，退回边界与原则文件。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
