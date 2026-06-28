@@ -1,0 +1,23 @@
+﻿{
+    "commit":  "ce18698d49f7a3869ad7ee47d6e1d6af2c259bcb",
+    "scopedStatusPaths":  [
+                              "CLAUDE.md",
+                              "package.json",
+                              "Design.md",
+                              "agent_state.json",
+                              "flutter_shell/pubspec.yaml",
+                              "flutter_shell/pubspec.lock",
+                              "flutter_shell/lib",
+                              "flutter_shell/test",
+                              "flutter_shell/android",
+                              "scripts",
+                              "physical-gate.config.json",
+                              "physical-gate.report.json"
+                          ],
+    "createdAt":  "2026-06-28T12:59:38Z",
+    "branch":  "feature/warehouse-app",
+    "gitStatusHash":  "AA0EF8431292E34F1C21454CC818D1230656C94780940EC21C86A28FF34E1071",
+    "allowedDirty":  [
+                         "CLAUDE.md"
+                     ]
+}

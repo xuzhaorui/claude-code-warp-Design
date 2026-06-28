@@ -10,8 +10,10 @@ machine consumption.
 
 | Script | Command | Purpose |
 |--------|---------|---------|
-| `scripts/physical-gate.ps1` | `npm run physical:gate` | Run all 4 gates + git scoped status, produce report |
+| `scripts/physical-gate.ps1` | `npm run physical:gate` | Run all gates + baseline verify + git scoped status, produce report |
 | `scripts/physical-gate.ps1 -DryRun` | `npm run physical:gate:dry` | Print commands without executing |
+| `scripts/physical-gate.ps1 -Baseline` | `npm run physical:gate:baseline` | Snapshot current clean state into `physical-gate.baseline.json` |
+| `scripts/physical-gate.ps1 -Verify` | `npm run physical:gate:verify` | Check current state against baseline for drift |
 | `scripts/report-git-state.ps1` | `npm run physical:gate:report` | Print current git state (branch, commits, dirty files) |
 
 ## Checks Executed
@@ -20,7 +22,8 @@ machine consumption.
 2. `flutter analyze` — Flutter static analysis
 3. `flutter test` — Flutter test suite
 4. `flutter build apk --debug` — Debug APK build
-5. `git status --short` scoped to configured paths
+5. `verify baseline` — drift detection against baseline (skipped if no baseline)
+6. `git status --short` scoped to configured paths
 
 ## Configuration
 

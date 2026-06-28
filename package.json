@@ -14,7 +14,9 @@
     "physical:lint": "npm run design:lint && npm run flutter:analyze",
     "physical:gate": "powershell -ExecutionPolicy Bypass -File scripts/physical-gate.ps1",
     "physical:gate:dry": "powershell -ExecutionPolicy Bypass -File scripts/physical-gate.ps1 -DryRun",
-    "physical:gate:report": "powershell -ExecutionPolicy Bypass -File scripts/report-git-state.ps1"
+    "physical:gate:report": "powershell -ExecutionPolicy Bypass -File scripts/report-git-state.ps1",
+    "physical:gate:baseline": "powershell -ExecutionPolicy Bypass -File scripts/physical-gate.ps1 -Baseline",
+    "physical:gate:verify": "powershell -ExecutionPolicy Bypass -File scripts/physical-gate.ps1 -Verify"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
