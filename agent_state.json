@@ -607,7 +607,7 @@
       "AppFormSection",
       "AppSegmentedControl"
     ],
-    "testCount": 301,
+    "testCount": 323,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",
