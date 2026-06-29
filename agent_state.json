@@ -622,11 +622,31 @@
       ],
       "testCount": 343,
       "nextTask": "task-035-business-submit-api-wiring"
+    },
+    {
+      "id": "iter-035-business-submit-api-wiring",
+      "goal": "将出库、归还、盘点表单提交接入 WarehouseApiClient。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/checkout/checkout_form.dart",
+        "flutter_shell/lib/features/return_form/return_form.dart",
+        "flutter_shell/lib/features/inventory_check/inventory_check_form.dart",
+        "flutter_shell/lib/features/business_forms/business_form_sheets.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_form_wiring.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/test/features/checkout/checkout_form_test.dart",
+        "flutter_shell/test/features/return_form/return_form_test.dart",
+        "flutter_shell/test/features/inventory_check/inventory_check_form_test.dart",
+        "agent_state.json"
+      ],
+      "testCount": 346,
+      "nextTask": "task-036-business-records-refresh-wiring"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-034-scanner-api-lookup-wiring",
-    "lastCompletedGoal": "将扫码结果接入 WarehouseApiClient.findItemByCode 并按当前 tab 打开对应表单。",
+    "lastCompletedIterationId": "iter-035-business-submit-api-wiring",
+    "lastCompletedGoal": "将出库、归还、盘点表单提交接入 WarehouseApiClient。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
