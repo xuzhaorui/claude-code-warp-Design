@@ -492,14 +492,25 @@
       }
     },
     {
+      "id": "iter-024-claude-md-trim",
+      "goal": "删减 CLAUDE.md 中已 runtime 化的流程协议，退回边界与原则文件。",
+      "status": "complete",
+      "claudeMdChanges": {
+        "beforeLines": 137,
+        "afterLines": 90,
+        "reduction": "34%"
+      }
+    },
+    {
+      "id": "iter-025-delivery-finalization",
+      "goal": "生成最终交付说明、版本标签建议、PR 摘要和交付前验证报告。",
+      "status": "complete",
+      "files": ["docs/delivery/"]
+    },
+    {
       "id": "iter-026-device-acceptance-test",
       "goal": "在小米 8 真机上完成 Warehouse Flutter App 的正式交付验收测试。",
       "status": "complete",
-      "files": [
-        "docs/delivery/device-acceptance-test-xiaomi8.md",
-        "physical-gate.baseline.json",
-        "agent_state.json"
-      ],
       "device": {
         "model": "小米 8",
         "android": "10 (API 29)",
@@ -513,17 +524,48 @@
         "scannerEntry": "PASS",
         "scannerRecognition": "PASS",
         "regressionStability": "PASS"
+      }
+    },
+    {
+      "id": "iter-027-web-business-flow-parity",
+      "goal": "修复 Web 业务流一致性问题：去 AppBar、去手动按钮、扫码后自动弹表单。",
+      "status": "complete",
+      "testCount": 283
+    },
+    {
+      "id": "iter-028-hotfix-scanner-route-contract",
+      "goal": "修复 ScannerPage 路由返回契约：扫码后自动返回 Shell、显示结果、自动弹表单。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/pages/scanner_page.dart",
+        "flutter_shell/test/features/warehouse_shell/scanner_entry_wiring_test.dart",
+        "agent_state.json"
+      ],
+      "device": {
+        "retest": "pending_user_verification"
       },
-      "testCount": 284,
+      "tests": {
+        "totalFlutterTests": 283
+      },
       "gates": {
-        "prePhysicalGate": "ALL PASS (6 checks)",
-        "postPhysicalGate": "ALL PASS (6 checks)"
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass: No issues found",
+        "flutterTest": "pass: 283/283",
+        "debugBuild": "pass: Built",
+        "physicalGate": "ALL PASS"
+      },
+      "fixes": {
+        "rootCause": "scannerContext not used for Navigator.pop; Completer+pop conflict",
+        "scannerPageCompleted": "_completed guard prevents double-fire",
+        "scannerEntryPop": "Navigator.push<String> + scannerContext.pop(code)",
+        "debugPrint": "5 ScannerFlow + 4 ScannerPage log points added"
       }
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-026-device-acceptance-test",
-    "lastCompletedGoal": "在小米 8 真机上完成 Warehouse Flutter App 的正式交付验收测试。",
+    "lastCompletedIterationId": "iter-028-hotfix-scanner-route-contract",
+    "lastCompletedGoal": "修复 ScannerPage 路由返回契约：扫码后自动返回 Shell、显示结果、自动弹表单。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
