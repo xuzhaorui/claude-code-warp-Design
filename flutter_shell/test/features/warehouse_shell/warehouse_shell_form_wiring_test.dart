@@ -55,16 +55,13 @@ void main() {
       expect(captured, WarehouseTab.checkout);
     });
 
-    testWidgets('settings callback fires', (tester) async {
-      int callCount = 0;
+    testWidgets('settings tab renders server config', (tester) async {
       await tester.pumpWidget(wrapApp(
-        WarehouseShellFormWiring(
-          onSettingsRequested: () => callCount++,
-        ),
+        const WarehouseShellFormWiring(),
       ));
       await tester.tap(find.text('设置').last);
       await tester.pump();
-      expect(callCount, 1);
+      expect(find.text('服务配置'), findsOneWidget);
     });
 
     testWidgets('no API dependency', (tester) async {

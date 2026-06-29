@@ -4,6 +4,8 @@ import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
+import '../settings/server_config_page.dart';
+import '../settings/server_config_store.dart';
 
 // ---- Tab enum ----
 
@@ -37,12 +39,17 @@ class WarehouseShellMin extends StatefulWidget {
     super.key,
     this.initialTab = WarehouseTab.checkout,
     this.lastScanCode,
+    this.serverConfigStore,
     this.onScanRequested,
     this.onSettingsRequested,
   });
 
   final WarehouseTab initialTab;
   final String? lastScanCode;
+
+  /// Optional server config store for the settings tab.
+  /// Defaults to [PersistentServerConfigStore] when null.
+  final ServerConfigStore? serverConfigStore;
 
   /// Fired when the scan card is tapped. Carries the current tab.
   final ValueChanged<WarehouseTab>? onScanRequested;
@@ -64,10 +71,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   }
 
   void _onTabChanged(WarehouseTab tab) {
-    if (tab == WarehouseTab.settings) {
-      widget.onSettingsRequested?.call();
-      return;
-    }
     setState(() => _activeTab = tab);
   }
 
@@ -109,6 +112,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   // ── Tab content ──
 
   Widget _buildTabContent() {
+    if (_activeTab == WarehouseTab.settings) {
+      return ServerConfigPage(store: widget.serverConfigStore);
+    }
     final tabInfo = _tabInfo(_activeTab);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),

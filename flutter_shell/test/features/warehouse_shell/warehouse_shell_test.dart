@@ -139,15 +139,15 @@ void main() {
       expect(find.textContaining('P293'), findsOneWidget);
     });
 
-    // 18. settings tab fires onSettingsRequested
-    testWidgets('settings tab fires onSettingsRequested', (tester) async {
-      int callCount = 0;
+    // 18. settings tab renders ServerConfigPage
+    testWidgets('settings tab renders ServerConfigPage', (tester) async {
       await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(onSettingsRequested: () => callCount++),
+        const WarehouseShellMin(),
       ));
+      // Tapping settings tab should show the server config page.
       await tester.tap(find.text('设置').last);
       await tester.pump();
-      expect(callCount, 1);
+      expect(find.text('服务配置'), findsOneWidget);
     });
 
     // 19. tab state changes on navigation
