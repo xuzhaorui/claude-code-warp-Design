@@ -642,11 +642,29 @@
       ],
       "testCount": 346,
       "nextTask": "task-036-business-records-refresh-wiring"
+    },
+    {
+      "id": "iter-036-business-records-refresh-wiring",
+      "goal": "提交成功后刷新当前 tab 的业务记录列表。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/checkout/checkout_form.dart",
+        "flutter_shell/lib/features/return_form/return_form.dart",
+        "flutter_shell/lib/features/inventory_check/inventory_check_form.dart",
+        "flutter_shell/lib/features/business_forms/business_form_sheets.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_form_wiring.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart",
+        "agent_state.json"
+      ],
+      "testCount": 348,
+      "nextTask": "task-037-real-device-end-to-end-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-035-business-submit-api-wiring",
-    "lastCompletedGoal": "将出库、归还、盘点表单提交接入 WarehouseApiClient。",
+    "lastCompletedIterationId": "iter-036-business-records-refresh-wiring",
+    "lastCompletedGoal": "提交成功后刷新当前 tab 的业务记录列表。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
