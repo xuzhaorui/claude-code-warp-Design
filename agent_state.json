@@ -578,11 +578,25 @@
         "settingsTabRetest": "blocked: adb unavailable in current shell; real Xiaomi 8 settings tab retest not executed"
       },
       "nextTask": "task-032-warehouse-api-client-contract"
+    },
+    {
+      "id": "iter-032-warehouse-api-client-contract",
+      "goal": "定义 WarehouseApiClient 接口、DTO 与 MockClient 契约。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/api/warehouse_api_client.dart",
+        "flutter_shell/lib/features/api/warehouse_api_models.dart",
+        "flutter_shell/lib/features/api/mock_warehouse_api_client.dart",
+        "flutter_shell/test/features/api/warehouse_api_client_test.dart",
+        "agent_state.json"
+      ],
+      "testCount": 323,
+      "nextTask": "task-033-real-http-client-base-url-wiring"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-031-server-config-store",
-    "lastCompletedGoal": "实现 Flutter 服务配置存储与真实设置页，为后续真实 API 接入提供 baseURL 来源。",
+    "lastCompletedIterationId": "iter-032-warehouse-api-client-contract",
+    "lastCompletedGoal": "定义 WarehouseApiClient 接口、DTO 与 MockClient 契约。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
