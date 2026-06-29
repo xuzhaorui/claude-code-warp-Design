@@ -1,13 +1,13 @@
 // Warehouse shell ↔ real ScannerPage wiring layer.
 //
 // Composes [WarehouseShellFormWiring] with the real [ScannerPage].
-// When the user taps the scan card, a Navigator.push opens ScannerPage.
-// After successful scan, the result is stored and the corresponding
-// business form bottom sheet auto-opens for the current tab.
+// When the user taps the scan card, a [Navigator.push<String>] opens
+// ScannerPage.  The scanner page calls [Navigator.pop(scannerContext, code)]
+// from its [onScanResult] handler.  After the push returns, the scanned
+// code is stored and the corresponding business form sheet auto-opens
+// for the current tab.
 //
 // No API calls, no real business logic.
-
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 
@@ -26,12 +26,11 @@ import 'warehouse_shell_form_wiring.dart';
 /// Wires [WarehouseShellFormWiring] to [ScannerPage].
 ///
 /// Scan flow:
-///   1. User taps scan card: [ScannerPage] opens
-///   2. Scanner returns a code string via `Navigator.pop`
-///   3. Code is stored as last scan result
+///   1. User taps scan card → [Navigator.push<String>(ScannerPage)]
+///   2. ScannerPage detects code → calls [Navigator.pop(scannerContext, code)]
+///   3. Await returns the code → store as last scan result
 ///   4. [WidgetsBinding.instance.addPostFrameCallback] opens the
 ///      corresponding business form sheet for the current tab
-///   5. Form uses fixture data — no real API
 class WarehouseShellScannerEntry extends StatefulWidget {
   const WarehouseShellScannerEntry({
     super.key,
@@ -49,10 +48,12 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   final ValueChanged<InventoryCheckSubmitPayload>? onInventoryCheckSubmit;
 
   @override
-  State<WarehouseShellScannerEntry> createState() => _WarehouseShellScannerEntryState();
+  State<WarehouseShellScannerEntry> createState() =>
+      _WarehouseShellScannerEntryState();
 }
 
-class _WarehouseShellScannerEntryState extends State<WarehouseShellScannerEntry> {
+class _WarehouseShellScannerEntryState
+    extends State<WarehouseShellScannerEntry> {
   String? _lastScanCode;
 
   @override
@@ -62,44 +63,48 @@ class _WarehouseShellScannerEntryState extends State<WarehouseShellScannerEntry>
       onCheckoutSubmit: widget.onCheckoutSubmit,
       onReturnSubmit: widget.onReturnSubmit,
       onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
-      onScanRequested: (tab) => _handleScanRequest(context, tab),
+      onScanRequested: (tab) => _openScanner(context, tab),
     );
   }
 
-  /// 1. Push ScannerPage, 2. await code, 3. store + auto-open form.
-  Future<void> _handleScanRequest(BuildContext context, WarehouseTab tab) async {
-    // Use a completer to bridge callback → await pattern.
-    final completer = Completer<String?>();
+  /// Push [ScannerPage], await code via Navigator-pop contract.
+  Future<void> _openScanner(BuildContext context, WarehouseTab tab) async {
+    debugPrint('[ScannerFlow] open scanner tab=$tab');
 
-    await Navigator.of(context).push<void>(
+    final code = await Navigator.of(context).push<String>(
       MaterialPageRoute(
-        builder: (_) => ScannerPage(
+        builder: (scannerContext) => ScannerPage(
           adapter: widget.adapter ?? RealMobileScannerAdapter(),
           onScanResult: (code) {
+            debugPrint('[ScannerFlow] scanner result=$code');
             widget.onScanResult?.call(code);
-            completer.complete(code);
+            // Pop with code using scanner's own context.
+            Navigator.of(scannerContext).pop(code);
           },
           onClose: () {
-            completer.complete(null);
-            Navigator.of(context).pop();
+            debugPrint('[ScannerFlow] scanner close');
+            Navigator.of(scannerContext).pop();
           },
         ),
       ),
     );
 
-    final code = await completer.future;
-    if (code == null || code.isEmpty || !mounted) return;
+    debugPrint('[ScannerFlow] scanner returned code=$code tab=$tab');
+
+    if (!context.mounted || code == null || code.isEmpty) return;
 
     setState(() => _lastScanCode = code);
 
     // Auto-open the corresponding business form for the scan tab.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _openFormForTab(context, tab);
+      if (!context.mounted) return;
+      _openBusinessFormForTab(context, tab, code);
     });
   }
 
-  void _openFormForTab(BuildContext context, WarehouseTab tab) {
+  void _openBusinessFormForTab(
+      BuildContext context, WarehouseTab tab, String code) {
+    debugPrint('[ScannerFlow] open $tab form after scan code=$code');
     switch (tab) {
       case WarehouseTab.checkout:
         showCheckoutFormSheet(
@@ -125,7 +130,7 @@ class _WarehouseShellScannerEntryState extends State<WarehouseShellScannerEntry>
   }
 }
 
-// ── Duplicate fixture data (independent from form_wiring's _Fixture) ──
+// ── Fixture data ──
 
 class _Fixture {
   _Fixture._();

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/scanner/scanner_adapter.dart';
+import 'package:wms_app/features/warehouse_shell/warehouse_shell.dart';
 import 'package:wms_app/features/warehouse_shell/warehouse_shell_scanner_entry.dart';
 
 Widget wrapApp(Widget child) {
@@ -11,28 +12,17 @@ Widget wrapApp(Widget child) {
 
 void main() {
   group('ScannerEntryWiring', () {
-    // 1. scan entry opens ScannerPage
-    testWidgets('tapping scan opens ScannerPage', (tester) async {
+    // 1. tap scan card opens ScannerPage
+    testWidgets('tap scan card opens ScannerPage', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
       ));
-      // Scan card by key.
       await tester.tap(find.byKey(const Key('scan_card')));
       await tester.pumpAndSettle();
       expect(find.text('退出扫码'), findsOneWidget);
     });
 
-    // 2. MockScannerAdapter injectable
-    testWidgets('MockScannerAdapter injectable', (tester) async {
-      final adapter = MockScannerAdapter();
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellScannerEntry(adapter: adapter),
-      ));
-      expect(adapter.status, ScannerStatus.idle);
-    });
-
-    // 3. onScanResult callback still fires
-    testWidgets('onScanResult callback still fires', (tester) async {
+    testWidgets('onScanResult callback fires', (tester) async {
       String? captured;
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(
@@ -41,11 +31,11 @@ void main() {
         ),
       ));
       expect(captured, isNull);
-      // The actual emission is verified at the ScannerPage level.
+      // The actual emission is tested at ScannerPage level.
       expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
     });
 
-    // 4. no business form auto-opens after scan
+    // 4. no business logic on scan entry
     testWidgets('no business logic on scan entry', (tester) async {
       bool businessTriggered = false;
       await tester.pumpWidget(wrapApp(
@@ -59,26 +49,33 @@ void main() {
       expect(businessTriggered, isFalse);
     });
 
-    // 5. repeated scans do not crash
-    testWidgets('repeated scan entries do not crash', (tester) async {
+    // 5. scan card renders
+    testWidgets('scan card renders with qr icon', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
       ));
-      await tester.tap(find.byKey(const Key('scan_card')));
-      await tester.pumpAndSettle();
-      expect(find.text('退出扫码'), findsOneWidget);
+      expect(find.byKey(const Key('scan_card')), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    // 6. scan result returned to Shell display
-    testWidgets('scan result display string preserved', (tester) async {
-      String? captured;
+    // 6. renders 4 bottom tabs
+    testWidgets('renders 4 bottom tabs', (tester) async {
       await tester.pumpWidget(wrapApp(
-        WarehouseShellScannerEntry(
-          adapter: MockScannerAdapter(),
-          onScanResult: (code) => captured = code,
-        ),
+        WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
       ));
-      expect(captured, isNull);
+      expect(find.text('出库'), findsWidgets);
+      expect(find.text('归还'), findsWidgets);
+      expect(find.text('盘点'), findsWidgets);
+      expect(find.text('设置'), findsWidgets);
+    });
+
+    // 7. mock adapter injectable
+    testWidgets('mock adapter injectable', (tester) async {
+      final adapter = MockScannerAdapter();
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(adapter: adapter),
+      ));
+      expect(adapter.status, ScannerStatus.idle);
     });
   });
 }

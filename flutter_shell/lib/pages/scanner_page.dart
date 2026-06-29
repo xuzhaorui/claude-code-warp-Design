@@ -5,7 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../features/scanner/scanner_adapter.dart';
 
-/// Result popped back to [WebShellPage] when a code is decoded.
+/// Result popped back to caller when a code is decoded (legacy mode).
 class ScanResult {
   final String text;
   final String format;
@@ -15,27 +15,16 @@ class ScanResult {
 /// Full-screen native scanner backed by mobile_scanner (CameraX / ML Kit).
 ///
 /// When [adapter] is provided, detected barcodes are forwarded to
-/// [onScanResult] / [onScanFailure] callbacks, and the page subscribes
-/// to [adapter.results] for output.  Test paths can inject a
-/// [MockScannerAdapter] and simulate results via [MockScannerAdapter.emitResult].
+/// [onScanResult] / [onScanFailure] callbacks.
+/// The outer widget is expected to call [Navigator.pop] from the
+/// onScanResult / onClose handlers using the scanner's own context.
 ///
-/// When [adapter] is `null`, the page preserves the original behaviour:
-/// single-shot decode → [Navigator.pop] with [ScanResult].
+/// A [_completed] guard prevents double-fire.
 class ScannerPage extends StatefulWidget {
-  /// Optional scanner adapter for testable wiring.
   final ScannerAdapter? adapter;
-
-  /// Called when a barcode is successfully decoded (adapter mode).
   final ValueChanged<String>? onScanResult;
-
-  /// Called when the scanner encounters a failure (adapter mode).
   final ValueChanged<ScannerFailure>? onScanFailure;
-
-  /// Called when the user taps the close button (adapter mode).
   final VoidCallback? onClose;
-
-  /// Operational mode label (unused by the adapter wiring; preserved for
-  /// backward compatibility).
   final String mode;
 
   const ScannerPage({
@@ -57,7 +46,6 @@ class _ScannerPageState extends State<ScannerPage> {
     facing: CameraFacing.back,
     torchEnabled: false,
     autoZoom: true,
-    // First-phase barcode set — migration spec §9.
     formats: const [
       BarcodeFormat.qrCode,
       BarcodeFormat.code128,
@@ -71,13 +59,15 @@ class _ScannerPageState extends State<ScannerPage> {
     ],
   );
 
-  bool _returned = false;
+  /// Guards against double-fire from scanner callback or adapter stream.
+  bool _completed = false;
   StreamSubscription<ScannerResult>? _resultSub;
   StreamSubscription<ScannerFailure>? _failureSub;
 
   @override
   void initState() {
     super.initState();
+    debugPrint('[ScannerPage] init, adapter=${widget.adapter.runtimeType}');
     _setupAdapter();
   }
 
@@ -85,12 +75,11 @@ class _ScannerPageState extends State<ScannerPage> {
     final adapter = widget.adapter;
     if (adapter == null) return;
 
-    // Subscribe to adapter output streams.
     _resultSub = adapter.results.listen((result) {
-      if (!_returned) {
-        _returned = true;
-        widget.onScanResult?.call(result.code);
-      }
+      if (_completed) return;
+      _completed = true;
+      debugPrint('[ScannerPage] adapter result: ${result.code}');
+      widget.onScanResult?.call(result.code);
     });
 
     _failureSub = adapter.failures.listen((failure) {
@@ -100,6 +89,7 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   void dispose() {
+    debugPrint('[ScannerPage] dispose');
     _resultSub?.cancel();
     _failureSub?.cancel();
     _controller.dispose();
@@ -107,22 +97,32 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   void _onDetect(BarcodeCapture capture) {
-    if (_returned) return;
+    if (_completed) return;
     final barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
     final barcode = barcodes.first;
     final raw = barcode.rawValue;
     if (raw == null || raw.isEmpty) return;
 
-    _returned = true;
+    _completed = true;
+    debugPrint('[ScannerPage] scan result: $raw');
 
     if (widget.adapter != null) {
-      // Adapter mode: forward result via callback.
       widget.onScanResult?.call(raw);
     } else {
-      // Legacy mode: pop via Navigator.
       Navigator.of(context)
           .pop(ScanResult(text: raw, format: barcode.format.name));
+    }
+  }
+
+  void _onClosePressed() {
+    if (_completed) return;
+    _completed = true;
+    debugPrint('[ScannerPage] close button');
+    if (widget.adapter != null) {
+      widget.onClose?.call();
+    } else {
+      Navigator.of(context).pop();
     }
   }
 
@@ -139,8 +139,7 @@ class _ScannerPageState extends State<ScannerPage> {
             right: 0,
             child: SafeArea(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
                     TextButton(
@@ -149,13 +148,7 @@ class _ScannerPageState extends State<ScannerPage> {
                         foregroundColor: Colors.white,
                         shape: const StadiumBorder(),
                       ),
-                      onPressed: () {
-                        if (widget.adapter != null) {
-                          widget.onClose?.call();
-                        } else {
-                          Navigator.of(context).pop();
-                        }
-                      },
+                      onPressed: _onClosePressed,
                       child: const Text('退出扫码'),
                     ),
                     const Spacer(),
