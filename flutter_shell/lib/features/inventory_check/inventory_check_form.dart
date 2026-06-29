@@ -19,6 +19,7 @@ class InventoryCheckFormMin extends StatefulWidget {
     this.apiClient,
     this.onSubmit,
     this.onClose,
+    this.onSubmitSuccess,
   });
 
   final InventoryCheckItemSnapshot item;
@@ -26,6 +27,7 @@ class InventoryCheckFormMin extends StatefulWidget {
   final WarehouseApiClient? apiClient;
   final ValueChanged<InventoryCheckSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
+  final VoidCallback? onSubmitSuccess;
 
   @override
   State<InventoryCheckFormMin> createState() => _InventoryCheckFormMinState();
@@ -72,6 +74,7 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
     if (!mounted) return;
 
     if (result.isSuccess) {
+      widget.onSubmitSuccess?.call();
       widget.onClose?.call();
     } else {
       setState(() {

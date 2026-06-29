@@ -24,6 +24,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
     super.key,
     this.lastScanCode,
     this.scanError,
+    this.records,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
@@ -32,9 +33,10 @@ class WarehouseShellFormWiring extends StatelessWidget {
   });
 
   final String? lastScanCode;
-
-  /// Error message from scan lookup (displayed in shell).
   final String? scanError;
+
+  /// Records to display in the current tab.
+  final List<RecordItem>? records;
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
   final ValueChanged<ReturnSubmitPayload>? onReturnSubmit;
   final ValueChanged<InventoryCheckSubmitPayload>? onInventoryCheckSubmit;
@@ -50,6 +52,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
     return WarehouseShellMin(
       lastScanCode: lastScanCode,
       scanError: scanError,
+      records: records,
       onScanRequested: onScanRequested,
       onSettingsRequested: onSettingsRequested,
     );

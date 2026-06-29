@@ -177,5 +177,29 @@ void main() {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       expect(find.byType(WarehouseShellMin), findsOneWidget);
     });
+
+    // 22. records are displayed when provided
+    testWidgets('records displayed when provided', (tester) async {
+      final records = [
+        RecordItem(title: 'Item A', detail: '5件', status: '正常'),
+        RecordItem(title: 'Item B', detail: '3件', status: '已撤销'),
+      ];
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellMin(records: records),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Item A'), findsOneWidget);
+      expect(find.text('Item B'), findsOneWidget);
+      expect(find.text('5件'), findsOneWidget);
+    });
+
+    // 23. empty records shows empty state
+    testWidgets('empty records shows empty state', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        const WarehouseShellMin(records: []),
+      ));
+      // Empty records should still show the "暂无出库记录" empty state.
+      expect(find.text('暂无出库记录'), findsOneWidget);
+    });
   });
 }

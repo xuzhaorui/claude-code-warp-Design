@@ -31,6 +31,7 @@ class CheckoutFormMin extends StatefulWidget {
     this.apiClient,
     this.onSubmit,
     this.onClose,
+    this.onSubmitSuccess,
   });
 
   final CheckoutItemSnapshot item;
@@ -39,6 +40,7 @@ class CheckoutFormMin extends StatefulWidget {
   final WarehouseApiClient? apiClient;
   final ValueChanged<CheckoutSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
+  final VoidCallback? onSubmitSuccess;
 
   @override
   State<CheckoutFormMin> createState() => _CheckoutFormMinState();
@@ -120,6 +122,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
     if (!mounted) return;
 
     if (result.isSuccess) {
+      widget.onSubmitSuccess?.call();
       widget.onClose?.call();
     } else {
       setState(() {

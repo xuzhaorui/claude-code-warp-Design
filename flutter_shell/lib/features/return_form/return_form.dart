@@ -19,6 +19,7 @@ class ReturnFormMin extends StatefulWidget {
     this.apiClient,
     this.onSubmit,
     this.onClose,
+    this.onSubmitSuccess,
   });
 
   final ReturnBorrowRecordSnapshot record;
@@ -27,6 +28,7 @@ class ReturnFormMin extends StatefulWidget {
   final WarehouseApiClient? apiClient;
   final ValueChanged<ReturnSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
+  final VoidCallback? onSubmitSuccess;
 
   @override
   State<ReturnFormMin> createState() => _ReturnFormMinState();
@@ -81,6 +83,7 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
     if (!mounted) return;
 
     if (result.isSuccess) {
+      widget.onSubmitSuccess?.call();
       widget.onClose?.call();
     } else {
       setState(() {

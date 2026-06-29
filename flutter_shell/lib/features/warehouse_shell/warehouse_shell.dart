@@ -4,6 +4,7 @@ import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
+import '../../components/record_card.dart';
 import '../settings/server_config_page.dart';
 import '../settings/server_config_store.dart';
 
@@ -40,6 +41,7 @@ class WarehouseShellMin extends StatefulWidget {
     this.initialTab = WarehouseTab.checkout,
     this.lastScanCode,
     this.scanError,
+    this.records,
     this.serverConfigStore,
     this.onScanRequested,
     this.onSettingsRequested,
@@ -50,6 +52,9 @@ class WarehouseShellMin extends StatefulWidget {
 
   /// Error message from scan lookup to display in the shell.
   final String? scanError;
+
+  /// Records to display in the current tab (after successful submit).
+  final List<RecordItem>? records;
 
   /// Optional server config store for the settings tab.
   /// Defaults to [PersistentServerConfigStore] when null.
@@ -242,7 +247,16 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        if (widget.lastScanCode != null && widget.lastScanCode!.isNotEmpty)
+        if (widget.records != null && widget.records!.isNotEmpty)
+          ...widget.records!.map((r) => Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: RecordCard(
+              title: r.title,
+              detail: r.detail,
+              status: r.status,
+            ),
+          ))
+        else if (widget.lastScanCode != null && widget.lastScanCode!.isNotEmpty)
           _buildLastScanResult(widget.lastScanCode!)
         else if (widget.scanError != null && widget.scanError!.isNotEmpty)
           _buildScanError(widget.scanError!)
@@ -336,6 +350,18 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     }
   }
 }
+
+// ---- Record item model ----
+
+/// Minimal record data for display in the shell's record section.
+class RecordItem {
+  final String title;
+  final String detail;
+  final String? status;
+  const RecordItem({required this.title, required this.detail, this.status});
+}
+
+// ---- Tab info data class ----
 
 class _TabInfo {
   final String badgeLabel;

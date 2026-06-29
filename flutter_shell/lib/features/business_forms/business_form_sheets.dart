@@ -19,6 +19,7 @@ class CheckoutFormSheetContent extends StatelessWidget {
     this.apiClient,
     this.onSubmit,
     this.onClose,
+    this.onSubmitSuccess,
   });
 
   final CheckoutItemSnapshot item;
@@ -26,40 +27,30 @@ class CheckoutFormSheetContent extends StatelessWidget {
   final WarehouseApiClient? apiClient;
   final ValueChanged<CheckoutSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
+  final VoidCallback? onSubmitSuccess;
 
   @override
   Widget build(BuildContext context) {
     return AppBottomSheetFrame(
-      title: '出库表单',
-      onClose: onClose,
-      child: CheckoutFormMin(
-        item: item,
-        operatorName: operatorName,
-        apiClient: apiClient,
-        onSubmit: onSubmit,
-        onClose: onClose,
-      ),
+      title: '出库表单', onClose: onClose,
+      child: CheckoutFormMin(item: item, operatorName: operatorName,
+          apiClient: apiClient, onSubmit: onSubmit, onClose: onClose,
+          onSubmitSuccess: onSubmitSuccess),
     );
   }
 }
 
 Future<void> showCheckoutFormSheet({
-  required BuildContext context,
-  required CheckoutItemSnapshot item,
-  String? operatorName,
-  WarehouseApiClient? apiClient,
-  ValueChanged<CheckoutSubmitPayload>? onSubmit,
+  required BuildContext context, required CheckoutItemSnapshot item,
+  String? operatorName, WarehouseApiClient? apiClient,
+  ValueChanged<CheckoutSubmitPayload>? onSubmit, VoidCallback? onSubmitSuccess,
 }) {
   return showAppBottomSheet(
-    context: context,
-    title: '出库表单',
-    child: CheckoutFormMin(
-      item: item,
-      operatorName: operatorName,
-      apiClient: apiClient,
-      onSubmit: onSubmit,
-      onClose: () => Navigator.of(context).pop(),
-    ),
+    context: context, title: '出库表单',
+    child: CheckoutFormMin(item: item, operatorName: operatorName,
+        apiClient: apiClient, onSubmit: onSubmit,
+        onSubmitSuccess: onSubmitSuccess,
+        onClose: () => Navigator.of(context).pop()),
   );
 }
 
@@ -67,12 +58,8 @@ Future<void> showCheckoutFormSheet({
 
 class ReturnFormSheetContent extends StatelessWidget {
   const ReturnFormSheetContent({
-    super.key,
-    required this.record,
-    this.operatorName,
-    this.apiClient,
-    this.onSubmit,
-    this.onClose,
+    super.key, required this.record, this.operatorName,
+    this.apiClient, this.onSubmit, this.onClose, this.onSubmitSuccess,
   });
 
   final ReturnBorrowRecordSnapshot record;
@@ -80,40 +67,30 @@ class ReturnFormSheetContent extends StatelessWidget {
   final WarehouseApiClient? apiClient;
   final ValueChanged<ReturnSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
+  final VoidCallback? onSubmitSuccess;
 
   @override
   Widget build(BuildContext context) {
     return AppBottomSheetFrame(
-      title: '归还表单',
-      onClose: onClose,
-      child: ReturnFormMin(
-        record: record,
-        operatorName: operatorName,
-        apiClient: apiClient,
-        onSubmit: onSubmit,
-        onClose: onClose,
-      ),
+      title: '归还表单', onClose: onClose,
+      child: ReturnFormMin(record: record, operatorName: operatorName,
+          apiClient: apiClient, onSubmit: onSubmit, onClose: onClose,
+          onSubmitSuccess: onSubmitSuccess),
     );
   }
 }
 
 Future<void> showReturnFormSheet({
-  required BuildContext context,
-  required ReturnBorrowRecordSnapshot record,
-  String? operatorName,
-  WarehouseApiClient? apiClient,
-  ValueChanged<ReturnSubmitPayload>? onSubmit,
+  required BuildContext context, required ReturnBorrowRecordSnapshot record,
+  String? operatorName, WarehouseApiClient? apiClient,
+  ValueChanged<ReturnSubmitPayload>? onSubmit, VoidCallback? onSubmitSuccess,
 }) {
   return showAppBottomSheet(
-    context: context,
-    title: '归还表单',
-    child: ReturnFormMin(
-      record: record,
-      operatorName: operatorName,
-      apiClient: apiClient,
-      onSubmit: onSubmit,
-      onClose: () => Navigator.of(context).pop(),
-    ),
+    context: context, title: '归还表单',
+    child: ReturnFormMin(record: record, operatorName: operatorName,
+        apiClient: apiClient, onSubmit: onSubmit,
+        onSubmitSuccess: onSubmitSuccess,
+        onClose: () => Navigator.of(context).pop()),
   );
 }
 
@@ -121,12 +98,8 @@ Future<void> showReturnFormSheet({
 
 class InventoryCheckFormSheetContent extends StatelessWidget {
   const InventoryCheckFormSheetContent({
-    super.key,
-    required this.item,
-    this.operatorName,
-    this.apiClient,
-    this.onSubmit,
-    this.onClose,
+    super.key, required this.item, this.operatorName,
+    this.apiClient, this.onSubmit, this.onClose, this.onSubmitSuccess,
   });
 
   final InventoryCheckItemSnapshot item;
@@ -134,39 +107,29 @@ class InventoryCheckFormSheetContent extends StatelessWidget {
   final WarehouseApiClient? apiClient;
   final ValueChanged<InventoryCheckSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
+  final VoidCallback? onSubmitSuccess;
 
   @override
   Widget build(BuildContext context) {
     return AppBottomSheetFrame(
-      title: '盘点表单',
-      onClose: onClose,
-      child: InventoryCheckFormMin(
-        item: item,
-        operatorName: operatorName,
-        apiClient: apiClient,
-        onSubmit: onSubmit,
-        onClose: onClose,
-      ),
+      title: '盘点表单', onClose: onClose,
+      child: InventoryCheckFormMin(item: item, operatorName: operatorName,
+          apiClient: apiClient, onSubmit: onSubmit, onClose: onClose,
+          onSubmitSuccess: onSubmitSuccess),
     );
   }
 }
 
 Future<void> showInventoryCheckFormSheet({
-  required BuildContext context,
-  required InventoryCheckItemSnapshot item,
-  String? operatorName,
-  WarehouseApiClient? apiClient,
-  ValueChanged<InventoryCheckSubmitPayload>? onSubmit,
+  required BuildContext context, required InventoryCheckItemSnapshot item,
+  String? operatorName, WarehouseApiClient? apiClient,
+  ValueChanged<InventoryCheckSubmitPayload>? onSubmit, VoidCallback? onSubmitSuccess,
 }) {
   return showAppBottomSheet(
-    context: context,
-    title: '盘点表单',
-    child: InventoryCheckFormMin(
-      item: item,
-      operatorName: operatorName,
-      apiClient: apiClient,
-      onSubmit: onSubmit,
-      onClose: () => Navigator.of(context).pop(),
-    ),
+    context: context, title: '盘点表单',
+    child: InventoryCheckFormMin(item: item, operatorName: operatorName,
+        apiClient: apiClient, onSubmit: onSubmit,
+        onSubmitSuccess: onSubmitSuccess,
+        onClose: () => Navigator.of(context).pop()),
   );
 }

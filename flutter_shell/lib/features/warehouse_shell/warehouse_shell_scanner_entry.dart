@@ -62,6 +62,10 @@ class _WarehouseShellScannerEntryState
     extends State<WarehouseShellScannerEntry> {
   String? _lastScanCode;
   String? _scanError;
+  WarehouseTab _activeTab = WarehouseTab.checkout;
+
+  /// Per-tab records populated after successful submit.
+  final Map<WarehouseTab, List<RecordItem>> _records = {};
 
   /// Guards against double-trigger during async API lookup.
   bool _isSearching = false;
@@ -71,10 +75,14 @@ class _WarehouseShellScannerEntryState
     return WarehouseShellFormWiring(
       lastScanCode: _lastScanCode,
       scanError: _scanError,
+      records: _records[_activeTab] ?? [],
       onCheckoutSubmit: widget.onCheckoutSubmit,
       onReturnSubmit: widget.onReturnSubmit,
       onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
-      onScanRequested: (tab) => _openScanner(context, tab),
+      onScanRequested: (tab) {
+        _activeTab = tab;
+        _openScanner(context, tab);
+      },
     );
   }
 
@@ -142,6 +150,49 @@ class _WarehouseShellScannerEntryState
     }
   }
 
+  Future<void> _fetchRecords(WarehouseTab tab) async {
+    final api = widget.apiClient;
+    if (api == null) return;
+
+    List<RecordItem> items = [];
+    switch (tab) {
+      case WarehouseTab.checkout:
+        final result = await api.fetchCheckoutRecords();
+        if (result.isSuccess && result.data != null) {
+          items = result.data!.map((p) => RecordItem(
+            title: '出库 #${p.inventoryId}',
+            detail: '数量: ${p.quantity}',
+            status: '正常',
+          )).toList();
+        }
+      case WarehouseTab.returnForm:
+        final result = await api.fetchReturnRecords();
+        if (result.isSuccess && result.data != null) {
+          items = result.data!.map((p) => RecordItem(
+            title: '归还 #${p.loanId}',
+            detail: '数量: ${p.returnQty}',
+          )).toList();
+        }
+      case WarehouseTab.inventoryCheck:
+        final result = await api.fetchInventoryCheckRecords();
+        if (result.isSuccess && result.data != null) {
+          items = result.data!.map((p) => RecordItem(
+            title: '盘点 #${p.inventoryId}',
+            detail: '实盘: ${p.actualQty}',
+          )).toList();
+        }
+      case WarehouseTab.settings:
+        return;
+    }
+    if (mounted) {
+      setState(() => _records[tab] = items);
+    }
+  }
+
+  VoidCallback _onSubmitSuccess(WarehouseTab tab) {
+    return () => _fetchRecords(tab);
+  }
+
   Future<void> _lookupCheckout(BuildContext context, String code) async {
     final result = await widget.apiClient!.findItemByCode(code);
     if (!mounted) return;
@@ -168,6 +219,7 @@ class _WarehouseShellScannerEntryState
           context: context,
           item: snapshot,
           apiClient: widget.apiClient,
+          onSubmitSuccess: _onSubmitSuccess(WarehouseTab.checkout),
           onSubmit: widget.onCheckoutSubmit,
       );
     });
@@ -201,6 +253,7 @@ class _WarehouseShellScannerEntryState
         context: context,
         record: snapshot,
         apiClient: widget.apiClient,
+        onSubmitSuccess: _onSubmitSuccess(WarehouseTab.returnForm),
         onSubmit: widget.onReturnSubmit,
       );
     });
@@ -230,6 +283,7 @@ class _WarehouseShellScannerEntryState
         context: context,
         item: snapshot,
         apiClient: widget.apiClient,
+        onSubmitSuccess: _onSubmitSuccess(WarehouseTab.inventoryCheck),
         onSubmit: widget.onInventoryCheckSubmit,
       );
     });
@@ -245,6 +299,7 @@ class _WarehouseShellScannerEntryState
           context: context,
           item: _Fixture.checkoutItem,
           apiClient: widget.apiClient,
+          onSubmitSuccess: _onSubmitSuccess(tab),
           onSubmit: widget.onCheckoutSubmit,
         );
       case WarehouseTab.returnForm:
@@ -252,6 +307,7 @@ class _WarehouseShellScannerEntryState
           context: context,
           record: _Fixture.returnRecord,
           apiClient: widget.apiClient,
+          onSubmitSuccess: _onSubmitSuccess(tab),
           onSubmit: widget.onReturnSubmit,
         );
       case WarehouseTab.inventoryCheck:
@@ -259,6 +315,7 @@ class _WarehouseShellScannerEntryState
           context: context,
           item: _Fixture.inventoryItem,
           apiClient: widget.apiClient,
+          onSubmitSuccess: _onSubmitSuccess(tab),
           onSubmit: widget.onInventoryCheckSubmit,
         );
       case WarehouseTab.settings:
