@@ -556,11 +556,33 @@
         "agent_state.json"
       ],
       "nextTask": "task-031-server-config-store"
+    },
+    {
+      "id": "iter-031-server-config-store",
+      "goal": "实现 Flutter 服务配置存储与真实设置页，为后续真实 API 接入提供 baseURL 来源。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/settings/server_config_store.dart",
+        "flutter_shell/lib/features/settings/server_config_page.dart",
+        "flutter_shell/test/features/settings/server_config_store_test.dart",
+        "flutter_shell/test/features/settings/server_config_page_test.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_form_wiring_test.dart",
+        "flutter_shell/pubspec.yaml",
+        "flutter_shell/pubspec.lock",
+        "agent_state.json"
+      ],
+      "testCount": 301,
+      "device": {
+        "settingsTabRetest": "pending"
+      },
+      "nextTask": "task-032-warehouse-api-client-contract"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-030-web-api-parity-audit",
-    "lastCompletedGoal": "审计 Web 版真实业务流和 API 调用，输出 Flutter 真实业务接入契约。",
+    "lastCompletedIterationId": "iter-031-server-config-store",
+    "lastCompletedGoal": "实现 Flutter 服务配置存储与真实设置页，为后续真实 API 接入提供 baseURL 来源。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -571,7 +593,7 @@
       "AppFormSection",
       "AppSegmentedControl"
     ],
-    "testCount": 108,
+    "testCount": 301,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
