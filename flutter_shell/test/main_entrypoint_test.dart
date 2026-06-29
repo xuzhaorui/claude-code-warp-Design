@@ -26,42 +26,44 @@ void main() {
       // WebShellPage showed WebView loading localhost — none of that text
       // should appear in the native shell.
       expect(find.text('WebShell'), findsNothing);
-      // The native shell shows '扫码出库' instead.
-      expect(find.text('扫码出库'), findsWidgets);
+      // The native shell shows tab labels and scan icon.
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    testWidgets('native shell contains checkout tab scan entry', (tester) async {
+    testWidgets('native shell contains scan entry', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellScannerEntry(),
       ));
-      // The checkout tab should show a "扫码出库" action card.
-      expect(find.text('扫码出库'), findsOneWidget);
+      // The checkout tab should show a scan card with qr icon.
+      expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
     });
 
-    testWidgets('native shell contains form entry button', (tester) async {
+    testWidgets('native shell contains scan card', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellScannerEntry(),
       ));
-      // The form entry button should be visible.
-      expect(find.text('发起出库'), findsOneWidget);
+      // The scan card with QR icon should be visible.
+      expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
+      expect(find.byKey(const Key('scan_card')), findsOneWidget);
     });
 
-    testWidgets('switching tabs shows different scan labels', (tester) async {
+    testWidgets('switching tabs shows different content', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellScannerEntry(),
       ));
-      // Default tab is checkout — shows "扫码出库".
-      expect(find.text('扫码出库'), findsOneWidget);
+      // Default tab is checkout — shows the scan card.
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
+      expect(find.text('出库记录'), findsOneWidget);
 
-      // Tap the return tab (index 1 in BottomNavigationBar).
+      // Tap the return tab.
       await tester.tap(find.byIcon(Icons.replay));
       await tester.pumpAndSettle();
-      expect(find.text('扫码归还'), findsOneWidget);
+      expect(find.text('归还记录'), findsOneWidget);
 
-      // Tap the inventory tab (index 2).
+      // Tap the inventory tab.
       await tester.tap(find.byIcon(Icons.checklist));
       await tester.pumpAndSettle();
-      expect(find.text('扫码盘点'), findsOneWidget);
+      expect(find.text('盘点记录'), findsOneWidget);
     });
 
     testWidgets('native shell has scan icon', (tester) async {

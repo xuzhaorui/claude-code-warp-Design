@@ -1,59 +1,54 @@
 import 'package:flutter/material.dart';
 
 import '../../design/app_design_colors.dart';
+import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
 
 // ---- Tab enum ----
 
 /// Available tabs in the warehouse shell.
-enum WarehouseTab { checkout, returnForm, inventoryCheck }
+enum WarehouseTab { checkout, returnForm, inventoryCheck, settings }
 
 // ---- Component-local constants ----
 
-/// Layout constants specific to WarehouseShellMin.
-///
-/// `bottomNavHeight` (64px) matches the Web's `minHeight: 64` and standard
-/// Material bottom navigation height.
-/// `navIconSize` (28px) matches Web lucide-react `size={28}`.
 class _WS {
   _WS._();
   static const bottomNavHeight = 64.0;
   static const navIconSize = 28.0;
+  static const scanIconBox = 115.0;
+  static const badgeHPad = 14.0;
+  static const badgeVPad = 6.0;
+  static const orangeBarW = 4.0;
+  static const orangeBarH = 20.0;
 }
 
 // ---- Public widget ----
 
-/// Minimal warehouse bottom navigation shell with three tabs:
-///   出库 (checkout), 归还 (return), 盘点 (inventory check)
+/// Warehouse bottom navigation shell — Web parity.
 ///
-/// Maps to `src/pages/AppShell.jsx`.  This is a presentational shell only —
-/// it does not hold real inventory data, call APIs, or open business forms.
-/// User intents are forwarded via callback parameters.
+/// Four tabs: 出库 / 归还 / 盘点 / 设置.
+/// No AppBar.  Each business tab shows a large scan card and record section.
+/// The scan card fires [onScanRequested] with the current tab.
+/// The settings tab fires [onSettingsRequested].
+/// No manual "发起" buttons — the primary flow is scan → auto-open form.
 class WarehouseShellMin extends StatefulWidget {
   const WarehouseShellMin({
     super.key,
     this.initialTab = WarehouseTab.checkout,
+    this.lastScanCode,
     this.onScanRequested,
-    this.onCheckoutRequested,
-    this.onReturnRequested,
-    this.onInventoryCheckRequested,
+    this.onSettingsRequested,
   });
 
-  /// Initial tab (default: checkout).
   final WarehouseTab initialTab;
+  final String? lastScanCode;
 
-  /// Fired when the user taps the scan entry point.
-  final VoidCallback? onScanRequested;
+  /// Fired when the scan card is tapped. Carries the current tab.
+  final ValueChanged<WarehouseTab>? onScanRequested;
 
-  /// Fired when the user initiates a checkout action.
-  final VoidCallback? onCheckoutRequested;
-
-  /// Fired when the user initiates a return action.
-  final VoidCallback? onReturnRequested;
-
-  /// Fired when the user initiates an inventory check action.
-  final VoidCallback? onInventoryCheckRequested;
+  /// Fired when settings tab requests settings page navigation.
+  final VoidCallback? onSettingsRequested;
 
   @override
   State<WarehouseShellMin> createState() => _WarehouseShellMinState();
@@ -69,6 +64,10 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   }
 
   void _onTabChanged(WarehouseTab tab) {
+    if (tab == WarehouseTab.settings) {
+      widget.onSettingsRequested?.call();
+      return;
+    }
     setState(() => _activeTab = tab);
   }
 
@@ -76,80 +75,197 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppDesignColors.background,
-      appBar: AppBar(
-        title: Text(
-          _tabLabel(_activeTab),
-          style: AppTextStyles.title,
-        ),
-        centerTitle: false,
+      body: SafeArea(
+        top: false,
+        child: _buildTabContent(),
       ),
-      body: _buildTabContent(),
       bottomNavigationBar: SizedBox(
         height: _WS.bottomNavHeight,
         child: BottomNavigationBar(
-          currentIndex: _activeTab.index,
+          currentIndex: WarehouseTab.values.indexOf(_activeTab),
           onTap: (i) => _onTabChanged(WarehouseTab.values[i]),
           backgroundColor: AppDesignColors.surface,
-          selectedItemColor: AppDesignColors.textPrimary,
+          selectedItemColor: AppDesignColors.primary,
           unselectedItemColor: AppDesignColors.textSecondary,
           selectedFontSize: AppTextStyles.caption.fontSize ?? 12,
           unselectedFontSize: AppTextStyles.caption.fontSize ?? 12,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
           type: BottomNavigationBarType.fixed,
           items: [
-            _navItem(Icons.logout, '出库', WarehouseTab.checkout),
-            _navItem(Icons.replay, '归还', WarehouseTab.returnForm),
-            _navItem(Icons.checklist, '盘点', WarehouseTab.inventoryCheck),
+            _navItem(Icons.logout, '出库'),
+            _navItem(Icons.replay, '归还'),
+            _navItem(Icons.checklist, '盘点'),
+            _navItem(Icons.settings, '设置'),
           ],
         ),
       ),
     );
   }
 
-  BottomNavigationBarItem _navItem(
-      IconData icon, String label, WarehouseTab tab) {
-    final isActive = _activeTab == tab;
-    return BottomNavigationBarItem(
-      icon: Icon(icon,
-          size: _WS.navIconSize,
-          color: isActive
-              ? AppDesignColors.textPrimary
-              : AppDesignColors.textSecondary),
-      label: label,
-    );
+  BottomNavigationBarItem _navItem(IconData icon, String label) {
+    return BottomNavigationBarItem(icon: Icon(icon, size: _WS.navIconSize), label: label);
   }
 
+  // ── Tab content ──
+
   Widget _buildTabContent() {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    final tabInfo = _tabInfo(_activeTab);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tab description
-          Text(
-            _tabDescription(_activeTab),
-            style: AppTextStyles.body.copyWith(
-              color: AppDesignColors.textSecondary,
-            ),
-          ),
+          _buildScanCard(tabInfo.badgeLabel),
+          const SizedBox(height: AppSpacing.sm),
+          _buildImageRecognitionHint(),
           const SizedBox(height: AppSpacing.xl),
-          // Scan entry button (placeholder)
-          SizedBox(
-            width: double.infinity,
-            child: _ActionCard(
-              label: _scanLabel(_activeTab),
-              icon: Icons.qr_code_scanner,
-              onTap: widget.onScanRequested,
-            ),
+          _buildRecordSection(
+            sectionTitle: tabInfo.recordTitle,
+            emptyText: tabInfo.emptyText,
           ),
-          const SizedBox(height: AppSpacing.md),
-          // Form entry button (placeholder)
-          SizedBox(
-            width: double.infinity,
-            child: _ActionCard(
-              label: _formLabel(_activeTab),
-              icon: Icons.edit_note,
-              onTap: _formCallback(),
+        ],
+      ),
+    );
+  }
+
+  // ── Scan card ──
+
+  Widget _buildScanCard(String badgeLabel) {
+    return GestureDetector(
+      key: const Key('scan_card'),
+      onTap: () => widget.onScanRequested?.call(_activeTab),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppDesignColors.primarySoft,
+          borderRadius: BorderRadius.all(AppRadii.lg),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _WS.badgeHPad,
+                  vertical: _WS.badgeVPad,
+                ),
+                decoration: BoxDecoration(
+                  color: AppDesignColors.primary,
+                  borderRadius: BorderRadius.all(AppRadii.sm),
+                ),
+                child: Text(
+                  badgeLabel,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 48, bottom: 8),
+                child: Container(
+                  width: _WS.scanIconBox,
+                  height: _WS.scanIconBox,
+                  decoration: BoxDecoration(
+                    color: AppDesignColors.primary,
+                    borderRadius: BorderRadius.all(AppRadii.md),
+                  ),
+                  child: const Icon(Icons.qr_code_scanner, size: 72, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── "从图片识别" hint ──
+
+  Widget _buildImageRecognitionHint() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.image, size: 16, color: AppDesignColors.textSecondary),
+            const SizedBox(width: 4),
+            Text(
+              '从图片识别',
+              style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Record section ──
+
+  Widget _buildRecordSection({
+    required String sectionTitle,
+    required String emptyText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: _WS.orangeBarW,
+              height: _WS.orangeBarH,
+              decoration: BoxDecoration(
+                color: AppDesignColors.primary,
+                borderRadius: BorderRadius.all(AppRadii.pill),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(sectionTitle, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        if (widget.lastScanCode != null && widget.lastScanCode!.isNotEmpty)
+          _buildLastScanResult(widget.lastScanCode!)
+        else
+          _buildEmptyState(emptyText),
+      ],
+    );
+  }
+
+  Widget _buildLastScanResult(String code) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppDesignColors.surface,
+        borderRadius: BorderRadius.all(AppRadii.md),
+        border: Border.all(color: AppDesignColors.primary),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.check_circle, color: AppDesignColors.primary, size: 20),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '最近扫码：$code',
+                  style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '已识别',
+                  style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+                ),
+              ],
             ),
           ),
         ],
@@ -157,96 +273,42 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     );
   }
 
-  VoidCallback? _formCallback() {
-    switch (_activeTab) {
-      case WarehouseTab.checkout:
-        return widget.onCheckoutRequested;
-      case WarehouseTab.returnForm:
-        return widget.onReturnRequested;
-      case WarehouseTab.inventoryCheck:
-        return widget.onInventoryCheckRequested;
-    }
-  }
-
-  String _tabLabel(WarehouseTab tab) {
-    switch (tab) {
-      case WarehouseTab.checkout:
-        return '出库';
-      case WarehouseTab.returnForm:
-        return '归还';
-      case WarehouseTab.inventoryCheck:
-        return '盘点';
-    }
-  }
-
-  String _tabDescription(WarehouseTab tab) {
-    switch (tab) {
-      case WarehouseTab.checkout:
-        return '扫码或选择货物后发起出库';
-      case WarehouseTab.returnForm:
-        return '选择外借记录后发起归还';
-      case WarehouseTab.inventoryCheck:
-        return '选择货物后录入实盘数量';
-    }
-  }
-
-  String _scanLabel(WarehouseTab tab) {
-    switch (tab) {
-      case WarehouseTab.checkout:
-        return '扫码出库';
-      case WarehouseTab.returnForm:
-        return '扫码归还';
-      case WarehouseTab.inventoryCheck:
-        return '扫码盘点';
-    }
-  }
-
-  String _formLabel(WarehouseTab tab) {
-    switch (tab) {
-      case WarehouseTab.checkout:
-        return '发起出库';
-      case WarehouseTab.returnForm:
-        return '发起归还';
-      case WarehouseTab.inventoryCheck:
-        return '发起盘点';
-    }
-  }
-}
-
-// ---- Action card widget ----
-
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
-    required this.label,
-    required this.icon,
-    this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppDesignColors.surfaceMuted,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: Row(
-            children: [
-              Icon(icon, size: 24, color: AppDesignColors.textPrimary),
-              const SizedBox(width: AppSpacing.md),
-              Text(label,
-                  style: AppTextStyles.body
-                      .copyWith(fontWeight: FontWeight.w600)),
-            ],
-          ),
+  Widget _buildEmptyState(String text) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Text(
+          text,
+          style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
         ),
       ),
     );
   }
+
+  // ── Tab data ──
+
+  _TabInfo _tabInfo(WarehouseTab tab) {
+    switch (tab) {
+      case WarehouseTab.checkout:
+        return _TabInfo(badgeLabel: '出库', recordTitle: '出库记录', emptyText: '暂无出库记录');
+      case WarehouseTab.returnForm:
+        return _TabInfo(badgeLabel: '归还', recordTitle: '归还记录', emptyText: '暂无归还记录');
+      case WarehouseTab.inventoryCheck:
+        return _TabInfo(badgeLabel: '盘点', recordTitle: '盘点记录', emptyText: '暂无盘点记录');
+      case WarehouseTab.settings:
+        return _TabInfo(badgeLabel: '', recordTitle: '', emptyText: '设置页面');
+    }
+  }
+}
+
+class _TabInfo {
+  final String badgeLabel;
+  final String recordTitle;
+  final String emptyText;
+
+  const _TabInfo({
+    required this.badgeLabel,
+    required this.recordTitle,
+    required this.emptyText,
+  });
 }

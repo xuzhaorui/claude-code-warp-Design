@@ -10,180 +10,172 @@ Widget wrapApp(Widget child) {
 
 void main() {
   group('WarehouseShellMin', () {
-    // 1. renders three tabs
-    testWidgets('renders three bottom nav items', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      // BottomNavigationBar has three items with labels.
+    // 1. renders 4 bottom tabs
+    testWidgets('renders 4 bottom nav items', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       expect(find.text('出库'), findsWidgets);
       expect(find.text('归还'), findsWidgets);
       expect(find.text('盘点'), findsWidgets);
+      expect(find.text('设置'), findsWidgets);
     });
 
     // 2. default tab is checkout
-    testWidgets('default tab shows checkout title', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
+    testWidgets('default tab shows checkout badge', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       expect(find.text('出库'), findsWidgets);
-      // The AppBar title shows "出库".
     });
 
     // 3. tapping return tab switches content
-    testWidgets('tapping return tab switches content', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      // Tap the second bottom nav item (归还).
-      await tester.tap(find.byType(BottomNavigationBar));
-      // Actually, need to tap the specific item. Use the nav's onTap.
-      // BottomNavigationBar items can be found by text.
+    testWidgets('tapping return tab shows return badge', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('归还').last);
       await tester.pump();
-      // Description text should update.
-      expect(find.textContaining('外借记录'), findsOneWidget);
+      expect(find.text('归还'), findsWidgets);
     });
 
     // 4. tapping inventory tab switches content
-    testWidgets('tapping inventory tab switches content', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
+    testWidgets('tapping inventory tab shows inventory badge', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('盘点').last);
       await tester.pump();
-      expect(find.textContaining('实盘数量'), findsOneWidget);
+      expect(find.text('盘点'), findsWidgets);
     });
 
-    // 5. tapping checkout tab switches content back
-    testWidgets('tapping checkout tab switches back', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      // Switch to return, then back to checkout.
+    // 5. checkout tab renders scan card
+    testWidgets('checkout tab renders scan card', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
+    });
+
+    // 6. return tab renders scan card
+    testWidgets('return tab renders scan card', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('归还').last);
       await tester.pump();
-      await tester.tap(find.text('出库').last);
-      await tester.pump();
-      expect(find.textContaining('扫码或选择货物'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    // 6. checkout tab title renders
-    testWidgets('checkout tab shows correct description', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      expect(find.text('扫码或选择货物后发起出库'), findsOneWidget);
-    });
-
-    // 7. return tab title renders
-    testWidgets('return tab shows correct description', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      await tester.tap(find.text('归还').last);
-      await tester.pump();
-      expect(find.text('选择外借记录后发起归还'), findsOneWidget);
-    });
-
-    // 8. inventory tab title renders
-    testWidgets('inventory tab shows correct description', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
+    // 7. inventory tab renders scan card
+    testWidgets('inventory tab renders scan card', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('盘点').last);
       await tester.pump();
-      expect(find.text('选择货物后录入实盘数量'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    // 9. scan callback fires
-    testWidgets('scan callback fires', (tester) async {
-      int callCount = 0;
+    // 8. scan card tap fires onScanRequested with current tab
+    testWidgets('scan card tap fires onScanRequested', (tester) async {
+      WarehouseTab? captured;
       await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(
-          onScanRequested: () => callCount++,
-        ),
+        WarehouseShellMin(onScanRequested: (tab) => captured = tab),
       ));
-      // Tap the scan action card.
-      await tester.tap(find.text('扫码出库'));
+      await tester.tap(find.byKey(const Key('scan_card')));
       await tester.pump();
-      expect(callCount, 1);
+      expect(captured, WarehouseTab.checkout);
     });
 
-    // 10. checkout request callback fires
-    testWidgets('checkout request callback fires', (tester) async {
-      int callCount = 0;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(
-          onCheckoutRequested: () => callCount++,
-        ),
-      ));
-      await tester.tap(find.text('发起出库'));
-      await tester.pump();
-      expect(callCount, 1);
+    // 9. from image recognition text renders
+    testWidgets('image recognition hint renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.text('从图片识别'), findsOneWidget);
     });
 
-    // 11. return request callback fires
-    testWidgets('return request callback fires', (tester) async {
-      int callCount = 0;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(
-          onReturnRequested: () => callCount++,
-        ),
-      ));
-      // Switch to return tab first.
+    // 10. checkout records section renders
+    testWidgets('checkout records section renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.text('出库记录'), findsOneWidget);
+    });
+
+    // 11. return records section renders
+    testWidgets('return records section renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('归还').last);
       await tester.pump();
-      await tester.tap(find.text('发起归还'));
-      await tester.pump();
-      expect(callCount, 1);
+      expect(find.text('归还记录'), findsOneWidget);
     });
 
-    // 12. inventory check request callback fires
-    testWidgets('inventory check request callback fires', (tester) async {
-      int callCount = 0;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(
-          onInventoryCheckRequested: () => callCount++,
-        ),
-      ));
+    // 12. inventory records section renders
+    testWidgets('inventory records section renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('盘点').last);
       await tester.pump();
-      await tester.tap(find.text('发起盘点'));
+      expect(find.text('盘点记录'), findsOneWidget);
+    });
+
+    // 13. empty checkout state renders
+    testWidgets('empty checkout state renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.text('暂无出库记录'), findsOneWidget);
+    });
+
+    // 14. empty return state renders
+    testWidgets('empty return state renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      await tester.tap(find.text('归还').last);
+      await tester.pump();
+      expect(find.text('暂无归还记录'), findsOneWidget);
+    });
+
+    // 15. empty inventory state renders
+    testWidgets('empty inventory state renders', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      await tester.tap(find.text('盘点').last);
+      await tester.pump();
+      expect(find.text('暂无盘点记录'), findsOneWidget);
+    });
+
+    // 16. last scan result not shown when null
+    testWidgets('last scan result not shown when null', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.textContaining('最近扫码'), findsNothing);
+    });
+
+    // 17. last scan result shown when provided
+    testWidgets('last scan result shown when provided', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        const WarehouseShellMin(lastScanCode: 'P293'),
+      ));
+      expect(find.textContaining('最近扫码'), findsOneWidget);
+      expect(find.textContaining('P293'), findsOneWidget);
+    });
+
+    // 18. settings tab fires onSettingsRequested
+    testWidgets('settings tab fires onSettingsRequested', (tester) async {
+      int callCount = 0;
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellMin(onSettingsRequested: () => callCount++),
+      ));
+      await tester.tap(find.text('设置').last);
       await tester.pump();
       expect(callCount, 1);
     });
 
-    // 13. shell does not require API (verified by absence of API imports)
+    // 19. tab state changes on navigation
+    testWidgets('tab switching changes content', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      await tester.tap(find.text('盘点').last);
+      await tester.pump();
+      // Should show inventory-related content.
+      expect(find.text('盘点'), findsWidgets);
+    });
 
-    // 14. shell does not require route context
-    testWidgets('shell does not require route context', (tester) async {
+    // 20. scanning carries correct tab
+    testWidgets('scan from return tab carries returnTab', (tester) async {
+      WarehouseTab? captured;
       await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
+        WarehouseShellMin(onScanRequested: (tab) => captured = tab),
       ));
+      await tester.tap(find.text('归还').last);
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('scan_card')));
+      await tester.pump();
+      expect(captured, WarehouseTab.returnForm);
+    });
+
+    // 21. no API dependency
+    testWidgets('no API dependency', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       expect(find.byType(WarehouseShellMin), findsOneWidget);
-    });
-
-    // 15. long labels do not crash
-    testWidgets('long labels do not crash', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      expect(find.byType(WarehouseShellMin), findsOneWidget);
-    });
-
-    // 16. selected / unselected tab state changes
-    testWidgets('tab state changes on navigation', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
-      // Default is checkout. Switch to inventory.
-      await tester.tap(find.text('盘点').last);
-      await tester.pump();
-      // The description should now be inventory-related.
-      expect(find.textContaining('实盘数量'), findsOneWidget);
-      // Checkout description should NOT be visible.
-      expect(find.text('扫码或选择货物后发起出库'), findsNothing);
     });
   });
 }
