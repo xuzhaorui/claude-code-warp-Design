@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/scanner/scanner_adapter.dart';
-import 'package:wms_app/features/warehouse_shell/warehouse_shell.dart';
 import 'package:wms_app/features/warehouse_shell/warehouse_shell_scanner_entry.dart';
 
 Widget wrapApp(Widget child) {
