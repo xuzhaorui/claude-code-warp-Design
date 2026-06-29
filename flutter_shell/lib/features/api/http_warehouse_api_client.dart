@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -20,7 +22,6 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   final ServerConfigStore _configStore;
   final http.Client _httpClient;
 
-  // ignore: prefer_initializing_formals — used for DI wiring
   HttpWarehouseApiClient({
     required ServerConfigStore configStore,
     http.Client? httpClient,
