@@ -607,11 +607,26 @@
       ],
       "testCount": 337,
       "nextTask": "task-034-scanner-api-lookup-wiring"
+    },
+    {
+      "id": "iter-034-scanner-api-lookup-wiring",
+      "goal": "将扫码结果接入 WarehouseApiClient.findItemByCode 并按当前 tab 打开对应表单。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_form_wiring.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/test/features/warehouse_shell/scanner_entry_wiring_test.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_form_wiring_test.dart",
+        "agent_state.json"
+      ],
+      "testCount": 343,
+      "nextTask": "task-035-business-submit-api-wiring"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-033-real-http-client-base-url-wiring",
-    "lastCompletedGoal": "实现 HttpWarehouseApiClient 与 ServerConfigStore baseURL 接线。",
+    "lastCompletedIterationId": "iter-034-scanner-api-lookup-wiring",
+    "lastCompletedGoal": "将扫码结果接入 WarehouseApiClient.findItemByCode 并按当前 tab 打开对应表单。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
