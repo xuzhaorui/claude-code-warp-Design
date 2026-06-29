@@ -4,9 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/warehouse_shell/warehouse_shell.dart';
 import 'package:wms_app/features/warehouse_shell/warehouse_shell_form_wiring.dart';
-import 'package:wms_app/features/checkout/checkout_form_rules.dart';
-import 'package:wms_app/features/return_form/return_form_rules.dart';
-import 'package:wms_app/features/inventory_check/inventory_check_form_rules.dart';
 
 Widget wrapApp(Widget child) {
   return MaterialApp(theme: AppTheme.light, home: child);
