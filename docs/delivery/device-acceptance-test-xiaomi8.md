@@ -134,3 +134,34 @@ PASS
 9. ✅ 全程无 crash
 10. ✅ physical gate 通过
 11. ✅ git status clean
+
+---
+
+## Hotfix 2026-06-29 — Scanner Route Contract
+
+之前问题：扫码后页面卡住，无法退出，无可见反馈，不自动弹表单。
+
+**根因**：`Navigator.pop` 使用了外层 Shell context 而非 scanner page 的 context；Completer+pop 双通道冲突。
+
+**修复**：
+- `WarehouseShellScannerEntry`：`Navigator.push<String>` + `scannerContext.pop(code)`
+- `ScannerPage`：`_completed` 防重入守卫 + `debugPrint` 追踪
+
+**真机验证日志（小米 8, PID 18819）**：
+```
+12:05:12 [ScannerFlow] open scanner tab=checkout
+12:05:12 [ScannerPage] init, adapter=RealMobileScannerAdapter
+12:05:14 [ScannerPage] scan result: P293            ← 扫码成功
+12:05:14 [ScannerFlow] scanner result=P293           ← 回调收到
+12:05:14 [ScannerFlow] returned code=P293            ← Navigator.push 返回
+12:05:14 [ScannerFlow] open checkout form after scan ← 自动弹出出库表单
+12:05:14 [ScannerPage] dispose                       ← 页面关闭
+---- 第二次扫码（归还 tab）---
+12:05:26 [ScannerFlow] open scanner tab=returnForm
+12:05:28 [ScannerPage] scan result: P293
+12:05:28 [ScannerFlow] returned code=P293 tab=returnForm
+12:05:28 [ScannerFlow] open returnForm form          ← 自动弹出归还表单
+12:05:29 [ScannerPage] dispose
+```
+
+**验证结论 ✅ PASS**：两条业务链路（出库+归还）均通过，扫码→返回→显示结果→自动弹表单，无 crash。
