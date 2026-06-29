@@ -534,38 +534,33 @@
     },
     {
       "id": "iter-028-hotfix-scanner-route-contract",
-      "goal": "修复 ScannerPage 路由返回契约：扫码后自动返回 Shell、显示结果、自动弹表单。",
+      "goal": "修复 ScannerPage 路由返回契约。",
+      "status": "complete",
+      "device": {"retest": "pass"}
+    },
+    {
+      "id": "iter-029-release-freeze-tag-push",
+      "goal": "冻结分支，创建 tag v0.1.0，推送分支和 tag 到远端。",
+      "status": "complete",
+      "tag": "warehouse-app-flutter-shell-v0.1.0"
+    },
+    {
+      "id": "iter-030-web-api-parity-audit",
+      "goal": "审计 Web 版真实业务流和 API 调用，输出 Flutter 真实业务接入契约。",
       "status": "complete",
       "files": [
-        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
-        "flutter_shell/lib/pages/scanner_page.dart",
-        "flutter_shell/test/features/warehouse_shell/scanner_entry_wiring_test.dart",
+        "docs/business-api-parity/web-api-audit.md",
+        "docs/business-api-parity/business-flow-matrix.md",
+        "docs/business-api-parity/flutter-api-contract.md",
+        "docs/business-api-parity/implementation-plan.md",
         "agent_state.json"
       ],
-      "device": {
-        "retest": "pending_user_verification"
-      },
-      "tests": {
-        "totalFlutterTests": 283
-      },
-      "gates": {
-        "designLint": "pass: 0 errors, 0 warnings",
-        "flutterAnalyze": "pass: No issues found",
-        "flutterTest": "pass: 283/283",
-        "debugBuild": "pass: Built",
-        "physicalGate": "ALL PASS"
-      },
-      "fixes": {
-        "rootCause": "scannerContext not used for Navigator.pop; Completer+pop conflict",
-        "scannerPageCompleted": "_completed guard prevents double-fire",
-        "scannerEntryPop": "Navigator.push<String> + scannerContext.pop(code)",
-        "debugPrint": "5 ScannerFlow + 4 ScannerPage log points added"
-      }
+      "nextTask": "task-031-server-config-store"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-028-hotfix-scanner-route-contract",
-    "lastCompletedGoal": "修复 ScannerPage 路由返回契约：扫码后自动返回 Shell、显示结果、自动弹表单。",
+    "lastCompletedIterationId": "iter-030-web-api-parity-audit",
+    "lastCompletedGoal": "审计 Web 版真实业务流和 API 调用，输出 Flutter 真实业务接入契约。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
