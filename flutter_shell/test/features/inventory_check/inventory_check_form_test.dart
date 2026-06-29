@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/inventory_check/inventory_check_form.dart';
 import 'package:wms_app/features/inventory_check/inventory_check_form_rules.dart';
+import 'package:wms_app/features/api/mock_warehouse_api_client.dart';
 
 const _item = InventoryCheckItemSnapshot(
   id: 42,
@@ -221,6 +222,14 @@ void main() {
       }
       // Verify stepper displays 120.
       expect(find.text('120'), findsAtLeast(1));
+    });
+
+    // 15. apiClient renders without crash
+    testWidgets('apiClient renders without crash', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        InventoryCheckFormMin(item: _item, apiClient: MockWarehouseApiClient()),
+      ));
+      expect(find.byType(InventoryCheckFormMin), findsOneWidget);
     });
   });
 }

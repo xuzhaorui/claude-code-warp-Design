@@ -9,6 +9,7 @@ import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
+import '../api/warehouse_api_client.dart';
 import 'checkout_form_rules.dart';
 
 /// Minimal checkout (出库) form UI widget.
@@ -16,33 +17,27 @@ import 'checkout_form_rules.dart';
 /// Composes [AppSegmentedControl], [AppStepper], [AppTextField], and
 /// [AppButton] inside [AppFormSection] containers.  All business logic
 /// (overStock, isLoss, canSubmit, payload) delegates to
-/// [CheckoutFormRules.evaluate] / [buildPayload] — the Widget layer never
-/// duplicates rules.
+/// [CheckoutFormRules.evaluate] / [buildPayload].
 ///
-/// Maps to `src/components/Forms/CheckoutForm.jsx`.
+/// When [apiClient] is provided, the form calls [WarehouseApiClient.submitCheckout]
+/// on submit and manages loading / error state internally.
+/// When [apiClient] is null, [onSubmit] is called directly (for test/mock use).
 class CheckoutFormMin extends StatefulWidget {
   const CheckoutFormMin({
     super.key,
     required this.item,
     this.operatorName,
     this.showCostPrice = true,
+    this.apiClient,
     this.onSubmit,
     this.onClose,
   });
 
-  /// The item being checked out.
   final CheckoutItemSnapshot item;
-
-  /// Operator name (displayed but not submitted).
   final String? operatorName;
-
-  /// Whether to show and check cost price (default true).
   final bool showCostPrice;
-
-  /// Called with the submit payload when the form is submitted.
+  final WarehouseApiClient? apiClient;
   final ValueChanged<CheckoutSubmitPayload>? onSubmit;
-
-  /// Callback for the close/dismiss action.
   final VoidCallback? onClose;
 
   @override
@@ -55,6 +50,9 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   String _saleTotalPrice = '';
   String _remark = '';
   bool _confirmLoss = false;
+
+  bool _isSubmitting = false;
+  String? _submitError;
 
   CheckoutFormInput get _input => CheckoutFormInput(
         quantity: _quantity,
@@ -70,18 +68,12 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   @override
   void initState() {
     super.initState();
-    _evaluation = CheckoutFormRules.evaluate(
-      input: _input,
-      item: widget.item,
-    );
+    _evaluation = CheckoutFormRules.evaluate(input: _input, item: widget.item);
   }
 
   void _recompute() {
     setState(() {
-      _evaluation = CheckoutFormRules.evaluate(
-        input: _input,
-        item: widget.item,
-      );
+      _evaluation = CheckoutFormRules.evaluate(input: _input, item: widget.item);
     });
   }
 
@@ -108,13 +100,32 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
     _recompute();
   }
 
-  void _handleSubmit() {
-    final payload = CheckoutFormRules.buildPayload(
-      input: _input,
-      item: widget.item,
-    );
-    if (payload != null) {
+  Future<void> _handleSubmit() async {
+    final payload = CheckoutFormRules.buildPayload(input: _input, item: widget.item);
+    if (payload == null) return;
+
+    final api = widget.apiClient;
+    if (api == null) {
       widget.onSubmit?.call(payload);
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _submitError = null;
+    });
+
+    final result = await api.submitCheckout(payload);
+
+    if (!mounted) return;
+
+    if (result.isSuccess) {
+      widget.onClose?.call();
+    } else {
+      setState(() {
+        _isSubmitting = false;
+        _submitError = result.message ?? '出库提交失败';
+      });
     }
   }
 
@@ -123,6 +134,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
     final item = widget.item;
     final ev = _evaluation;
     final isSale = _method == CheckoutMethod.sale;
+    final canSubmit = ev.canSubmit && !_isSubmitting;
 
     return SingleChildScrollView(
       child: Padding(
@@ -131,27 +143,21 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Item info card ──
             AppFormSection(
-              title: '$itemCode(item)',
+              title: itemCode(item),
               subtitle: item.itemName,
               child: _itemInfoContent(item),
             ),
             const SizedBox(height: AppSpacing.md),
-
-            // ── Method selector ──
             AppSegmentedControl<CheckoutMethod>(
               options: const [
                 AppSegmentedOption(value: CheckoutMethod.sale, label: '外销'),
-                AppSegmentedOption(
-                    value: CheckoutMethod.borrow, label: '外借'),
+                AppSegmentedOption(value: CheckoutMethod.borrow, label: '外借'),
               ],
               selectedValue: _method,
               onChanged: _onMethodChanged,
             ),
             const SizedBox(height: AppSpacing.md),
-
-            // ── Quantity stepper ──
             AppStepper(
               value: _parseIntForStepper(_quantity),
               min: 1,
@@ -159,11 +165,9 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
               onChanged: _onQuantityChanged,
               label: '出库数量',
             ),
-            // over-stock warning
             if (ev.overStock)
               Padding(
-                padding:
-                    const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
+                padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
                 child: Text(
                   '超出库存数量（库存: ${item.stockQty}）',
                   style: AppTextStyles.caption.copyWith(
@@ -172,8 +176,6 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                   ),
                 ),
               ),
-
-            // ── Sale section ──
             if (isSale) ...[
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -183,78 +185,59 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                 onChanged: _onSaleTotalChanged,
               ),
               const SizedBox(height: AppSpacing.sm),
-              // Sale unit price display
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 decoration: BoxDecoration(
                   color: AppDesignColors.surfaceMuted,
-                  borderRadius: BorderRadius.all(
-                    AppRadii.md,
-                  ),
+                  borderRadius: BorderRadius.all(AppRadii.md),
                 ),
                 child: Row(
                   children: [
-                    Text('销售单价：',
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppDesignColors.textSecondary,
-                        )),
+                    Text('销售单价：', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
                     const Spacer(),
-                    Text(
-                      '¥${ev.saleUnitPrice.toStringAsFixed(2)}',
-                      style: AppTextStyles.body
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
+                    Text('¥${ev.saleUnitPrice.toStringAsFixed(2)}',
+                        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
-              // Loss warning
               if (ev.isLoss && !_confirmLoss) ...[
                 const SizedBox(height: AppSpacing.sm),
-                _LossWarning(
-                  costPrice: item.costPrice,
-                  onConfirm: () => setState(() => _confirmLoss = true),
-                ),
+                _LossWarning(costPrice: item.costPrice, onConfirm: () => setState(() => _confirmLoss = true)),
               ],
               if (ev.isLoss && _confirmLoss)
                 Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Text(
-                    '已确认亏损操作',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppDesignColors.textSecondary,
-                    ),
-                  ),
+                  child: Text('已确认亏损操作',
+                      style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
                 ),
             ],
-
-            // ── Borrow section ──
             if (!isSale) ...[
               const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: '出库备注（选填）',
-                onChanged: _onRemarkChanged,
-              ),
+              AppTextField(label: '出库备注（选填）', onChanged: _onRemarkChanged),
             ],
-
-            // ── Cost price display ──
             if (widget.showCostPrice) ...[
               const SizedBox(height: AppSpacing.md),
-              Text(
-                '成本单价：¥${item.costPrice.toStringAsFixed(2)}',
-                style: AppTextStyles.caption.copyWith(
-                  color: AppDesignColors.textSecondary,
-                ),
-              ),
+              Text('成本单价：¥${item.costPrice.toStringAsFixed(2)}',
+                  style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
             ],
-
-            // ── Submit button ──
+            // Submit error
+            if (_submitError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Text(_submitError!,
+                    style: AppTextStyles.caption.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w600,
+                    )),
+              ),
             const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,
               child: AppButton(
-                text: '提交',
-                onPressed: ev.canSubmit ? _handleSubmit : null,
+                text: _isSubmitting ? '提交中...' : '提交',
+                loading: _isSubmitting,
+                onPressed: canSubmit ? _handleSubmit : null,
               ),
             ),
           ],
@@ -286,19 +269,9 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          SizedBox(
-            width: 56,
-            child: Text(label,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppDesignColors.textSecondary,
-                )),
-          ),
-          Expanded(
-            child: Text(value,
-                style: AppTextStyles.body,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-          ),
+          SizedBox(width: 56, child: Text(label,
+              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary))),
+          Expanded(child: Text(value, style: AppTextStyles.body, maxLines: 1, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -306,19 +279,12 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
 
   int _parseIntForStepper(String s) {
     if (s.isEmpty) return 1;
-    final n = int.tryParse(s);
-    return n ?? 1;
+    return int.tryParse(s) ?? 1;
   }
 }
 
-// ---- Loss warning widget ----
-
 class _LossWarning extends StatelessWidget {
-  const _LossWarning({
-    required this.costPrice,
-    required this.onConfirm,
-  });
-
+  const _LossWarning({required this.costPrice, required this.onConfirm});
   final double costPrice;
   final VoidCallback onConfirm;
 
@@ -336,21 +302,14 @@ class _LossWarning extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            '销售单价低于成本单价（¥${costPrice.toStringAsFixed(2)}），存在亏损风险',
-            style: AppTextStyles.caption.copyWith(color: cs.error),
-          ),
+          Text('销售单价低于成本单价（¥${costPrice.toStringAsFixed(2)}），存在亏损风险',
+              style: AppTextStyles.caption.copyWith(color: cs.error)),
           const SizedBox(height: AppSpacing.sm),
           GestureDetector(
             onTap: onConfirm,
-            child: Text(
-              '确认继续',
-              style: AppTextStyles.caption.copyWith(
-                color: cs.error,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline,
-              ),
-            ),
+            child: Text('确认继续',
+                style: AppTextStyles.caption.copyWith(
+                    color: cs.error, fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
           ),
         ],
       ),

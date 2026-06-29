@@ -165,9 +165,10 @@ class _WarehouseShellScannerEntryState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
       showCheckoutFormSheet(
-        context: context,
-        item: snapshot,
-        onSubmit: widget.onCheckoutSubmit,
+          context: context,
+          item: snapshot,
+          apiClient: widget.apiClient,
+          onSubmit: widget.onCheckoutSubmit,
       );
     });
   }
@@ -199,6 +200,7 @@ class _WarehouseShellScannerEntryState
       showReturnFormSheet(
         context: context,
         record: snapshot,
+        apiClient: widget.apiClient,
         onSubmit: widget.onReturnSubmit,
       );
     });
@@ -227,6 +229,7 @@ class _WarehouseShellScannerEntryState
       showInventoryCheckFormSheet(
         context: context,
         item: snapshot,
+        apiClient: widget.apiClient,
         onSubmit: widget.onInventoryCheckSubmit,
       );
     });
@@ -241,18 +244,21 @@ class _WarehouseShellScannerEntryState
         showCheckoutFormSheet(
           context: context,
           item: _Fixture.checkoutItem,
+          apiClient: widget.apiClient,
           onSubmit: widget.onCheckoutSubmit,
         );
       case WarehouseTab.returnForm:
         showReturnFormSheet(
           context: context,
           record: _Fixture.returnRecord,
+          apiClient: widget.apiClient,
           onSubmit: widget.onReturnSubmit,
         );
       case WarehouseTab.inventoryCheck:
         showInventoryCheckFormSheet(
           context: context,
           item: _Fixture.inventoryItem,
+          apiClient: widget.apiClient,
           onSubmit: widget.onInventoryCheckSubmit,
         );
       case WarehouseTab.settings:

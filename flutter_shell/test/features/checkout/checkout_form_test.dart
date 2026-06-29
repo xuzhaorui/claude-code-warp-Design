@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/checkout/checkout_form.dart';
 import 'package:wms_app/features/checkout/checkout_form_rules.dart';
+import 'package:wms_app/features/api/mock_warehouse_api_client.dart';
 
 /// Mock item snapshot with all UI fields.
 const _item = CheckoutItemSnapshot(
@@ -322,6 +323,14 @@ void main() {
         CheckoutFormMin(item: _item, onClose: () {}),
       ));
       // Verify the form renders without crash when onClose is provided.
+      expect(find.byType(CheckoutFormMin), findsOneWidget);
+    });
+
+    // 18. apiClient renders without crash
+    testWidgets('apiClient renders without crash', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        CheckoutFormMin(item: _item, apiClient: MockWarehouseApiClient()),
+      ));
       expect(find.byType(CheckoutFormMin), findsOneWidget);
     });
   });

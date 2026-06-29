@@ -8,35 +8,23 @@ import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
+import '../api/warehouse_api_client.dart';
 import 'inventory_check_form_rules.dart';
 
-/// Minimal inventory check (盘点) form UI widget.
-///
-/// Composes [AppStepper], [AppTextField], and [AppButton] inside
-/// [AppFormSection] containers.  All business logic (diffQty, diffType)
-/// delegates to [InventoryCheckFormRules.evaluate] / [buildPayload] —
-/// the Widget layer never duplicates rules.
-///
-/// Maps to `src/components/Forms/InventoryCheckForm.jsx`.
 class InventoryCheckFormMin extends StatefulWidget {
   const InventoryCheckFormMin({
     super.key,
     required this.item,
     this.operatorName,
+    this.apiClient,
     this.onSubmit,
     this.onClose,
   });
 
-  /// The inventory item being checked.
   final InventoryCheckItemSnapshot item;
-
-  /// Operator name (displayed but not submitted).
   final String? operatorName;
-
-  /// Called with the submit payload.
+  final WarehouseApiClient? apiClient;
   final ValueChanged<InventoryCheckSubmitPayload>? onSubmit;
-
-  /// Callback for the close/dismiss action.
   final VoidCallback? onClose;
 
   @override
@@ -46,6 +34,8 @@ class InventoryCheckFormMin extends StatefulWidget {
 class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
   String _actualQty = '';
   String _remark = '';
+  bool _isSubmitting = false;
+  String? _submitError;
 
   @override
   void initState() {
@@ -53,36 +43,41 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
     _actualQty = widget.item.stockQty.toString();
   }
 
-  InventoryCheckFormInput get _input => InventoryCheckFormInput(
-        actualQty: _actualQty,
-        remark: _remark,
-      );
-
-  InventoryCheckFormEvaluation get evaluation =>
-      InventoryCheckFormRules.evaluate(
-        input: _input,
-        item: widget.item,
-      );
+  InventoryCheckFormInput get _input => InventoryCheckFormInput(actualQty: _actualQty, remark: _remark);
 
   void _onQtyChanged(num v) {
-    setState(() {
-      _actualQty = v.toString();
-    });
+    setState(() => _actualQty = v.toString());
   }
 
   void _onRemarkChanged(String v) {
-    setState(() {
-      _remark = v;
-    });
+    setState(() => _remark = v);
   }
 
-  void _handleSubmit() {
-    final payload = InventoryCheckFormRules.buildPayload(
-      input: _input,
-      item: widget.item,
-    );
-    if (payload != null) {
+  Future<void> _handleSubmit() async {
+    final payload = InventoryCheckFormRules.buildPayload(input: _input, item: widget.item);
+    if (payload == null) return;
+
+    final api = widget.apiClient;
+    if (api == null) {
       widget.onSubmit?.call(payload);
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+      _submitError = null;
+    });
+
+    final result = await api.submitInventoryCheck(payload);
+    if (!mounted) return;
+
+    if (result.isSuccess) {
+      widget.onClose?.call();
+    } else {
+      setState(() {
+        _isSubmitting = false;
+        _submitError = result.message ?? '盘点提交失败';
+      });
     }
   }
 
@@ -90,19 +85,10 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
   Widget build(BuildContext context) {
     final item = widget.item;
     final cs = Theme.of(context).colorScheme;
-    final ev = evaluation;
-
-    // Diff display color (theme-derived, no hardcoded hex)
-    final diffColor = ev.diffQty > 0
-        ? cs.primary
-        : ev.diffQty < 0
-            ? cs.error
-            : AppDesignColors.textPrimary;
-
-    // Diff display text
-    final diffText = ev.diffQty > 0
-        ? '+${ev.diffQty}'
-        : '${ev.diffQty}';
+    final ev = InventoryCheckFormRules.evaluate(input: _input, item: item);
+    final canSubmit = ev.canSubmit && !_isSubmitting;
+    final diffColor = ev.diffQty > 0 ? cs.primary : ev.diffQty < 0 ? cs.error : AppDesignColors.textPrimary;
+    final diffText = ev.diffQty > 0 ? '+${ev.diffQty}' : '${ev.diffQty}';
 
     return SingleChildScrollView(
       child: Padding(
@@ -111,64 +97,44 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Item info card ──
             AppFormSection(
               title: item.itemName.isNotEmpty ? item.itemName : '盘点货物',
               subtitle: '账面数量：${item.stockQty}',
               child: _itemInfoContent(item),
             ),
             const SizedBox(height: AppSpacing.md),
-
-            // ── Actual qty stepper ──
-            AppStepper(
-              value: _parseIntForStepper(_actualQty),
-              min: 0,
-              max: 99999,
-              onChanged: _onQtyChanged,
-              label: '盘点真实数量',
-            ),
+            AppStepper(value: _parseIntForStepper(_actualQty), min: 0, max: 99999, onChanged: _onQtyChanged, label: '盘点真实数量'),
             const SizedBox(height: AppSpacing.md),
-
-            // ── Difference display ──
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
                 color: AppDesignColors.surfaceMuted,
-                borderRadius: BorderRadius.all(
-                  AppRadii.md,
-                ),
+                borderRadius: BorderRadius.all(AppRadii.md),
               ),
               child: Row(
                 children: [
-                  Text('差值',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppDesignColors.textSecondary,
-                      )),
+                  Text('盘点差异：', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
                   const Spacer(),
-                  Text(
-                    diffText,
-                    style: AppTextStyles.title.copyWith(color: diffColor),
-                  ),
+                  Text(diffText, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600, color: diffColor)),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-
-            // ── Remark field ──
-            AppTextField(
-              label: '盘点备注（选填）',
-              onChanged: _onRemarkChanged,
-            ),
-
+            AppTextField(label: '盘点备注（选填）', onChanged: _onRemarkChanged),
+            if (_submitError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Text(_submitError!,
+                    style: AppTextStyles.caption.copyWith(color: cs.error, fontWeight: FontWeight.w600)),
+              ),
             const SizedBox(height: AppSpacing.xl),
-
-            // ── Submit button ──
             SizedBox(
               width: double.infinity,
               child: AppButton(
-                text: '提交盘点',
-                onPressed: ev.canSubmit ? _handleSubmit : null,
+                text: _isSubmitting ? '提交中...' : '提交盘点',
+                loading: _isSubmitting,
+                onPressed: canSubmit ? _handleSubmit : null,
               ),
             ),
           ],
@@ -182,7 +148,7 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _infoRow('货物名称', item.itemName),
+        _infoRow('账面', '${item.stockQty}'),
         _infoRow('编号', item.code),
         _infoRow('规格', item.spec),
       ],
@@ -194,27 +160,16 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          SizedBox(
-            width: 64,
-            child: Text(label,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppDesignColors.textSecondary,
-                )),
-          ),
-          Expanded(
-            child: Text(value,
-                style: AppTextStyles.body,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis),
-          ),
+          SizedBox(width: 56, child: Text(label,
+              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary))),
+          Expanded(child: Text(value, style: AppTextStyles.body, maxLines: 1, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
   }
 
   int _parseIntForStepper(String s) {
-    if (s.isEmpty) return 0;
-    final n = int.tryParse(s);
-    return n ?? 0;
+    if (s.isEmpty) return 1;
+    return int.tryParse(s) ?? 1;
   }
 }

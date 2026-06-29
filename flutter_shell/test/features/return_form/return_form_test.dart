@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/return_form/return_form.dart';
 import 'package:wms_app/features/return_form/return_form_rules.dart';
+import 'package:wms_app/features/api/mock_warehouse_api_client.dart';
 
 const _record = ReturnBorrowRecordSnapshot(
   loanId: 101,
@@ -176,6 +177,14 @@ void main() {
     testWidgets('renders with onClose callback', (tester) async {
       await tester.pumpWidget(wrapApp(
         ReturnFormMin(record: _record, onClose: () {}),
+      ));
+      expect(find.byType(ReturnFormMin), findsOneWidget);
+    });
+
+    // 14. apiClient renders without crash
+    testWidgets('apiClient renders without crash', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        ReturnFormMin(record: _record, apiClient: MockWarehouseApiClient()),
       ));
       expect(find.byType(ReturnFormMin), findsOneWidget);
     });
