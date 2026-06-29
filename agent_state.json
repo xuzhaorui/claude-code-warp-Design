@@ -592,11 +592,26 @@
       ],
       "testCount": 323,
       "nextTask": "task-033-real-http-client-base-url-wiring"
+    },
+    {
+      "id": "iter-033-real-http-client-base-url-wiring",
+      "goal": "实现 HttpWarehouseApiClient 与 ServerConfigStore baseURL 接线。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/api/http_warehouse_api_client.dart",
+        "flutter_shell/test/features/api/fake_http_client.dart",
+        "flutter_shell/test/features/api/http_warehouse_api_client_test.dart",
+        "flutter_shell/pubspec.yaml",
+        "flutter_shell/pubspec.lock",
+        "agent_state.json"
+      ],
+      "testCount": 337,
+      "nextTask": "task-034-scanner-api-lookup-wiring"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-032-warehouse-api-client-contract",
-    "lastCompletedGoal": "定义 WarehouseApiClient 接口、DTO 与 MockClient 契约。",
+    "lastCompletedIterationId": "iter-033-real-http-client-base-url-wiring",
+    "lastCompletedGoal": "实现 HttpWarehouseApiClient 与 ServerConfigStore baseURL 接线。",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
