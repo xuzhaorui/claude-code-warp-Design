@@ -26,8 +26,8 @@ import 'warehouse_shell_form_wiring.dart';
 /// Wires [WarehouseShellFormWiring] to [ScannerPage].
 ///
 /// Scan flow:
-///   1. User taps scan card → [ScannerPage] opens
-///   2. Scanner returns a code string via Navigator.pop<String>
+///   1. User taps scan card: [ScannerPage] opens
+///   2. Scanner returns a code string via `Navigator.pop`
 ///   3. Code is stored as last scan result
 ///   4. [WidgetsBinding.instance.addPostFrameCallback] opens the
 ///      corresponding business form sheet for the current tab
