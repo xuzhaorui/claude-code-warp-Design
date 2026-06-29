@@ -70,5 +70,19 @@ void main() {
       ));
       expect(find.byType(WarehouseShellFormWiring), findsOneWidget);
     });
+
+    testWidgets('scanError is displayed when present', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        const WarehouseShellFormWiring(scanError: '未找到该物资'),
+      ));
+      expect(find.text('未找到该物资'), findsOneWidget);
+    });
+
+    testWidgets('scanError absent when not provided', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        const WarehouseShellFormWiring(),
+      ));
+      expect(find.text('未找到'), findsNothing);
+    });
   });
 }

@@ -23,6 +23,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
   const WarehouseShellFormWiring({
     super.key,
     this.lastScanCode,
+    this.scanError,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
@@ -31,6 +32,9 @@ class WarehouseShellFormWiring extends StatelessWidget {
   });
 
   final String? lastScanCode;
+
+  /// Error message from scan lookup (displayed in shell).
+  final String? scanError;
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
   final ValueChanged<ReturnSubmitPayload>? onReturnSubmit;
   final ValueChanged<InventoryCheckSubmitPayload>? onInventoryCheckSubmit;
@@ -45,6 +49,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
   Widget build(BuildContext context) {
     return WarehouseShellMin(
       lastScanCode: lastScanCode,
+      scanError: scanError,
       onScanRequested: onScanRequested,
       onSettingsRequested: onSettingsRequested,
     );

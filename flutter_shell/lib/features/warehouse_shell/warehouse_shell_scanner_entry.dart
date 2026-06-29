@@ -2,16 +2,16 @@
 //
 // Composes [WarehouseShellFormWiring] with the real [ScannerPage].
 // When the user taps the scan card, a [Navigator.push<String>] opens
-// ScannerPage.  The scanner page calls [Navigator.pop(scannerContext, code)]
-// from its [onScanResult] handler.  After the push returns, the scanned
-// code is stored and the corresponding business form sheet auto-opens
-// for the current tab.
-//
-// No API calls, no real business logic.
+// ScannerPage.  After the push returns, the scanned code is looked up
+// via [WarehouseApiClient.findItemByCode] (or findBorrowersByQrcode
+// for the return tab).  On success, the corresponding business form
+// sheet auto-opens.  On failure, the code is still displayed but no
+// form is opened.
 
 import 'package:flutter/material.dart';
 
 import '../../pages/scanner_page.dart';
+import '../api/warehouse_api_client.dart';
 import '../business_forms/business_form_sheets.dart';
 import '../checkout/checkout_form_rules.dart';
 import '../inventory_check/inventory_check_form_rules.dart';
@@ -23,18 +23,19 @@ import 'warehouse_shell_form_wiring.dart';
 
 // ── Public widget ──
 
-/// Wires [WarehouseShellFormWiring] to [ScannerPage].
+/// Wires [WarehouseShellFormWiring] to [ScannerPage] + [WarehouseApiClient].
 ///
 /// Scan flow:
-///   1. User taps scan card → [Navigator.push<String>(ScannerPage)]
-///   2. ScannerPage detects code → calls [Navigator.pop(scannerContext, code)]
-///   3. Await returns the code → store as last scan result
-///   4. [WidgetsBinding.instance.addPostFrameCallback] opens the
-///      corresponding business form sheet for the current tab
+///   1. Tap scan card → [Navigator.push<String>(ScannerPage)]
+///   2. ScannerPage returns code via Navigator.pop
+///   3. Call [WarehouseApiClient.findItemByCode] (or findBorrowersByQrcode)
+///   4. On success → open form with real item data
+///   5. On failure → display code, no form open
 class WarehouseShellScannerEntry extends StatefulWidget {
   const WarehouseShellScannerEntry({
     super.key,
     this.adapter,
+    this.apiClient,
     this.onScanResult,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
@@ -42,6 +43,11 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   });
 
   final ScannerAdapter? adapter;
+
+  /// API client for scan lookup.  Inject [MockWarehouseApiClient] for tests,
+  /// or [HttpWarehouseApiClient] for production.
+  final WarehouseApiClient? apiClient;
+
   final ValueChanged<String>? onScanResult;
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
   final ValueChanged<ReturnSubmitPayload>? onReturnSubmit;
@@ -55,11 +61,16 @@ class WarehouseShellScannerEntry extends StatefulWidget {
 class _WarehouseShellScannerEntryState
     extends State<WarehouseShellScannerEntry> {
   String? _lastScanCode;
+  String? _scanError;
+
+  /// Guards against double-trigger during async API lookup.
+  bool _isSearching = false;
 
   @override
   Widget build(BuildContext context) {
     return WarehouseShellFormWiring(
       lastScanCode: _lastScanCode,
+      scanError: _scanError,
       onCheckoutSubmit: widget.onCheckoutSubmit,
       onReturnSubmit: widget.onReturnSubmit,
       onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
@@ -67,7 +78,6 @@ class _WarehouseShellScannerEntryState
     );
   }
 
-  /// Push [ScannerPage], await code via Navigator-pop contract.
   Future<void> _openScanner(BuildContext context, WarehouseTab tab) async {
     debugPrint('[ScannerFlow] open scanner tab=$tab');
 
@@ -78,7 +88,6 @@ class _WarehouseShellScannerEntryState
           onScanResult: (code) {
             debugPrint('[ScannerFlow] scanner result=$code');
             widget.onScanResult?.call(code);
-            // Pop with code using scanner's own context.
             Navigator.of(scannerContext).pop(code);
           },
           onClose: () {
@@ -93,18 +102,140 @@ class _WarehouseShellScannerEntryState
 
     if (!context.mounted || code == null || code.isEmpty) return;
 
-    setState(() => _lastScanCode = code);
+    setState(() {
+      _lastScanCode = code;
+      _scanError = null;
+    });
 
-    // Auto-open the corresponding business form for the scan tab.
+    // Look up the code via API.
+    await _lookupCode(context, tab, code);
+  }
+
+  Future<void> _lookupCode(BuildContext context, WarehouseTab tab, String code) async {
+    final api = widget.apiClient;
+    if (api == null) {
+      // No API client — fall back to fixture (original behaviour).
+      debugPrint('[ScannerFlow] no apiClient, using fixture');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        _openBusinessFormForTabWithFixtures(context, tab, code);
+      });
+      return;
+    }
+
+    if (_isSearching) return;
+    setState(() => _isSearching = true);
+
+    try {
+      switch (tab) {
+        case WarehouseTab.checkout:
+          await _lookupCheckout(context, code);
+        case WarehouseTab.returnForm:
+          await _lookupReturn(context, code);
+        case WarehouseTab.inventoryCheck:
+          await _lookupInventory(context, code);
+        case WarehouseTab.settings:
+          break;
+      }
+    } finally {
+      if (mounted) setState(() => _isSearching = false);
+    }
+  }
+
+  Future<void> _lookupCheckout(BuildContext context, String code) async {
+    final result = await widget.apiClient!.findItemByCode(code);
+    if (!mounted) return;
+
+    if (!result.isSuccess || result.data == null) {
+      setState(() => _scanError = result.message ?? '未找到该物资');
+      return;
+    }
+
+    final item = result.data!;
+    final snapshot = CheckoutItemSnapshot(
+      id: item.id,
+      stockQty: item.stockQty,
+      costPrice: item.costPrice,
+      itemName: item.itemName,
+      warehouse: item.warehouse,
+      code: item.code,
+      spec: item.spec,
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
-      _openBusinessFormForTab(context, tab, code);
+      showCheckoutFormSheet(
+        context: context,
+        item: snapshot,
+        onSubmit: widget.onCheckoutSubmit,
+      );
     });
   }
 
-  void _openBusinessFormForTab(
+  Future<void> _lookupReturn(BuildContext context, String code) async {
+    final result = await widget.apiClient!.findBorrowersByQrcode(code);
+    if (!mounted) return;
+
+    if (!result.isSuccess || result.data == null || result.data!.isEmpty) {
+      setState(() => _scanError = result.message ?? '未找到借用记录');
+      return;
+    }
+
+    // Use the first borrow record.
+    final record = result.data!.first;
+    final snapshot = ReturnBorrowRecordSnapshot(
+      loanId: record.loanId,
+      freightId: record.id,
+      storageId: record.inventoryId,
+      borrowQty: record.borrowQty,
+      costPrice: record.costPrice,
+      itemName: record.itemName,
+      borrower: record.borrower,
+      warehouse: record.warehouse,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      showReturnFormSheet(
+        context: context,
+        record: snapshot,
+        onSubmit: widget.onReturnSubmit,
+      );
+    });
+  }
+
+  Future<void> _lookupInventory(BuildContext context, String code) async {
+    final result = await widget.apiClient!.findItemByCode(code);
+    if (!mounted) return;
+
+    if (!result.isSuccess || result.data == null) {
+      setState(() => _scanError = result.message ?? '未找到该物资');
+      return;
+    }
+
+    final item = result.data!;
+    final snapshot = InventoryCheckItemSnapshot(
+      id: item.id,
+      stockQty: item.stockQty,
+      itemName: item.itemName,
+      code: item.code,
+      spec: item.spec,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      showInventoryCheckFormSheet(
+        context: context,
+        item: snapshot,
+        onSubmit: widget.onInventoryCheckSubmit,
+      );
+    });
+  }
+
+  /// Fallback: open form with fixture data (no API client set).
+  void _openBusinessFormForTabWithFixtures(
       BuildContext context, WarehouseTab tab, String code) {
-    debugPrint('[ScannerFlow] open $tab form after scan code=$code');
+    debugPrint('[ScannerFlow] open $tab form (fixture) code=$code');
     switch (tab) {
       case WarehouseTab.checkout:
         showCheckoutFormSheet(
@@ -130,7 +261,7 @@ class _WarehouseShellScannerEntryState
   }
 }
 
-// ── Fixture data ──
+// ── Fixture data (fallback when no apiClient) ──
 
 class _Fixture {
   _Fixture._();

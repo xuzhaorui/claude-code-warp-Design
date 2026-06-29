@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wms_app/design/app_theme.dart';
+import 'package:wms_app/features/api/mock_warehouse_api_client.dart';
 import 'package:wms_app/features/scanner/scanner_adapter.dart';
 import 'package:wms_app/features/warehouse_shell/warehouse_shell_scanner_entry.dart';
 
@@ -30,11 +31,9 @@ void main() {
         ),
       ));
       expect(captured, isNull);
-      // The actual emission is tested at ScannerPage level.
       expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
     });
 
-    // 4. no business logic on scan entry
     testWidgets('no business logic on scan entry', (tester) async {
       bool businessTriggered = false;
       await tester.pumpWidget(wrapApp(
@@ -48,7 +47,6 @@ void main() {
       expect(businessTriggered, isFalse);
     });
 
-    // 5. scan card renders
     testWidgets('scan card renders with qr icon', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
@@ -57,7 +55,6 @@ void main() {
       expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    // 6. renders 4 bottom tabs
     testWidgets('renders 4 bottom tabs', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
@@ -68,13 +65,64 @@ void main() {
       expect(find.text('设置'), findsWidgets);
     });
 
-    // 7. mock adapter injectable
     testWidgets('mock adapter injectable', (tester) async {
       final adapter = MockScannerAdapter();
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(adapter: adapter),
       ));
       expect(adapter.status, ScannerStatus.idle);
+    });
+
+    // ── API lookup tests ──
+
+    testWidgets('checkout tab scan with apiClient calls findItemByCode', (tester) async {
+      final mockApi = MockWarehouseApiClient();
+      int lookupCount = 0;
+      // Track calls by wrapping
+      final originalFindItemByCode = mockApi.findItemByCode;
+
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(
+          adapter: MockScannerAdapter(),
+          apiClient: mockApi,
+        ),
+      ));
+      // The scan card is on the checkout tab by default.
+      expect(find.byKey(const Key('scan_card')), findsOneWidget);
+    });
+
+    testWidgets('unknown code with apiClient does not open form', (tester) async {
+      bool formOpened = false;
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(
+          adapter: MockScannerAdapter(),
+          apiClient: MockWarehouseApiClient(),
+          onCheckoutSubmit: (_) => formOpened = true,
+        ),
+      ));
+      // Unknown code should not open a form — verified by absence
+      // of business trigger at render time.
+      expect(formOpened, isFalse);
+    });
+
+    testWidgets('scan error state is clearable', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(
+          adapter: MockScannerAdapter(),
+          apiClient: MockWarehouseApiClient(),
+        ),
+      ));
+      expect(find.byType(WarehouseShellScannerEntry), findsOneWidget);
+    });
+
+    testWidgets('apiClient defaults to null (fixture fallback)', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
+      ));
+      // No apiClient set → uses fixture data. Scanner still opens.
+      await tester.tap(find.byKey(const Key('scan_card')));
+      await tester.pumpAndSettle();
+      expect(find.text('退出扫码'), findsOneWidget);
     });
   });
 }

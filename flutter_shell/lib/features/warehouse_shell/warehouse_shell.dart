@@ -39,6 +39,7 @@ class WarehouseShellMin extends StatefulWidget {
     super.key,
     this.initialTab = WarehouseTab.checkout,
     this.lastScanCode,
+    this.scanError,
     this.serverConfigStore,
     this.onScanRequested,
     this.onSettingsRequested,
@@ -46,6 +47,9 @@ class WarehouseShellMin extends StatefulWidget {
 
   final WarehouseTab initialTab;
   final String? lastScanCode;
+
+  /// Error message from scan lookup to display in the shell.
+  final String? scanError;
 
   /// Optional server config store for the settings tab.
   /// Defaults to [PersistentServerConfigStore] when null.
@@ -240,6 +244,8 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         const SizedBox(height: AppSpacing.lg),
         if (widget.lastScanCode != null && widget.lastScanCode!.isNotEmpty)
           _buildLastScanResult(widget.lastScanCode!)
+        else if (widget.scanError != null && widget.scanError!.isNotEmpty)
+          _buildScanError(widget.scanError!)
         else
           _buildEmptyState(emptyText),
       ],
@@ -272,6 +278,30 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
                   style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScanError(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppDesignColors.surface,
+        borderRadius: BorderRadius.all(AppRadii.md),
+        border: Border.all(color: AppDesignColors.textSecondary),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber, color: AppDesignColors.textSecondary, size: 20),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
             ),
           ),
         ],
