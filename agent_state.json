@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-06-27T04:15:35Z",
+  "updatedAt": "2026-06-29T08:19:58Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -575,7 +575,7 @@
       ],
       "testCount": 301,
       "device": {
-        "settingsTabRetest": "pending"
+        "settingsTabRetest": "blocked: adb unavailable in current shell; real Xiaomi 8 settings tab retest not executed"
       },
       "nextTask": "task-032-warehouse-api-client-contract"
     }
@@ -596,7 +596,8 @@
     "testCount": 301,
     "designLintWarnings": 0,
     "knownWarnings": [
-      "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails"
+      "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",
+      "2026-06-29 current shell cannot run adb: command not found; npm physical gate also blocked by WSL 1 / Node path error"
     ]
   },
   "taskQueue": [
