@@ -77,9 +77,6 @@ void main() {
 
     testWidgets('checkout tab scan with apiClient calls findItemByCode', (tester) async {
       final mockApi = MockWarehouseApiClient();
-      int lookupCount = 0;
-      // Track calls by wrapping
-      final originalFindItemByCode = mockApi.findItemByCode;
 
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(
