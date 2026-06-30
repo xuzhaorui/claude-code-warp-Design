@@ -5,12 +5,13 @@ import 'warehouse_api_models.dart';
 
 /// Contract for the warehouse management backend API.
 ///
-/// Mirrors `src/api/outbound.js`, `src/api/return.js`, `src/api/inventory.js`.
+/// Mirrors `src/api/outbound.js`, `src/api/return.js`, `src/api/inventory.js`,
+/// and `src/api/auth.js`.
 /// All methods return [WarehouseApiResult] for consistent error handling.
 ///
 /// Implementations:
 /// - [MockWarehouseApiClient] — fixture data, no network (testing)
-/// - `HttpWarehouseApiClient` — real HTTP calls (not yet implemented)
+/// - [HttpWarehouseApiClient] — real HTTP calls
 abstract class WarehouseApiClient {
   // ── Scan Lookup ──
 
@@ -56,4 +57,17 @@ abstract class WarehouseApiClient {
 
   /// Fetch inventory check records (recent 100).
   Future<WarehouseApiResult<List<InventoryCheckSubmitPayload>>> fetchInventoryCheckRecords();
+
+  // ── Auth ──
+
+  /// Login with username and password.
+  ///
+  /// Maps to Web `login(username, password)` → `POST /login`.
+  /// Returns [AuthSession] on success.
+  Future<WarehouseApiResult<AuthSession>> login(String username, String password);
+
+  /// Logout the current session.
+  ///
+  /// Maps to Web `logout()` → `POST /logout`.
+  Future<WarehouseApiResult<void>> logout();
 }

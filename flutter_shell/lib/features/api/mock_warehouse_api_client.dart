@@ -111,6 +111,24 @@ class MockWarehouseApiClient implements WarehouseApiClient {
     return const WarehouseApiResult(success: true, data: []);
   }
 
+  // ── Auth ──
+
+  @override
+  Future<WarehouseApiResult<AuthSession>> login(String username, String password) async {
+    if (_failMode) {
+      return const WarehouseApiResult(success: false, message: '登录失败');
+    }
+    return WarehouseApiResult(
+      success: true,
+      data: AuthSession(username: username, loggedAt: DateTime.now()),
+    );
+  }
+
+  @override
+  Future<WarehouseApiResult<void>> logout() async {
+    return const WarehouseApiResult(success: true);
+  }
+
   // ── Default fixtures ──
 
   static const _defaultItems = {

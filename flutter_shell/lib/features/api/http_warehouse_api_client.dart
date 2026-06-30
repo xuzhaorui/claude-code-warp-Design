@@ -292,4 +292,39 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
   }
+
+  @override
+  Future<WarehouseApiResult<AuthSession>> login(String username, String password) async {
+    try {
+      final data = await _post('/login', {
+        'username': username,
+        'password': password,
+        'rememberMe': 'true',
+      });
+      final raw = (data['data'] ?? data) as Map<String, dynamic>?;
+      final profile = raw?['profile'] as Map<String, dynamic>? ?? {};
+      final session = AuthSession(
+        username: raw?['username'] as String? ?? username,
+        profile: profile,
+        loggedAt: DateTime.now(),
+      );
+      return WarehouseApiResult(success: true, data: session);
+    } on WarehouseApiError catch (e) {
+      return WarehouseApiResult(success: false, message: e.message);
+    } catch (e) {
+      return WarehouseApiResult(success: false, message: '登录请求失败');
+    }
+  }
+
+  @override
+  Future<WarehouseApiResult<void>> logout() async {
+    try {
+      await _post('/logout', {});
+      return const WarehouseApiResult(success: true);
+    } on WarehouseApiError catch (e) {
+      return WarehouseApiResult(success: false, message: e.message);
+    } catch (e) {
+      return WarehouseApiResult(success: false, message: '网络请求失败');
+    }
+  }
 }

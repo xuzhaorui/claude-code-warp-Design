@@ -18,9 +18,14 @@ class ServerConfigPage extends StatefulWidget {
   const ServerConfigPage({
     super.key,
     this.store,
+    this.onConfigured,
   });
 
   final ServerConfigStore? store;
+
+  /// Called when a server has been configured and saved.
+  /// Used by main.dart to detect when to transition from setup → login.
+  final VoidCallback? onConfigured;
 
   @override
   State<ServerConfigPage> createState() => _ServerConfigPageState();
@@ -79,6 +84,7 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
       _nameController.clear();
       _urlController.clear();
     });
+    widget.onConfigured?.call();
   }
 
   void _handleTestConnection() {

@@ -242,4 +242,30 @@ void main() {
       expect(result.isFailure, isTrue);
     });
   });
+
+  group('MockWarehouseApiClient - auth', () {
+    late MockWarehouseApiClient client;
+
+    setUp(() {
+      client = MockWarehouseApiClient();
+    });
+
+    test('login returns session', () async {
+      final result = await client.login('admin', 'password123');
+      expect(result.isSuccess, isTrue);
+      expect(result.data, isNotNull);
+      expect(result.data!.username, 'admin');
+    });
+
+    test('login fail mode returns failure', () async {
+      client.setFailMode(true);
+      final result = await client.login('admin', 'wrong');
+      expect(result.isSuccess, isFalse);
+    });
+
+    test('logout returns success', () async {
+      final result = await client.logout();
+      expect(result.isSuccess, isTrue);
+    });
+  });
 }
