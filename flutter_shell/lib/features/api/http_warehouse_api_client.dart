@@ -30,15 +30,26 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
 
   // ── URL building ──
 
-  /// Builds the full request URL: `$baseUrl/store$path`.
-  /// Matches Web's `buildApiUrl(path)`.
+  /// Builds the full request URL matching Web's `buildApiUrl(path)`.
+  /// - If baseUrl has a path component (e.g. `http://host/wms`), uses that path as context.
+  /// - If baseUrl has no path, uses `/store` as context.
+  /// - Example: baseUrl=`http://host:8081/wms` → `http://host:8081/wms/login`
+  /// - Example: baseUrl=`http://host:8080` → `http://host:8080/store/login`
   Future<String> _buildUrl(String path) async {
     final active = await _configStore.loadActiveServer();
-    final base = active?.normalizedBaseUrl ?? '';
+    final raw = active?.normalizedBaseUrl ?? '';
     final normalizedPath = path.startsWith('/') ? path : '/$path';
-    if (base.isEmpty) return '/store$normalizedPath';
-    final separator = base.endsWith('/') ? '' : '';
-    return '$base$separator/store$normalizedPath';
+    if (raw.isEmpty) return '/store$normalizedPath';
+
+    try {
+      final uri = Uri.parse(raw);
+      final base = raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+      final hasContextPath = uri.path.isNotEmpty && uri.path != '/';
+      final contextPath = hasContextPath ? uri.path : '/store';
+      return '$base$contextPath$normalizedPath';
+    } catch (_) {
+      return '$raw/store$normalizedPath';
+    }
   }
 
   // ── Helpers ──
@@ -118,7 +129,10 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     final url = await _buildUrl(path);
     final response = await _httpClient.post(
       Uri.parse(url),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
       body: _formBody(fields),
     );
     return _parseResponse(response);
