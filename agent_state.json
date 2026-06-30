@@ -665,6 +665,7 @@
   "currentState": {
     "lastCompletedIterationId": "iter-036-business-records-refresh-wiring",
     "lastCompletedGoal": "提交成功后刷新当前 tab 的业务记录列表。",
+    "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
