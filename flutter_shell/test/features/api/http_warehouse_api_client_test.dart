@@ -80,7 +80,7 @@ void main() {
   group("submitReturn", () {
     test("success", () async {
       final store = await _setupStore();
-      final http = FakeHttpClient({"loanReturnInbound": {"success": true}});
+      final http = FakeHttpClient({"loan/inbound": {"success": true}});
       final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
       final result = await client.submitReturn(const ReturnSubmitPayload(loanId: 1, freightId: 2, storageId: 3, returnQty: 10));
       expect(result.isSuccess, isTrue);
@@ -90,7 +90,7 @@ void main() {
   group("submitInventoryCheck", () {
     test("success", () async {
       final store = await _setupStore();
-      final http = FakeHttpClient({"mobilePhoneInventory": {"success": true}});
+      final http = FakeHttpClient({"saveCheck": {"success": true}});
       final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
       final result = await client.submitInventoryCheck(const InventoryCheckSubmitPayload(inventoryId: 1, actualQty: 95));
       expect(result.isSuccess, isTrue);
