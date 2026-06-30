@@ -77,9 +77,12 @@ class _WarehouseAppState extends State<WarehouseApp> {
     }
 
     if (_needsServerConfig) {
-      return ServerConfigPage(
-        store: _configStore,
-        onConfigured: _onServerConfigured,
+      return Scaffold(
+        backgroundColor: AppTheme.light.scaffoldBackgroundColor,
+        body: ServerConfigPage(
+          store: _configStore,
+          onConfigured: _onServerConfigured,
+        ),
       );
     }
 
