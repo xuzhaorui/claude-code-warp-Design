@@ -660,11 +660,29 @@
       ],
       "testCount": 348,
       "nextTask": "task-037-real-device-end-to-end-smoke"
+    },
+    {
+      "id": "iter-038-login-api-server-wiring",
+      "goal": "接入真实 API、登录页、服务器配置，对标 Web 版。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/main.dart",
+        "flutter_shell/lib/features/auth/login_page.dart",
+        "flutter_shell/lib/features/api/warehouse_api_client.dart",
+        "flutter_shell/lib/features/api/http_warehouse_api_client.dart",
+        "flutter_shell/lib/features/api/mock_warehouse_api_client.dart",
+        "flutter_shell/lib/features/settings/server_config_page.dart",
+        "flutter_shell/test/main_entrypoint_test.dart",
+        "flutter_shell/test/features/api/warehouse_api_client_test.dart",
+        "agent_state.json"
+      ],
+      "testCount": 348,
+      "nextTask": "task-039-production-hardening"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-036-business-records-refresh-wiring",
-    "lastCompletedGoal": "提交成功后刷新当前 tab 的业务记录列表。",
+    "lastCompletedIterationId": "iter-038-login-api-server-wiring",
+    "lastCompletedGoal": "接入真实 API、登录页、服务器配置，对标 Web 版。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
