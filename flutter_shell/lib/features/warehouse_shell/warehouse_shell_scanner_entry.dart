@@ -445,7 +445,11 @@ class _DebugManualCodeInput extends StatelessWidget {
     controller.dispose();
     if (code != null && code.isNotEmpty) {
       debugPrint('[ScannerFlow] debug manual code=$code');
-      onCodeEntered(code);
+      // Defer to after dialog route fully unmounts, avoiding
+      // _dependents.isEmpty assertion during async lookup.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        onCodeEntered(code);
+      });
     }
   }
 }
