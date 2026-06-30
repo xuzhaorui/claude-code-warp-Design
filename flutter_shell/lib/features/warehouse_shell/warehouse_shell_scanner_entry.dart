@@ -8,6 +8,7 @@
 // sheet auto-opens.  On failure, the code is still displayed but no
 // form is opened.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../pages/scanner_page.dart';
@@ -72,17 +73,37 @@ class _WarehouseShellScannerEntryState
 
   @override
   Widget build(BuildContext context) {
-    return WarehouseShellFormWiring(
-      lastScanCode: _lastScanCode,
-      scanError: _scanError,
-      records: _records[_activeTab] ?? [],
-      onCheckoutSubmit: widget.onCheckoutSubmit,
-      onReturnSubmit: widget.onReturnSubmit,
-      onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
-      onScanRequested: (tab) {
-        _activeTab = tab;
-        _openScanner(context, tab);
-      },
+    return Stack(
+      children: [
+        WarehouseShellFormWiring(
+          lastScanCode: _lastScanCode,
+          scanError: _scanError,
+          records: _records[_activeTab] ?? [],
+          onCheckoutSubmit: widget.onCheckoutSubmit,
+          onReturnSubmit: widget.onReturnSubmit,
+          onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
+          onScanRequested: (tab) {
+            _activeTab = tab;
+            _openScanner(context, tab);
+          },
+        ),
+        if (kDebugMode)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 80,
+            child: _DebugManualCodeInput(
+              onCodeEntered: (code) {
+                _activeTab = WarehouseTab.checkout;
+                setState(() {
+                  _lastScanCode = code;
+                  _scanError = null;
+                });
+                _lookupCode(context, WarehouseTab.checkout, code);
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -357,4 +378,74 @@ class _Fixture {
     code: 'SA-001',
     spec: '1L',
   );
+}
+
+// ── Debug-only: manual code input for testing ──
+
+/// Debug-mode overlay button to manually enter a scan code.
+///
+/// Only visible in `kDebugMode` builds.  Sends the entered code through
+/// the exact same [_WarehouseShellScannerEntryState._lookupCode] handler
+/// as a real scan result.
+///
+/// **Production acceptance must use real paper-label qrcode scanning.**
+/// Electronic-screen codes are known to fail on certain devices and are
+/// NOT a supported path for production verification.
+class _DebugManualCodeInput extends StatelessWidget {
+  const _DebugManualCodeInput({required this.onCodeEntered});
+
+  final ValueChanged<String> onCodeEntered;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: SizedBox(
+        width: 260,
+        child: ElevatedButton.icon(
+          onPressed: () => _showInputDialog(context),
+          icon: const Icon(Icons.edit, size: 16),
+          label: const Text('Debug: 手动输入扫码值'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.orange.shade700,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            textStyle: const TextStyle(fontSize: 13),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showInputDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('手动输入扫码值 (Debug)'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: '输入条码 / QR Code',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text),
+            child: const Text('确认'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (code != null && code.isNotEmpty) {
+      debugPrint('[ScannerFlow] debug manual code=$code');
+      onCodeEntered(code);
+    }
+  }
 }
