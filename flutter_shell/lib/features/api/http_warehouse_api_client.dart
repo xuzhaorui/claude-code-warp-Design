@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../checkout/checkout_form_rules.dart';
@@ -47,12 +48,17 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
 
     try {
       final uri = Uri.parse(raw);
-      final base = raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
       final hasContextPath = uri.path.isNotEmpty && uri.path != '/';
-      final contextPath = hasContextPath ? uri.path : '/store';
-      return '$base$contextPath$normalizedPath';
+      if (hasContextPath) {
+        // Web: parsed.origin + parsed.pathname + path
+        return '${uri.origin}${uri.path}$normalizedPath';
+      }
+      // Web: base + '/store' + path
+      final base = raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+      return '$base/store$normalizedPath';
     } catch (_) {
-      return '$raw/store$normalizedPath';
+      final base = raw.endsWith('/') ? raw.substring(0, raw.length - 1) : raw;
+      return '$base/store$normalizedPath';
     }
   }
 
@@ -133,7 +139,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
         serverCode: data['code'] as String?,
       );
     }
-    if (data['code'] != null && data['code'] != '0' && data['code'] != '200' && data['code'] != 200) {
+    // Normalize `code` to int for comparison (Web uses String, server may use int).
+    final code = int.tryParse('${data['code']}') ?? -1;
+    if (code != -1 && code != 0 && code != 200) {
       throw WarehouseApiError(
         message: data['msg'] as String? ?? data['message'] as String? ?? '操作失败',
         serverCode: data['code'] as String?,
@@ -153,26 +161,48 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
 
   /// GET request, returns parsed JSON.
   Future<Map<String, dynamic>> _get(String path) async {
-    final url = await _buildUrl(path);
-    final response = await _httpClient.get(
-      Uri.parse(url),
-      headers: _headers(),
-    );
+    final urlValue = await _buildUrl(path);
+    final parsed = Uri.parse(urlValue);
+    final request = http.Request('GET', parsed);
+    request.headers.addAll(_headers());
+    request.followRedirects = false;
+    final streamed = await _httpClient.send(request);
+    final response = await http.Response.fromStream(streamed);
+    debugPrint('[Debug_HTTP] >>> GET $urlValue');
+    debugPrint('[Debug_HTTP] <<< status=${response.statusCode} Location=${response.headers['location']}');
     return _parseResponse(response);
   }
 
   /// POST request with form body, returns parsed JSON.
-  Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> fields, {bool saveCookie = false}) async {
-    final url = await _buildUrl(path);
-    final response = await _httpClient.post(
-      Uri.parse(url),
-      headers: {
-        ..._headers(),
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      },
-      body: _formBody(fields),
-    );
+  /// POST request with form body, returns parsed JSON.
+  /// If [allowRedirect] is true, 302 responses are treated as success
+  /// (Spring Security login redirect pattern) and parsed as JSON.
+  Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> fields, {bool saveCookie = false, bool allowRedirect = false}) async {
+    final urlValue = await _buildUrl(path);
+    final parsed = Uri.parse(urlValue);
+    
+    final request = http.Request('POST', parsed);
+    request.headers.addAll({
+      ..._headers(),
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    });
+    request.bodyFields = _formBody(fields);
+    request.followRedirects = false;
+    
+    final streamed = await _httpClient.send(request);
+    final response = await http.Response.fromStream(streamed);
+    
     if (saveCookie) _saveCookies(response);
+    
+    // Handle Spring Security 302 login redirect: success + session cookie
+    if (allowRedirect && response.statusCode == 302) {
+      final location = response.headers['location'] ?? '';
+      if (response.headers['set-cookie'] != null && !location.contains('error')) {
+        // Login succeeded: return empty data to signal success
+        return <String, dynamic>{'success': true, 'code': '0', 'data': <String, dynamic>{}};
+      }
+    }
+    
     return _parseResponse(response);
   }
 
@@ -181,22 +211,28 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   @override
   Future<WarehouseApiResult<AuthSession>> login(String username, String password) async {
     try {
-      final data = await _post('/login', {
+      final respData = await _post('/login', {
         'username': username,
         'password': password,
         'rememberMe': 'true',
-      }, saveCookie: true);
-      final raw = (data['data'] ?? data) as Map<String, dynamic>?;
-      final profile = raw?['profile'] as Map<String, dynamic>? ?? {};
+      }, saveCookie: true, allowRedirect: true);
+      // parse response data with safe type conversion
+      final rawValue = respData['data'] ?? respData;
+      final raw = rawValue is Map
+          ? rawValue.map((k, v) => MapEntry(k.toString(), v))
+          : <String, dynamic>{};
+      final profile = raw['profile'] as Map<String, dynamic>? ?? {};
       final session = AuthSession(
-        username: raw?['loginName'] as String? ?? username,
+        username: raw['loginName'] as String? ?? username,
         profile: profile,
         loggedAt: DateTime.now(),
       );
       return WarehouseApiResult(success: true, data: session);
     } on WarehouseApiError catch (e) {
+      debugPrint('[Debug_Auth] login WarehouseApiError: code=${e.serverCode} message=${e.message} httpStatus=${e.httpStatus}');
       return WarehouseApiResult(success: false, message: e.message);
     } catch (e) {
+      debugPrint('[Debug_Auth] login unexpected: $e ${e.runtimeType}');
       return WarehouseApiResult(success: false, message: '登录请求失败');
     }
   }

@@ -10,7 +10,13 @@ class FakeHttpClient implements http.Client {
 
   FakeHttpClient(Map<String, dynamic> jsonResponses)
       : _responses = jsonResponses.map((k, v) => MapEntry(k,
-            http.Response(jsonEncode(v), 200, headers: {'content-type': 'application/json'})));
+            v is Map && v.containsKey('_statusCode')
+                ? http.Response(
+                    v['_body'] as String? ?? jsonEncode(v),
+                    v['_statusCode'] as int? ?? 200,
+                    headers: (v['_headers'] as Map<String, String>?) ?? {'content-type': 'application/json'},
+                  )
+                : http.Response(jsonEncode(v), 200, headers: {'content-type': 'application/json'})));
 
   List<String> get requestedUrls => List.unmodifiable(_urls);
   void setNetworkError() => _failMode = true;
