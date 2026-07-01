@@ -28,6 +28,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
   AuthSession? _session;
   bool _initialized = false;
   bool _needsServerConfig = true;
+  String? _activeServerName;
 
   @override
   void initState() {
@@ -43,15 +44,19 @@ class _WarehouseAppState extends State<WarehouseApp> {
     if (mounted) {
       setState(() {
         _needsServerConfig = active == null;
+        _activeServerName = active?.name;
         _initialized = true;
       });
     }
   }
 
-  void _onServerConfigured() {
+  void _onServerConfigured() async {
+    final active = await _configStore.loadActiveServer();
+    if (!mounted) return;
     setState(() {
       _apiClient = HttpWarehouseApiClient(configStore: _configStore);
       _needsServerConfig = false;
+      _activeServerName = active?.name;
     });
   }
 
@@ -95,6 +100,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
 
     return WarehouseShellScannerEntry(
       apiClient: _apiClient,
+      activeServerName: _activeServerName,
     );
   }
 }

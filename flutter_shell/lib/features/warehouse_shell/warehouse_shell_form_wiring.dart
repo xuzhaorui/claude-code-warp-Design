@@ -25,6 +25,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
     this.lastScanCode,
     this.scanError,
     this.records,
+    this.activeServerName,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
@@ -37,6 +38,11 @@ class WarehouseShellFormWiring extends StatelessWidget {
 
   /// Records to display in the current tab.
   final List<RecordItem>? records;
+
+  /// Display name of the currently active server, surfaced in the shell
+  /// status row.  Passed through to [WarehouseShellMin].
+  final String? activeServerName;
+
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
   final ValueChanged<ReturnSubmitPayload>? onReturnSubmit;
   final ValueChanged<InventoryCheckSubmitPayload>? onInventoryCheckSubmit;
@@ -53,6 +59,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
       lastScanCode: lastScanCode,
       scanError: scanError,
       records: records,
+      activeServerName: activeServerName,
       onScanRequested: onScanRequested,
       onSettingsRequested: onSettingsRequested,
     );

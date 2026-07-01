@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../components/app_button.dart';
+import '../../components/app_select_card.dart';
 import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
@@ -114,21 +115,31 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Page title + small status subtitle for clearer hierarchy.
           Text('服务配置', style: AppTextStyles.title),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '管理可用服务器与当前连接',
+            style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+          ),
           const SizedBox(height: AppSpacing.xl),
 
-          // Active server display
-          if (_activeServer != null) _buildActiveServer(_activeServer!),
+          // Current server section.
+          if (_activeServer != null) ...[
+            _buildSectionLabel('当前服务器'),
+            _buildActiveServer(_activeServer!),
+            const SizedBox(height: AppSpacing.xl),
+          ],
 
-          // Server list
+          // Available server list.
+          _buildSectionLabel('可用服务器'),
           if (_servers.isEmpty)
             _buildEmptyState()
           else
             ..._servers.map(_buildServerTile),
-
           const SizedBox(height: AppSpacing.lg),
 
-          // Add / form toggle
+          // Add / form toggle.
           if (!_showForm)
             SizedBox(
               width: double.infinity,
@@ -139,39 +150,51 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
               ),
             ),
 
-          // Add form
+          // Add form.
           if (_showForm) _buildForm(),
 
-          // Status message
+          // Status message.
           if (_statusMessage != null) _buildStatusMessage(),
         ],
       ),
     );
   }
 
-  Widget _buildActiveServer(ServerConfig config) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppDesignColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppDesignColors.primary),
+  Widget _buildSectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Text(
+        text,
+        style: AppTextStyles.caption.copyWith(
+          color: AppDesignColors.textSecondary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle, color: AppDesignColors.primary, size: 20),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('当前服务器：${config.name}', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                Text(config.normalizedBaseUrl, style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-              ],
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget _buildActiveServer(ServerConfig config) {
+    return AppSelectCard(
+      title: config.name,
+      subtitle: config.normalizedBaseUrl,
+      selected: true,
+      leadingIcon: Icons.check_circle,
+      onTap: null,
+      trailing: _buildCurrentBadge(),
+    );
+  }
+
+  /// Small "当前" pill badge marking the active server.
+  Widget _buildCurrentBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      decoration: BoxDecoration(
+        color: AppDesignColors.primarySoft,
+        borderRadius: BorderRadius.all(AppRadii.pill),
+      ),
+      child: Text(
+        '当前',
+        style: AppTextStyles.label.copyWith(color: AppDesignColors.textPrimary),
       ),
     );
   }
@@ -180,36 +203,17 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
     final isActive = _activeServer?.normalizedBaseUrl == config.normalizedBaseUrl;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Material(
-        color: isActive ? AppDesignColors.primarySoft : AppDesignColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: () => _handleSelect(config),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Icon(
-                  isActive ? Icons.radio_button_checked : Icons.radio_button_off,
-                  size: 20,
-                  color: isActive ? AppDesignColors.primary : AppDesignColors.textSecondary,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(config.name, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
-                      Text(config.normalizedBaseUrl,
-                          style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+      child: AppSelectCard(
+        title: config.name,
+        subtitle: config.normalizedBaseUrl,
+        selected: isActive,
+        leadingIcon: isActive ? Icons.radio_button_checked : Icons.radio_button_off,
+        trailing: const Icon(
+          Icons.chevron_right,
+          size: 20,
+          color: AppDesignColors.textSecondary,
         ),
+        onTap: () => _handleSelect(config),
       ),
     );
   }

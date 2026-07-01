@@ -74,5 +74,15 @@ void main() {
       ));
       expect(captured, isNull);
     });
+
+    // flutter test runs in debug mode, so the kDebugMode-only manual input
+    // overlay should render as a low-emphasis ghost trigger.
+    testWidgets('debug manual input renders in debug mode', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
+      ));
+      expect(find.textContaining('Debug'), findsOneWidget);
+      expect(find.byIcon(Icons.edit), findsWidgets);
+    });
   });
 }

@@ -201,5 +201,34 @@ void main() {
       // Empty records should still show the "暂无出库记录" empty state.
       expect(find.text('暂无出库记录'), findsOneWidget);
     });
+
+    // 24. checkout page shows the scan call-to-action text
+    testWidgets('checkout scan card shows 点击扫码', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.text('点击扫码'), findsOneWidget);
+      expect(find.text('扫描条码或二维码'), findsOneWidget);
+    });
+
+    // 25. status row surfaces the active server name when provided
+    testWidgets('status row shows active server name', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        const WarehouseShellMin(activeServerName: 'CS'),
+      ));
+      expect(find.textContaining('当前服务器'), findsOneWidget);
+      expect(find.textContaining('CS'), findsOneWidget);
+    });
+
+    // 26. status row shows 未配置 when no server name provided
+    testWidgets('status row shows 未配置 when no server name', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.textContaining('未配置'), findsOneWidget);
+    });
+
+    // 27. checkout page shows the tab title header
+    testWidgets('checkout tab shows 出库 title', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      // Header title plus nav label — header uses AppTextStyles.title.
+      expect(find.text('出库'), findsWidgets);
+    });
   });
 }

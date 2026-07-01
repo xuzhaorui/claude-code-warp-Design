@@ -14,16 +14,19 @@ import '../settings/server_config_store.dart';
 enum WarehouseTab { checkout, returnForm, inventoryCheck, settings }
 
 // ---- Component-local constants ----
-
+//
+// Per Design.md, component-local numeric constants (icon sizes, accent bar
+// dimensions) are allowed when they are not promoting a new design token.
 class _WS {
   _WS._();
   static const bottomNavHeight = 64.0;
   static const navIconSize = 28.0;
-  static const scanIconBox = 115.0;
-  static const badgeHPad = 14.0;
-  static const badgeVPad = 6.0;
-  static const orangeBarW = 4.0;
-  static const orangeBarH = 20.0;
+  static const scanIconSize = 56.0;
+  static const accentBarW = 3.0;
+  static const accentBarH = 14.0;
+  static const statusIconSize = 16.0;
+  static const resultIconSize = 20.0;
+  static const imageHintIconSize = 16.0;
 }
 
 // ---- Public widget ----
@@ -31,8 +34,8 @@ class _WS {
 /// Warehouse bottom navigation shell — Web parity.
 ///
 /// Four tabs: 出库 / 归还 / 盘点 / 设置.
-/// No AppBar.  Each business tab shows a large scan card and record section.
-/// The scan card fires [onScanRequested] with the current tab.
+/// No AppBar.  Each business tab shows a restrained scan card and record
+/// section.  The scan card fires [onScanRequested] with the current tab.
 /// The settings tab fires [onSettingsRequested].
 /// No manual "发起" buttons — the primary flow is scan → auto-open form.
 class WarehouseShellMin extends StatefulWidget {
@@ -43,6 +46,7 @@ class WarehouseShellMin extends StatefulWidget {
     this.scanError,
     this.records,
     this.serverConfigStore,
+    this.activeServerName,
     this.onScanRequested,
     this.onSettingsRequested,
   });
@@ -59,6 +63,10 @@ class WarehouseShellMin extends StatefulWidget {
   /// Optional server config store for the settings tab.
   /// Defaults to [PersistentServerConfigStore] when null.
   final ServerConfigStore? serverConfigStore;
+
+  /// Display name of the currently active server, shown in the small status
+  /// row of each business tab.  Null/empty shows "未配置".
+  final String? activeServerName;
 
   /// Fired when the scan card is tapped. Carries the current tab.
   final ValueChanged<WarehouseTab>? onScanRequested;
@@ -130,7 +138,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildScanCard(tabInfo.badgeLabel),
+          _buildHeader(tabInfo.tabName),
+          const SizedBox(height: AppSpacing.lg),
+          _buildScanCard(),
           const SizedBox(height: AppSpacing.sm),
           _buildImageRecognitionHint(),
           const SizedBox(height: AppSpacing.xl),
@@ -143,58 +153,63 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     );
   }
 
-  // ── Scan card ──
+  // ── Header ──
 
-  Widget _buildScanCard(String badgeLabel) {
+  Widget _buildHeader(String tabName) {
+    final serverName = (widget.activeServerName == null || widget.activeServerName!.isEmpty)
+        ? '未配置'
+        : widget.activeServerName!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(tabName, style: AppTextStyles.title),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          children: [
+            Icon(Icons.cloud_outlined, size: _WS.statusIconSize, color: AppDesignColors.textSecondary),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              '当前服务器：$serverName',
+              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Scan card ──
+  //
+  // Restrained outline card: white surface, thin border, centered outline
+  // scan icon in primary accent, primary label + secondary helper.  No large
+  // solid colour block, no heavy shadow.
+
+  Widget _buildScanCard() {
     return GestureDetector(
       key: const Key('scan_card'),
       onTap: () => widget.onScanRequested?.call(_activeTab),
+      behavior: HitTestBehavior.opaque,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppDesignColors.primarySoft,
+          color: AppDesignColors.surface,
           borderRadius: BorderRadius.all(AppRadii.lg),
+          border: Border.all(color: AppDesignColors.borderMuted),
         ),
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Stack(
-          clipBehavior: Clip.none,
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.xl,
+          horizontal: AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Positioned(
-              top: 0,
-              left: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: _WS.badgeHPad,
-                  vertical: _WS.badgeVPad,
-                ),
-                decoration: BoxDecoration(
-                  color: AppDesignColors.primary,
-                  borderRadius: BorderRadius.all(AppRadii.sm),
-                ),
-                child: Text(
-                  badgeLabel,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 48, bottom: 8),
-                child: Container(
-                  width: _WS.scanIconBox,
-                  height: _WS.scanIconBox,
-                  decoration: BoxDecoration(
-                    color: AppDesignColors.primary,
-                    borderRadius: BorderRadius.all(AppRadii.md),
-                  ),
-                  child: const Icon(Icons.qr_code_scanner, size: 72, color: Colors.white),
-                ),
-              ),
+            Icon(Icons.qr_code_scanner, size: _WS.scanIconSize, color: AppDesignColors.primary),
+            const SizedBox(height: AppSpacing.md),
+            Text('点击扫码', style: AppTextStyles.title),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '扫描条码或二维码',
+              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
             ),
           ],
         ),
@@ -211,11 +226,11 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.image, size: 16, color: AppDesignColors.textSecondary),
-            const SizedBox(width: 4),
+            Icon(Icons.image, size: _WS.imageHintIconSize, color: AppDesignColors.textSecondary),
+            const SizedBox(width: AppSpacing.xs),
             Text(
               '从图片识别',
-              style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
+              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
             ),
           ],
         ),
@@ -235,8 +250,8 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         Row(
           children: [
             Container(
-              width: _WS.orangeBarW,
-              height: _WS.orangeBarH,
+              width: _WS.accentBarW,
+              height: _WS.accentBarH,
               decoration: BoxDecoration(
                 color: AppDesignColors.primary,
                 borderRadius: BorderRadius.all(AppRadii.pill),
@@ -246,7 +261,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
             Text(sectionTitle, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
           ],
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         if (widget.records != null && widget.records!.isNotEmpty)
           ...widget.records!.map((r) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -273,11 +288,11 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       decoration: BoxDecoration(
         color: AppDesignColors.surface,
         borderRadius: BorderRadius.all(AppRadii.md),
-        border: Border.all(color: AppDesignColors.primary),
+        border: Border.all(color: AppDesignColors.borderMuted),
       ),
       child: Row(
         children: [
-          Icon(Icons.check_circle, color: AppDesignColors.primary, size: 20),
+          Icon(Icons.check_circle, color: AppDesignColors.primary, size: _WS.resultIconSize),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -306,11 +321,11 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       decoration: BoxDecoration(
         color: AppDesignColors.surface,
         borderRadius: BorderRadius.all(AppRadii.md),
-        border: Border.all(color: AppDesignColors.textSecondary),
+        border: Border.all(color: AppDesignColors.borderMuted),
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_amber, color: AppDesignColors.textSecondary, size: 20),
+          Icon(Icons.warning_amber, color: AppDesignColors.textSecondary, size: _WS.resultIconSize),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -340,13 +355,13 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   _TabInfo _tabInfo(WarehouseTab tab) {
     switch (tab) {
       case WarehouseTab.checkout:
-        return _TabInfo(badgeLabel: '出库', recordTitle: '出库记录', emptyText: '暂无出库记录');
+        return _TabInfo(tabName: '出库', recordTitle: '出库记录', emptyText: '暂无出库记录');
       case WarehouseTab.returnForm:
-        return _TabInfo(badgeLabel: '归还', recordTitle: '归还记录', emptyText: '暂无归还记录');
+        return _TabInfo(tabName: '归还', recordTitle: '归还记录', emptyText: '暂无归还记录');
       case WarehouseTab.inventoryCheck:
-        return _TabInfo(badgeLabel: '盘点', recordTitle: '盘点记录', emptyText: '暂无盘点记录');
+        return _TabInfo(tabName: '盘点', recordTitle: '盘点记录', emptyText: '暂无盘点记录');
       case WarehouseTab.settings:
-        return _TabInfo(badgeLabel: '', recordTitle: '', emptyText: '设置页面');
+        return _TabInfo(tabName: '设置', recordTitle: '', emptyText: '设置页面');
     }
   }
 }
@@ -364,12 +379,12 @@ class RecordItem {
 // ---- Tab info data class ----
 
 class _TabInfo {
-  final String badgeLabel;
+  final String tabName;
   final String recordTitle;
   final String emptyText;
 
   const _TabInfo({
-    required this.badgeLabel,
+    required this.tabName,
     required this.recordTitle,
     required this.emptyText,
   });

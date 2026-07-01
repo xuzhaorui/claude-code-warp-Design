@@ -11,6 +11,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../design/app_design_colors.dart';
+import '../../design/app_radii.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_text_styles.dart';
 import '../../pages/scanner_page.dart';
 import '../api/warehouse_api_client.dart';
 import '../business_forms/business_form_sheets.dart';
@@ -37,6 +41,7 @@ class WarehouseShellScannerEntry extends StatefulWidget {
     super.key,
     this.adapter,
     this.apiClient,
+    this.activeServerName,
     this.onScanResult,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
@@ -48,6 +53,10 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   /// API client for scan lookup.  Inject [MockWarehouseApiClient] for tests,
   /// or [HttpWarehouseApiClient] for production.
   final WarehouseApiClient? apiClient;
+
+  /// Display name of the currently active server, surfaced in the shell's
+  /// status row.  Passed through to [WarehouseShellMin].
+  final String? activeServerName;
 
   final ValueChanged<String>? onScanResult;
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
@@ -79,6 +88,7 @@ class _WarehouseShellScannerEntryState
           lastScanCode: _lastScanCode,
           scanError: _scanError,
           records: _records[_activeTab] ?? [],
+          activeServerName: widget.activeServerName,
           onCheckoutSubmit: widget.onCheckoutSubmit,
           onReturnSubmit: widget.onReturnSubmit,
           onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
@@ -381,14 +391,30 @@ class _Fixture {
 }
 
 // ── Debug-only: manual code input for testing ──
+//
+// Component-local numeric constants (icon sizes) for the debug overlay.
+// Per Design.md these are allowed as component-local constants and are not
+// promoted to design tokens — this widget is debug-only, low-emphasis.
+class _DBG {
+  _DBG._();
+  static const iconSize = 16.0;
+  static const actionIconSize = 20.0;
+  static const triggerHPad = AppSpacing.md;
+  static const triggerVPad = AppSpacing.sm;
+  static const inputWidth = 300.0;
+  static const triggerMaxWidth = 260.0;
+}
 
 /// Debug-mode overlay widget to manually enter a scan code.
 ///
-/// Uses inline [TextField] instead of [showDialog] to avoid framework
+/// Uses an inline [TextField] instead of [showDialog] to avoid framework
 /// assertion during dialog route unmount (`_dependents.isEmpty`).
-/// Only visible in `kDebugMode` builds.
+/// Visual style is intentionally **low-emphasis** (outline/ghost): a thin
+/// bordered pill trigger and a plain text field.  This is a test affordance,
+/// not a primary action — production acceptance must use real paper-label
+/// qrcode scanning.
 ///
-/// **Production acceptance must use real paper-label qrcode scanning.**
+/// Only visible in `kDebugMode` builds.
 class _DebugManualCodeInput extends StatefulWidget {
   const _DebugManualCodeInput({required this.onCodeEntered});
 
@@ -415,31 +441,34 @@ class _DebugManualCodeInputState extends State<_DebugManualCodeInput> {
       children: [
         if (_showInput)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: SizedBox(
-              width: 300,
+              width: _DBG.inputWidth,
               child: TextField(
                 controller: _controller,
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: '输入条码后按确认',
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.all(AppRadii.sm),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: AppDesignColors.surface,
                   isDense: true,
                   suffixIcon: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.check, size: 20),
+                        icon: Icon(Icons.check, size: _DBG.actionIconSize),
                         onPressed: () => _submit(_controller.text),
                         tooltip: '确认',
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, size: 20),
+                        icon: Icon(Icons.close, size: _DBG.actionIconSize),
                         onPressed: () {
                           _controller.clear();
                           setState(() => _showInput = false);
@@ -449,22 +478,42 @@ class _DebugManualCodeInputState extends State<_DebugManualCodeInput> {
                     ],
                   ),
                 ),
-                style: const TextStyle(fontSize: 14),
+                style: AppTextStyles.body,
                 onSubmitted: _submit,
               ),
             ),
           ),
-        SizedBox(
-          width: 260,
-          child: ElevatedButton.icon(
-            onPressed: () => setState(() => _showInput = !_showInput),
-            icon: const Icon(Icons.edit, size: 16),
-            label: Text(_showInput ? '关闭手动输入' : 'Debug: 手动输入扫码值'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange.shade700,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              textStyle: const TextStyle(fontSize: 13),
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _DBG.triggerMaxWidth),
+            child: Material(
+              color: AppDesignColors.surface,
+              borderRadius: BorderRadius.all(AppRadii.pill),
+              child: InkWell(
+                onTap: () => setState(() => _showInput = !_showInput),
+                borderRadius: BorderRadius.all(AppRadii.pill),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _DBG.triggerHPad,
+                    vertical: _DBG.triggerVPad,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppDesignColors.borderMuted),
+                    borderRadius: BorderRadius.all(AppRadii.pill),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit, size: _DBG.iconSize, color: AppDesignColors.textSecondary),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        _showInput ? '关闭手动输入' : 'Debug: 手动输入扫码值',
+                        style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ),

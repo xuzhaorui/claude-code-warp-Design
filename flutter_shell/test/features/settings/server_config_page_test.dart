@@ -95,5 +95,41 @@ void main() {
       // No real API call triggered — verified by absence of network calls.
       expect(find.byType(ServerConfigPage), findsOneWidget);
     });
+
+    testWidgets('shows section labels 可用服务器 and 当前 badge after save', (tester) async {
+      final store = InMemoryServerConfigStore();
+      await tester.pumpWidget(wrapApp(
+        ServerConfigPage(store: store),
+      ));
+      await tester.tap(find.text('添加服务器'));
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField).first, '主服务器');
+      await tester.enterText(find.byType(TextFormField).last, 'http://192.168.1.100:8080');
+      await tester.tap(find.text('保存'));
+      await tester.pump();
+
+      // Section labels and the active-server "当前" badge render.
+      expect(find.text('当前服务器'), findsOneWidget);
+      expect(find.text('可用服务器'), findsOneWidget);
+      expect(find.text('当前'), findsOneWidget);
+    });
+
+    testWidgets('selecting a server marks it active via chevron tile', (tester) async {
+      final store = InMemoryServerConfigStore();
+      // Seed two servers so the list is selectable.
+      await store.saveServers([
+        ServerConfig(name: 'A', baseUrl: 'http://a'),
+        ServerConfig(name: 'B', baseUrl: 'http://b'),
+      ]);
+      await store.setActiveServer('http://a');
+
+      await tester.pumpWidget(wrapApp(ServerConfigPage(store: store)));
+      await tester.pumpAndSettle();
+
+      // Tapping server B selects it.
+      await tester.tap(find.text('B'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.radio_button_checked), findsWidgets);
+    });
   });
 }
