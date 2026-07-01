@@ -41,6 +41,7 @@ class WarehouseShellScannerEntry extends StatefulWidget {
     this.onCheckoutSubmit,
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
+    this.onLogout,
   });
 
   final ScannerAdapter? adapter;
@@ -52,6 +53,9 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   /// Display name of the currently active server, surfaced in the shell's
   /// status row.  Passed through to [WarehouseShellMin].
   final String? activeServerName;
+
+  /// Fired when the user requests logout from the settings page.
+  final VoidCallback? onLogout;
 
   final ValueChanged<String>? onScanResult;
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
@@ -65,7 +69,6 @@ class WarehouseShellScannerEntry extends StatefulWidget {
 
 class _WarehouseShellScannerEntryState
     extends State<WarehouseShellScannerEntry> {
-  String? _lastScanCode;
   String? _scanError;
   WarehouseTab _activeTab = WarehouseTab.checkout;
 
@@ -76,12 +79,26 @@ class _WarehouseShellScannerEntryState
   bool _isSearching = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Load the default tab's records on mount so the list is populated
+    // immediately, not only after the first submit.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchRecords(_activeTab));
+  }
+
+  /// Called when the active business tab changes — refreshes that tab's
+  /// records from the API so each tab shows real data on entry.
+  void _onTabChanged(WarehouseTab tab) {
+    _activeTab = tab;
+    _fetchRecords(tab);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // task-041: the user-visible Debug manual-code overlay is removed from
     // the production UI.  Real paper-label scanning remains the only
     // user-facing entry; the manual-input affordance is no longer rendered.
     return WarehouseShellFormWiring(
-      lastScanCode: _lastScanCode,
       scanError: _scanError,
       records: _records[_activeTab] ?? [],
       activeServerName: widget.activeServerName,
@@ -92,6 +109,8 @@ class _WarehouseShellScannerEntryState
         _activeTab = tab;
         _openScanner(context, tab);
       },
+      onTabChanged: _onTabChanged,
+      onLogout: widget.onLogout,
     );
   }
 
@@ -120,7 +139,6 @@ class _WarehouseShellScannerEntryState
     if (!context.mounted || code == null || code.isEmpty) return;
 
     setState(() {
-      _lastScanCode = code;
       _scanError = null;
     });
 

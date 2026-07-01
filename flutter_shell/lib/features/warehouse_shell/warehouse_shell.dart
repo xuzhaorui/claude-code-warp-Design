@@ -56,6 +56,8 @@ class WarehouseShellMin extends StatefulWidget {
     this.activeServerName,
     this.onScanRequested,
     this.onSettingsRequested,
+    this.onTabChanged,
+    this.onLogout,
   });
 
   final WarehouseTab initialTab;
@@ -81,6 +83,13 @@ class WarehouseShellMin extends StatefulWidget {
   /// Fired when settings tab requests settings page navigation.
   final VoidCallback? onSettingsRequested;
 
+  /// Fired when the active business tab changes, so the host can refresh
+  /// that tab's records from the API.
+  final ValueChanged<WarehouseTab>? onTabChanged;
+
+  /// Fired when the user requests logout from the settings page.
+  final VoidCallback? onLogout;
+
   @override
   State<WarehouseShellMin> createState() => _WarehouseShellMinState();
 }
@@ -96,6 +105,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 
   void _onTabChanged(WarehouseTab tab) {
     setState(() => _activeTab = tab);
+    widget.onTabChanged?.call(tab);
   }
 
   @override
@@ -103,7 +113,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     return Scaffold(
       backgroundColor: AppDesignColors.background,
       body: SafeArea(
-        top: false,
         child: _buildTabContent(),
       ),
       bottomNavigationBar: SizedBox(
@@ -137,7 +146,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 
   Widget _buildTabContent() {
     if (_activeTab == WarehouseTab.settings) {
-      return ServerConfigPage(store: widget.serverConfigStore);
+      return ServerConfigPage(store: widget.serverConfigStore, onLogout: widget.onLogout);
     }
     final tabInfo = _tabInfo(_activeTab);
     return SingleChildScrollView(
@@ -247,8 +256,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
               onTap: () => _openRecordDetail(entry.value),
             ),
           ))
-        else if (widget.lastScanCode != null && widget.lastScanCode!.isNotEmpty)
-          _buildLastScanResult(widget.lastScanCode!)
         else if (widget.scanError != null && widget.scanError!.isNotEmpty)
           _buildScanError(widget.scanError!)
         else
@@ -360,39 +367,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   }
 
   String _orDash(String value) => value.isEmpty ? '-' : value;
-
-  Widget _buildLastScanResult(String code) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppDesignColors.surface,
-        borderRadius: BorderRadius.all(AppRadii.md),
-        border: Border.all(color: AppDesignColors.borderMuted),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.check_circle, color: AppDesignColors.primary, size: _WS.resultIconSize),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '最近扫码：$code',
-                  style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  '已识别',
-                  style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildScanError(String message) {
     return Container(

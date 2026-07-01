@@ -131,5 +131,30 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byIcon(Icons.radio_button_checked), findsWidgets);
     });
+
+    // task-042: logout button only renders when onLogout is wired (in-shell).
+    testWidgets('renders 退出登录 when onLogout provided', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+      ));
+      expect(find.text('退出登录'), findsOneWidget);
+    });
+
+    testWidgets('does not render 退出登录 during initial setup', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        const ServerConfigPage(),
+      ));
+      expect(find.text('退出登录'), findsNothing);
+    });
+
+    testWidgets('tapping 退出登录 fires onLogout', (tester) async {
+      bool fired = false;
+      await tester.pumpWidget(wrapApp(
+        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () => fired = true),
+      ));
+      await tester.tap(find.text('退出登录'));
+      await tester.pump();
+      expect(fired, isTrue);
+    });
   });
 }

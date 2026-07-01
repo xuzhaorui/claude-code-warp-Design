@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../checkout/checkout_form_rules.dart';
 import '../inventory_check/inventory_check_form_rules.dart';
@@ -19,19 +20,49 @@ import 'warehouse_api_models.dart';
 /// parses responses following Web's `parseJsonResponse` + `ensureAjaxSuccess`,
 /// and manages JSESSIONID cookie from login for session-persistent requests.
 ///
-/// [http.Client] is injectable for testing (use [FakeHttpClient]).
+/// The session cookie is persisted to [SharedPreferences] so a logged-in
+/// session survives app restarts (task-042).  [http.Client] is injectable
+/// for testing (use [FakeHttpClient]).
 class HttpWarehouseApiClient implements WarehouseApiClient {
+  static const _kSessionCookie = 'wms.sessionCookie';
+
   final ServerConfigStore _configStore;
   final http.Client _httpClient;
 
   /// Session cookie (e.g. `JSESSIONID=xxx`) set after successful login.
+  /// Loaded from persistent storage on construction so a previous login
+  /// is restored across app restarts.
   String? _sessionCookie;
 
   HttpWarehouseApiClient({
     required ServerConfigStore configStore,
     http.Client? httpClient,
+    bool restoreSession = true,
   })  : _configStore = configStore,
-        _httpClient = httpClient ?? http.Client();
+        _httpClient = httpClient ?? http.Client() {
+    // Restoring reads SharedPreferences, which requires an initialized
+    // binding; pure unit tests pass restoreSession: false to skip this.
+    if (restoreSession) {
+      _restoreSessionCookie();
+    }
+  }
+
+  /// Whether a persisted session cookie exists (i.e. a prior login likely
+  /// happened).  Used by main.dart to decide whether to skip the login page
+  /// on cold start.
+  static Future<bool> hasSavedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final cookie = prefs.getString(_kSessionCookie);
+    return cookie != null && cookie.isNotEmpty;
+  }
+
+  Future<void> _restoreSessionCookie() async {
+    final prefs = await SharedPreferences.getInstance();
+    _sessionCookie = prefs.getString(_kSessionCookie);
+    if (_sessionCookie != null) {
+      debugPrint('[Debug_Auth] restored session cookie from storage');
+    }
+  }
 
   // ── URL building ──
 
@@ -76,7 +107,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     return h;
   }
 
-  /// Extracts session cookie from response Set-Cookie header.
+  /// Extracts session cookie from response Set-Cookie header and persists it.
   void _saveCookies(http.Response response) {
     final setCookie = response.headers['set-cookie'];
     if (setCookie == null) return;
@@ -84,12 +115,24 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     final firstCookie = setCookie.split(';').first.trim();
     if (firstCookie.startsWith('JSESSIONID=') || firstCookie.startsWith('SESSION=')) {
       _sessionCookie = firstCookie;
+      _persistSessionCookie(firstCookie);
     }
   }
 
   /// Clears stored session cookie (called on logout).
   void _clearCookies() {
     _sessionCookie = null;
+    _removeSessionCookie();
+  }
+
+  Future<void> _persistSessionCookie(String cookie) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kSessionCookie, cookie);
+  }
+
+  Future<void> _removeSessionCookie() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kSessionCookie);
   }
 
   // ── Helpers ──

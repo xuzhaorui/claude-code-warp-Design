@@ -131,13 +131,13 @@ void main() {
       expect(find.textContaining('最近扫码'), findsNothing);
     });
 
-    // 17. last scan result shown when provided
-    testWidgets('last scan result shown when provided', (tester) async {
+    // 17. "最近扫码" reminder removed (task-042); lastScanCode no longer
+    // surfaced as a card — only the empty state shows when there are no records.
+    testWidgets('last scan result no longer shown when provided', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellMin(lastScanCode: 'P293'),
       ));
-      expect(find.textContaining('最近扫码'), findsOneWidget);
-      expect(find.textContaining('P293'), findsOneWidget);
+      expect(find.textContaining('最近扫码'), findsNothing);
     });
 
     // 18. settings tab renders ServerConfigPage
@@ -240,6 +240,17 @@ void main() {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       expect(find.textContaining('Debug'), findsNothing);
       expect(find.text('手动输入扫码值'), findsNothing);
+    });
+
+    // 24f. onTabChanged fires when switching business tabs (task-042)
+    testWidgets('onTabChanged fires on tab switch', (tester) async {
+      WarehouseTab? captured;
+      await tester.pumpWidget(wrapApp(
+        WarehouseShellMin(onTabChanged: (tab) => captured = tab),
+      ));
+      await tester.tap(find.text('归还').last);
+      await tester.pump();
+      expect(captured, WarehouseTab.returnForm);
     });
 
     // 25. status row surfaces the active server name when provided

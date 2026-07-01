@@ -31,6 +31,8 @@ class WarehouseShellFormWiring extends StatelessWidget {
     this.onInventoryCheckSubmit,
     this.onScanRequested,
     this.onSettingsRequested,
+    this.onTabChanged,
+    this.onLogout,
   });
 
   final String? lastScanCode;
@@ -53,6 +55,12 @@ class WarehouseShellFormWiring extends StatelessWidget {
   /// Fired when settings page navigation is requested.
   final VoidCallback? onSettingsRequested;
 
+  /// Fired when the active business tab changes, so records can be refreshed.
+  final ValueChanged<WarehouseTab>? onTabChanged;
+
+  /// Fired when the user requests logout from the settings page.
+  final VoidCallback? onLogout;
+
   @override
   Widget build(BuildContext context) {
     return WarehouseShellMin(
@@ -62,6 +70,8 @@ class WarehouseShellFormWiring extends StatelessWidget {
       activeServerName: activeServerName,
       onScanRequested: onScanRequested,
       onSettingsRequested: onSettingsRequested,
+      onTabChanged: onTabChanged,
+      onLogout: onLogout,
     );
   }
 }

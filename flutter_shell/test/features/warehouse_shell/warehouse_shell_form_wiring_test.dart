@@ -35,12 +35,13 @@ void main() {
       expect(find.text('出库'), findsWidgets);
     });
 
-    testWidgets('passes lastScanCode to shell', (tester) async {
+    testWidgets('lastScanCode no longer surfaces a reminder card', (tester) async {
+      // task-042: the "最近扫码" reminder was removed; lastScanCode is no
+      // longer rendered as a card in the shell.
       await tester.pumpWidget(wrapApp(
         const WarehouseShellFormWiring(lastScanCode: 'P293'),
       ));
-      expect(find.textContaining('最近扫码'), findsOneWidget);
-      expect(find.textContaining('P293'), findsOneWidget);
+      expect(find.textContaining('最近扫码'), findsNothing);
     });
 
     testWidgets('scan callback fires with tab', (tester) async {

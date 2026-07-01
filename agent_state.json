@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-07-01T16:30:00Z",
+  "updatedAt": "2026-07-01T17:40:00Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -759,11 +759,47 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-042-real-device-record-detail-smoke"
+    },
+    {
+      "id": "iter-042-device-found-defect-fixes",
+      "goal": "修复真机发现的 6 个缺陷：退出登录、顶部状态栏重叠、移除最近扫码提醒、登录状态持久化、记录按 tab 加载、记录点击详情。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/main.dart",
+        "flutter_shell/lib/features/api/http_warehouse_api_client.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_form_wiring.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/features/settings/server_config_page.dart",
+        "flutter_shell/test/features/api/http_warehouse_api_client_test.dart",
+        "flutter_shell/test/features/settings/server_config_page_test.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_form_wiring_test.dart",
+        "agent_state.json"
+      ],
+      "defectsFixed": [
+        "退出登录：设置页 退出登录 按钮 → main._onLogout → api.logout + 清除持久化会话",
+        "顶部溢出：SafeArea 改为 top:true，内容不再压状态栏",
+        "最近扫码提醒移除：删除 lastScanCode 卡片分支与 _buildLastScanResult",
+        "登录持久化：JSESSIONID cookie 持久化到 SharedPreferences；main 持久化 loggedIn/username；重启跳过登录",
+        "记录按 tab 加载：onTabChanged 钩子 + initState 首次拉取，记录不再只在提交后出现",
+        "记录点击详情：列表非空后点击即弹 Web parity 详情 BottomSheet（task-041 已实现，本轮解决列表为空根因）"
+      ],
+      "tests": {
+        "totalFlutterTests": 382
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 382/382",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-043-real-device-defect-fix-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-041-record-ui-web-parity-and-detail-sheet",
-    "lastCompletedGoal": "精简三类扫码页 UI、对齐 Web 记录展示并支持记录详情弹层。",
+    "lastCompletedIterationId": "iter-042-device-found-defect-fixes",
+    "lastCompletedGoal": "修复真机发现的 6 个缺陷：退出登录、顶部状态栏重叠、移除最近扫码提醒、登录状态持久化、记录按 tab 加载、记录点击详情。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
@@ -775,7 +811,7 @@
       "AppFormSection",
       "AppSegmentedControl"
     ],
-    "testCount": 378,
+    "testCount": 382,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",

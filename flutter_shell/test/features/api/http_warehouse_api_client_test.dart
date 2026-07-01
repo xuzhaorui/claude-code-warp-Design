@@ -1,4 +1,5 @@
 ﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wms_app/features/api/http_warehouse_api_client.dart';
 import 'package:wms_app/features/api/warehouse_api_client.dart';
 import 'package:wms_app/features/checkout/checkout_form_rules.dart';
@@ -15,18 +16,23 @@ Future<InMemoryServerConfigStore> _setupStore({String baseUrl = "http://test-ser
 }
 
 void main() {
+  // Initialize the binding + stub the SharedPreferences method channel so
+  // the session-cookie persistence (task-042) works in pure-dart unit tests.
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   group("URL building", () {
     test("no trailing slash", () async {
       final store = await _setupStore(baseUrl: "http://example.com:8080");
       final http = FakeHttpClient({"outbound_qrcode": {"data": {"id": 1}}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       await client.findItemByCode("P293");
       expect(http.requestedUrls.first, contains("example.com:8080/store/inventory/list/outbound_qrcode/P293"));
     });
     test("trailing slash: no double", () async {
       final store = await _setupStore(baseUrl: "http://example.com/");
       final http = FakeHttpClient({"outbound_qrcode": {"data": {"id": 1}}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       await client.findItemByCode("TEST");
       expect(http.requestedUrls.first, isNot(contains("//store")));
     });
@@ -35,7 +41,7 @@ void main() {
   group("findItemByCode", () {
     test("not found", () async {
       final store = await _setupStore();
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: FakeHttpClient({}));
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: FakeHttpClient({}), restoreSession: false);
       final result = await client.findItemByCode("UNKNOWN");
       expect(result.isSuccess, isFalse);
     });
@@ -43,7 +49,7 @@ void main() {
       final store = await _setupStore();
       final http = FakeHttpClient({"x": {"data": {}}});
       http.setNetworkError();
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.findItemByCode("E");
       expect(result.isSuccess, isFalse);
     });
@@ -53,7 +59,7 @@ void main() {
     test("success", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({"loan_borrower_qrcode/Q001": {"data": {"rows": [{"id": 1}]}}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.findBorrowersByQrcode("Q001");
       expect(result.isSuccess, isTrue);
       expect(result.data, hasLength(1));
@@ -64,14 +70,14 @@ void main() {
     test("success", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({"inventory/list/outbound": {"success": true}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.submitCheckout(const CheckoutSubmitPayload(inventoryId: 1, quantity: 5, type: 1));
       expect(result.isSuccess, isTrue);
     });
     test("business error", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({"inventory/list/outbound": {"success": false, "msg": "fail"}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.submitCheckout(const CheckoutSubmitPayload(inventoryId: 1, quantity: 1, type: 1));
       expect(result.isSuccess, isFalse);
     });
@@ -81,7 +87,7 @@ void main() {
     test("success", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({"loan/inbound": {"success": true}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.submitReturn(const ReturnSubmitPayload(loanId: 1, freightId: 2, storageId: 3, returnQty: 10));
       expect(result.isSuccess, isTrue);
     });
@@ -91,7 +97,7 @@ void main() {
     test("success", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({"saveCheck": {"success": true}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.submitInventoryCheck(const InventoryCheckSubmitPayload(inventoryId: 1, actualQty: 95));
       expect(result.isSuccess, isTrue);
     });
@@ -100,7 +106,7 @@ void main() {
   group("error handling", () {
     test("HTTP error", () async {
       final store = await _setupStore();
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: FakeHttpClient({}));
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: FakeHttpClient({}), restoreSession: false);
       final result = await client.findItemByCode("X");
       expect(result.isSuccess, isFalse);
     });
@@ -108,7 +114,7 @@ void main() {
       final store = await _setupStore();
       final http = FakeHttpClient({"x": {}});
       http.setNetworkError();
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.submitCheckout(const CheckoutSubmitPayload(inventoryId: 1, quantity: 1, type: 1));
       expect(result.isSuccess, isFalse);
     });
@@ -118,7 +124,7 @@ void main() {
     test("config change updates URL", () async {
       final store = await _setupStore(baseUrl: "http://old.com");
       final http = FakeHttpClient({"outbound_qrcode/X": {"data": {"id": 1}}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       await client.findItemByCode("X");
       expect(http.requestedUrls.first, contains("old.com"));
       await store.saveServers([const ServerConfig(name: "N", baseUrl: "http://new.com:9090")]);
@@ -131,13 +137,13 @@ void main() {
   group("contract", () {
     test("implements WarehouseApiClient", () async {
       final store = await _setupStore();
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: FakeHttpClient({}));
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: FakeHttpClient({}), restoreSession: false);
       expect(client, isA<WarehouseApiClient>());
     });
     test("no real network", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({"outbound_qrcode/ANY": {"data": {"id": 1}}});
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.findItemByCode("ANY");
       expect(result.isSuccess, isTrue);
     });
@@ -157,7 +163,7 @@ void main() {
           '_body': '',
         },
       });
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.login('admin', 'wipinfo666...');
       expect(result.isSuccess, isTrue);
     });
@@ -175,7 +181,7 @@ void main() {
           '_body': '',
         },
       });
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.login('admin', 'wrong');
       expect(result.isSuccess, isFalse);
     });
@@ -189,7 +195,7 @@ void main() {
           'data': {'loginName': 'admin', 'userName': '超级管理员'},
         },
       });
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.login('admin', 'wipinfo666...');
       expect(result.isSuccess, isTrue);
       expect(result.data, isNotNull);
@@ -207,7 +213,7 @@ void main() {
           '_body': '',
         },
       });
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       final result = await client.login('admin', 'wipinfo666...');
       expect(result.isSuccess, isFalse);
     });
@@ -219,7 +225,7 @@ void main() {
       final http = FakeHttpClient({
         'outbound_qrcode/CODE': {'data': {'id': 1}},
       });
-      final client = HttpWarehouseApiClient(configStore: store, httpClient: http);
+      final client = HttpWarehouseApiClient(configStore: store, httpClient: http, restoreSession: false);
       // Without login, no cookie should be sent
       // Verify the findItemByCode request doesn't have a Cookie header
       final result = await client.findItemByCode('CODE');

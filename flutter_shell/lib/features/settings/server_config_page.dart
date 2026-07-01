@@ -20,6 +20,7 @@ class ServerConfigPage extends StatefulWidget {
     super.key,
     this.store,
     this.onConfigured,
+    this.onLogout,
   });
 
   final ServerConfigStore? store;
@@ -27,6 +28,10 @@ class ServerConfigPage extends StatefulWidget {
   /// Called when a server has been configured and saved.
   /// Used by main.dart to detect when to transition from setup → login.
   final VoidCallback? onConfigured;
+
+  /// Called when the user taps "退出登录".  Only relevant when the page is
+  /// shown inside the shell (not during initial server setup).
+  final VoidCallback? onLogout;
 
   @override
   State<ServerConfigPage> createState() => _ServerConfigPageState();
@@ -155,6 +160,20 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
 
           // Status message.
           if (_statusMessage != null) _buildStatusMessage(),
+
+          // Logout — low-emphasis secondary action, only when wired in
+          // (i.e. when shown inside the shell, not during initial setup).
+          if (widget.onLogout != null) ...[
+            const SizedBox(height: AppSpacing.xl),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton(
+                text: '退出登录',
+                variant: AppButtonVariant.secondary,
+                onPressed: widget.onLogout,
+              ),
+            ),
+          ],
         ],
       ),
     );
