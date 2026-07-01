@@ -382,74 +382,101 @@ class _Fixture {
 
 // ── Debug-only: manual code input for testing ──
 
-/// Debug-mode overlay button to manually enter a scan code.
+/// Debug-mode overlay widget to manually enter a scan code.
 ///
-/// Only visible in `kDebugMode` builds.  Sends the entered code through
-/// the exact same [_WarehouseShellScannerEntryState._lookupCode] handler
-/// as a real scan result.
+/// Uses inline [TextField] instead of [showDialog] to avoid framework
+/// assertion during dialog route unmount (`_dependents.isEmpty`).
+/// Only visible in `kDebugMode` builds.
 ///
 /// **Production acceptance must use real paper-label qrcode scanning.**
-/// Electronic-screen codes are known to fail on certain devices and are
-/// NOT a supported path for production verification.
-class _DebugManualCodeInput extends StatelessWidget {
+class _DebugManualCodeInput extends StatefulWidget {
   const _DebugManualCodeInput({required this.onCodeEntered});
 
   final ValueChanged<String> onCodeEntered;
 
   @override
+  State<_DebugManualCodeInput> createState() => _DebugManualCodeInputState();
+}
+
+class _DebugManualCodeInputState extends State<_DebugManualCodeInput> {
+  final _controller = TextEditingController();
+  bool _showInput = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 260,
-        child: ElevatedButton.icon(
-          onPressed: () => _showInputDialog(context),
-          icon: const Icon(Icons.edit, size: 16),
-          label: const Text('Debug: 手动输入扫码值'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange.shade700,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            textStyle: const TextStyle(fontSize: 13),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_showInput)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: SizedBox(
+              width: 300,
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: '输入条码后按确认',
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  isDense: true,
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.check, size: 20),
+                        onPressed: () => _submit(_controller.text),
+                        tooltip: '确认',
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, size: 20),
+                        onPressed: () {
+                          _controller.clear();
+                          setState(() => _showInput = false);
+                        },
+                        tooltip: '取消',
+                      ),
+                    ],
+                  ),
+                ),
+                style: const TextStyle(fontSize: 14),
+                onSubmitted: _submit,
+              ),
+            ),
+          ),
+        SizedBox(
+          width: 260,
+          child: ElevatedButton.icon(
+            onPressed: () => setState(() => _showInput = !_showInput),
+            icon: const Icon(Icons.edit, size: 16),
+            label: Text(_showInput ? '关闭手动输入' : 'Debug: 手动输入扫码值'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange.shade700,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              textStyle: const TextStyle(fontSize: 13),
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Future<void> _showInputDialog(BuildContext context) async {
-    final controller = TextEditingController();
-    final code = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('手动输入扫码值 (Debug)'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: '输入条码 / QR Code',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, controller.text),
-            child: const Text('确认'),
-          ),
-        ],
-      ),
-    );
-    controller.dispose();
-    if (code != null && code.isNotEmpty) {
-      debugPrint('[ScannerFlow] debug manual code=$code');
-      // Defer to after dialog route fully unmounts, avoiding
-      // _dependents.isEmpty assertion during async lookup.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        onCodeEntered(code);
-      });
-    }
+  void _submit(String code) {
+    final trimmed = code.trim();
+    if (trimmed.isEmpty) return;
+    debugPrint('[ScannerFlow] debug manual code=$trimmed');
+    _controller.clear();
+    widget.onCodeEntered(trimmed);
   }
 }
