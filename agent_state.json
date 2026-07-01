@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-07-01T10:30:00Z",
+  "updatedAt": "2026-07-01T16:30:00Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -704,11 +704,66 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-040-real-device-ui-smoke"
+    },
+    {
+      "id": "iter-040-real-device-ui-smoke",
+      "goal": "小米 8 真机验证 task-039 UI 收敛与核心业务链路未退化。",
+      "status": "complete",
+      "device": {
+        "model": "小米 8",
+        "android": "10 (API 29)",
+        "id": "d96a5413"
+      },
+      "verification": {
+        "method": "user manual smoke on device",
+        "login": "pass",
+        "checkoutSubmit": "pass",
+        "recordsRefresh": "pass"
+      },
+      "files": [
+        "agent_state.json"
+      ],
+      "nextTask": "task-041-record-ui-web-parity-and-detail-sheet"
+    },
+    {
+      "id": "iter-041-record-ui-web-parity-and-detail-sheet",
+      "goal": "精简三类扫码页 UI、对齐 Web 记录展示并支持记录详情弹层。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/api/warehouse_api_models.dart",
+        "flutter_shell/lib/features/api/warehouse_api_client.dart",
+        "flutter_shell/lib/features/api/http_warehouse_api_client.dart",
+        "flutter_shell/lib/features/api/mock_warehouse_api_client.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_scanner_entry_test.dart",
+        "flutter_shell/test/features/api/record_dto_test.dart",
+        "agent_state.json"
+      ],
+      "changes": {
+        "removedTopTitles": true,
+        "dynamicScanCta": ["点击扫码出库", "点击扫码归还", "点击扫码盘点"],
+        "removedHelpers": ["扫描条码或二维码", "从图片识别"],
+        "debugInputHidden": true,
+        "recordDetailSheet": "RecordCard.onTap → AppBottomSheet with Web-parity rows",
+        "recordMappersWidened": "http_warehouse_api_client _map*Record replaced by *Record.fromJson capturing full backend shape (URL/cookie/login/auth untouched)"
+      },
+      "tests": {
+        "totalFlutterTests": 378
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 378/378",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-042-real-device-record-detail-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-039-ui-visual-simplification",
-    "lastCompletedGoal": "收敛出库页与设置页 UI，使界面更简单克制，将 Debug 手动输入降级为低优先级入口。",
+    "lastCompletedIterationId": "iter-041-record-ui-web-parity-and-detail-sheet",
+    "lastCompletedGoal": "精简三类扫码页 UI、对齐 Web 记录展示并支持记录详情弹层。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
@@ -720,7 +775,7 @@
       "AppFormSection",
       "AppSegmentedControl"
     ],
-    "testCount": 360,
+    "testCount": 378,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",

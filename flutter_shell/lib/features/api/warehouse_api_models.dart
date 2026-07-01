@@ -149,6 +149,194 @@ class BusinessSubmitResult {
       );
 }
 
+// ── Record DTOs (Web parity) ──
+//
+// These mirror the normalized record objects produced by the Web mappers
+// (src/api/outbound.js mapCheckoutRecord, return.js mapReturnRecord,
+// inventory.js mapInventoryCheckRecord) so the Flutter record list and the
+// record detail BottomSheet can show the same fields as the Web app.
+//
+// All fields default to safe empty values; missing backend data is rendered
+// as "-" in the UI rather than fabricated.
+
+/// One outbound (出库) record.
+class CheckoutRecord {
+  final int id;
+  final int inventoryId;
+  final String warehouse;
+  final String itemName;
+  final String code;
+  final String spec;
+  final int quantity;
+  final int type; // 1 = 外销, 2 = 外借
+  final double saleTotalPrice;
+  final double saleUnitPrice;
+  final double costPrice;
+  final String remark;
+  final String operatorName;
+  final String time;
+  final String status; // 正常 | 已撤销
+
+  const CheckoutRecord({
+    this.id = 0,
+    this.inventoryId = 0,
+    this.warehouse = '',
+    this.itemName = '',
+    this.code = '',
+    this.spec = '',
+    this.quantity = 0,
+    this.type = 1,
+    this.saleTotalPrice = 0.0,
+    this.saleUnitPrice = 0.0,
+    this.costPrice = 0.0,
+    this.remark = '',
+    this.operatorName = '',
+    this.time = '',
+    this.status = '正常',
+  });
+
+  /// "外销" when type == 1, otherwise "外借".
+  String get method => type == 1 ? '外销' : '外借';
+
+  factory CheckoutRecord.fromJson(Map<String, dynamic> raw) {
+    final quantity = (raw['num'] as num?)?.toInt() ?? (raw['quantity'] as num?)?.toInt() ?? 0;
+    final totalPrice = (raw['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    final costPrice = (raw['costUnitPrice'] as num?)?.toDouble() ?? (raw['costPrice'] as num?)?.toDouble() ?? 0.0;
+    // Web derives saleUnitPrice from outUnitPrice, falling back to totalPrice/num.
+    final saleUnitPrice = (raw['outUnitPrice'] as num?)?.toDouble() ??
+        (quantity > 0 ? totalPrice / quantity : 0.0);
+    final outState = (raw['outState'] as num?)?.toInt() ?? 1;
+    // numberAndSpec may carry "code/spec".
+    final parts = (raw['numberAndSpec'] as String?)?.split('/') ?? const [];
+    return CheckoutRecord(
+      id: raw['id'] as int? ?? 0,
+      inventoryId: raw['inventoryId'] as int? ?? 0,
+      warehouse: raw['storageName'] as String? ?? '',
+      itemName: raw['freightName'] as String? ?? '',
+      code: (raw['freightNumber'] as String?) ?? (parts.isNotEmpty ? parts[0] : ''),
+      spec: (raw['specification'] as String?) ?? (parts.length > 1 ? parts[1] : ''),
+      quantity: quantity,
+      type: raw['type'] as int? ?? 1,
+      saleTotalPrice: totalPrice,
+      saleUnitPrice: saleUnitPrice,
+      costPrice: costPrice,
+      remark: raw['outDescription'] as String? ?? '',
+      operatorName: raw['operationNickName'] as String? ??
+          raw['nickName'] as String? ??
+          raw['operationUserName'] as String? ??
+          '',
+      time: raw['operationTime'] as String? ?? '',
+      status: outState == 2 ? '已撤销' : '正常',
+    );
+  }
+}
+
+/// One return (归还) record.
+class ReturnRecord {
+  final int id;
+  final String itemName;
+  final String warehouse;
+  final String code;
+  final String spec;
+  final int returnQty;
+  final String borrower;
+  final String operatorName;
+  final String time;
+  final String remark;
+  final String status; // 正常 | 已撤销
+
+  const ReturnRecord({
+    this.id = 0,
+    this.itemName = '',
+    this.warehouse = '',
+    this.code = '',
+    this.spec = '',
+    this.returnQty = 0,
+    this.borrower = '',
+    this.operatorName = '',
+    this.time = '',
+    this.remark = '',
+    this.status = '正常',
+  });
+
+  factory ReturnRecord.fromJson(Map<String, dynamic> raw) {
+    final parts = (raw['numberAndSpec'] as String?)?.split('/') ?? const [];
+    final inState = (raw['inState'] as num?)?.toInt() ?? 1;
+    return ReturnRecord(
+      id: raw['id'] as int? ?? 0,
+      itemName: raw['freightName'] as String? ?? '',
+      warehouse: (raw['warehouseName'] as String?) ?? (raw['storageName'] as String?) ?? '',
+      code: (raw['freightNumber'] as String?) ?? (parts.isNotEmpty ? parts[0] : ''),
+      spec: (raw['specification'] as String?) ?? (parts.length > 1 ? parts[1] : ''),
+      returnQty: (raw['num'] as num?)?.toInt() ?? (raw['returnQty'] as num?)?.toInt() ?? 0,
+      borrower: raw['inBorrowerUserName'] as String? ?? '',
+      operatorName: raw['operationNickName'] as String? ??
+          raw['nickName'] as String? ??
+          raw['operationUserName'] as String? ??
+          raw['userName'] as String? ??
+          '',
+      time: raw['operationTime'] as String? ?? '',
+      remark: raw['inDescription'] as String? ?? '',
+      status: inState == 2 ? '已撤销' : '正常',
+    );
+  }
+}
+
+/// One inventory-check (盘点) record.
+class InventoryCheckRecord {
+  final int id;
+  final int inventoryId;
+  final String itemName;
+  final String warehouse;
+  final String code;
+  final String spec;
+  final int bookQty;
+  final int actualQty;
+  final int difference;
+  final double costPrice;
+  final String remark;
+  final String operatorName;
+  final String time;
+  final String status; // always 正常 per Web mapper
+
+  const InventoryCheckRecord({
+    this.id = 0,
+    this.inventoryId = 0,
+    this.itemName = '',
+    this.warehouse = '',
+    this.code = '',
+    this.spec = '',
+    this.bookQty = 0,
+    this.actualQty = 0,
+    this.difference = 0,
+    this.costPrice = 0.0,
+    this.remark = '',
+    this.operatorName = '',
+    this.time = '',
+    this.status = '正常',
+  });
+
+  factory InventoryCheckRecord.fromJson(Map<String, dynamic> raw) {
+    return InventoryCheckRecord(
+      id: raw['id'] as int? ?? 0,
+      inventoryId: raw['inventoryId'] as int? ?? 0,
+      itemName: raw['freightName'] as String? ?? '',
+      warehouse: raw['storageName'] as String? ?? '',
+      code: raw['freightNumber'] as String? ?? '',
+      spec: raw['specification'] as String? ?? '',
+      bookQty: (raw['warehousNum'] as num?)?.toInt() ?? 0,
+      actualQty: (raw['physicalInventoryQuantity'] as num?)?.toInt() ??
+          (raw['actualQty'] as num?)?.toInt() ?? 0,
+      difference: (raw['difference'] as num?)?.toInt() ?? 0,
+      costPrice: (raw['unitPrice'] as num?)?.toDouble() ?? 0.0,
+      remark: raw['remark'] as String? ?? '',
+      operatorName: raw['purchaseUserName'] as String? ?? '',
+      time: raw['purchaseTime'] as String? ?? '',
+      status: '正常',
+    );
+  }
+}
+
 /// Auth session returned by the login API.
 class AuthSession {
   final String username;

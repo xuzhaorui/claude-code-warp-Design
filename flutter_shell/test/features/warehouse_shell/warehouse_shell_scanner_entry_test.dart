@@ -75,14 +75,14 @@ void main() {
       expect(captured, isNull);
     });
 
-    // flutter test runs in debug mode, so the kDebugMode-only manual input
-    // overlay should render as a low-emphasis ghost trigger.
-    testWidgets('debug manual input renders in debug mode', (tester) async {
+    // task-041: the Debug manual-code overlay was removed from the user-
+    // visible UI entirely.  Real paper-label scanning is the only entry.
+    testWidgets('debug manual input is NOT rendered', (tester) async {
       await tester.pumpWidget(wrapApp(
         WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
       ));
-      expect(find.textContaining('Debug'), findsOneWidget);
-      expect(find.byIcon(Icons.edit), findsWidgets);
+      expect(find.textContaining('Debug'), findsNothing);
+      expect(find.text('手动输入扫码值'), findsNothing);
     });
   });
 }

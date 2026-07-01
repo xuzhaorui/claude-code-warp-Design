@@ -8,13 +8,8 @@
 // sheet auto-opens.  On failure, the code is still displayed but no
 // form is opened.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../design/app_design_colors.dart';
-import '../../design/app_radii.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_text_styles.dart';
 import '../../pages/scanner_page.dart';
 import '../api/warehouse_api_client.dart';
 import '../business_forms/business_form_sheets.dart';
@@ -82,38 +77,21 @@ class _WarehouseShellScannerEntryState
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        WarehouseShellFormWiring(
-          lastScanCode: _lastScanCode,
-          scanError: _scanError,
-          records: _records[_activeTab] ?? [],
-          activeServerName: widget.activeServerName,
-          onCheckoutSubmit: widget.onCheckoutSubmit,
-          onReturnSubmit: widget.onReturnSubmit,
-          onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
-          onScanRequested: (tab) {
-            _activeTab = tab;
-            _openScanner(context, tab);
-          },
-        ),
-        if (kDebugMode)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 80,
-            child: _DebugManualCodeInput(
-              onCodeEntered: (code) {
-                _activeTab = WarehouseTab.checkout;
-                setState(() {
-                  _lastScanCode = code;
-                  _scanError = null;
-                });
-                _lookupCode(context, WarehouseTab.checkout, code);
-              },
-            ),
-          ),
-      ],
+    // task-041: the user-visible Debug manual-code overlay is removed from
+    // the production UI.  Real paper-label scanning remains the only
+    // user-facing entry; the manual-input affordance is no longer rendered.
+    return WarehouseShellFormWiring(
+      lastScanCode: _lastScanCode,
+      scanError: _scanError,
+      records: _records[_activeTab] ?? [],
+      activeServerName: widget.activeServerName,
+      onCheckoutSubmit: widget.onCheckoutSubmit,
+      onReturnSubmit: widget.onReturnSubmit,
+      onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
+      onScanRequested: (tab) {
+        _activeTab = tab;
+        _openScanner(context, tab);
+      },
     );
   }
 
@@ -190,27 +168,39 @@ class _WarehouseShellScannerEntryState
       case WarehouseTab.checkout:
         final result = await api.fetchCheckoutRecords();
         if (result.isSuccess && result.data != null) {
-          items = result.data!.map((p) => RecordItem(
-            title: '出库 #${p.inventoryId}',
-            detail: '数量: ${p.quantity}',
-            status: '正常',
+          items = result.data!.map((r) => RecordItem(
+            title: r.itemName.isEmpty ? '出库 #${r.inventoryId}' : r.itemName,
+            detail: '${r.quantity} 件 · 成本 ¥${r.costPrice.toStringAsFixed(2)} · ${r.method}',
+            status: r.status,
+            kind: RecordKind.checkout,
+            source: r,
           )).toList();
         }
       case WarehouseTab.returnForm:
         final result = await api.fetchReturnRecords();
         if (result.isSuccess && result.data != null) {
-          items = result.data!.map((p) => RecordItem(
-            title: '归还 #${p.loanId}',
-            detail: '数量: ${p.returnQty}',
+          items = result.data!.map((r) => RecordItem(
+            title: r.itemName.isEmpty ? '归还 #${r.id}' : r.itemName,
+            detail: '${r.returnQty} 件 · ${r.borrower}',
+            status: r.status,
+            kind: RecordKind.returnForm,
+            source: r,
           )).toList();
         }
       case WarehouseTab.inventoryCheck:
         final result = await api.fetchInventoryCheckRecords();
         if (result.isSuccess && result.data != null) {
-          items = result.data!.map((p) => RecordItem(
-            title: '盘点 #${p.inventoryId}',
-            detail: '实盘: ${p.actualQty}',
-          )).toList();
+          items = result.data!.map((r) {
+            final diff = r.difference;
+            final diffText = diff > 0 ? '+$diff' : '$diff';
+            return RecordItem(
+              title: r.itemName.isEmpty ? '盘点 #${r.inventoryId}' : r.itemName,
+              detail: '实盘 ${r.actualQty} 件 · 差值 $diffText 件',
+              status: r.status,
+              kind: RecordKind.inventoryCheck,
+              source: r,
+            );
+          }).toList();
         }
       case WarehouseTab.settings:
         return;
@@ -388,144 +378,4 @@ class _Fixture {
     code: 'SA-001',
     spec: '1L',
   );
-}
-
-// ── Debug-only: manual code input for testing ──
-//
-// Component-local numeric constants (icon sizes) for the debug overlay.
-// Per Design.md these are allowed as component-local constants and are not
-// promoted to design tokens — this widget is debug-only, low-emphasis.
-class _DBG {
-  _DBG._();
-  static const iconSize = 16.0;
-  static const actionIconSize = 20.0;
-  static const triggerHPad = AppSpacing.md;
-  static const triggerVPad = AppSpacing.sm;
-  static const inputWidth = 300.0;
-  static const triggerMaxWidth = 260.0;
-}
-
-/// Debug-mode overlay widget to manually enter a scan code.
-///
-/// Uses an inline [TextField] instead of [showDialog] to avoid framework
-/// assertion during dialog route unmount (`_dependents.isEmpty`).
-/// Visual style is intentionally **low-emphasis** (outline/ghost): a thin
-/// bordered pill trigger and a plain text field.  This is a test affordance,
-/// not a primary action — production acceptance must use real paper-label
-/// qrcode scanning.
-///
-/// Only visible in `kDebugMode` builds.
-class _DebugManualCodeInput extends StatefulWidget {
-  const _DebugManualCodeInput({required this.onCodeEntered});
-
-  final ValueChanged<String> onCodeEntered;
-
-  @override
-  State<_DebugManualCodeInput> createState() => _DebugManualCodeInputState();
-}
-
-class _DebugManualCodeInputState extends State<_DebugManualCodeInput> {
-  final _controller = TextEditingController();
-  bool _showInput = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (_showInput)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: SizedBox(
-              width: _DBG.inputWidth,
-              child: TextField(
-                controller: _controller,
-                autofocus: true,
-                decoration: InputDecoration(
-                  hintText: '输入条码后按确认',
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.all(AppRadii.sm),
-                  ),
-                  filled: true,
-                  fillColor: AppDesignColors.surface,
-                  isDense: true,
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.check, size: _DBG.actionIconSize),
-                        onPressed: () => _submit(_controller.text),
-                        tooltip: '确认',
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, size: _DBG.actionIconSize),
-                        onPressed: () {
-                          _controller.clear();
-                          setState(() => _showInput = false);
-                        },
-                        tooltip: '取消',
-                      ),
-                    ],
-                  ),
-                ),
-                style: AppTextStyles.body,
-                onSubmitted: _submit,
-              ),
-            ),
-          ),
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: _DBG.triggerMaxWidth),
-            child: Material(
-              color: AppDesignColors.surface,
-              borderRadius: BorderRadius.all(AppRadii.pill),
-              child: InkWell(
-                onTap: () => setState(() => _showInput = !_showInput),
-                borderRadius: BorderRadius.all(AppRadii.pill),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _DBG.triggerHPad,
-                    vertical: _DBG.triggerVPad,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppDesignColors.borderMuted),
-                    borderRadius: BorderRadius.all(AppRadii.pill),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.edit, size: _DBG.iconSize, color: AppDesignColors.textSecondary),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        _showInput ? '关闭手动输入' : 'Debug: 手动输入扫码值',
-                        style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _submit(String code) {
-    final trimmed = code.trim();
-    if (trimmed.isEmpty) return;
-    debugPrint('[ScannerFlow] debug manual code=$trimmed');
-    _controller.clear();
-    widget.onCodeEntered(trimmed);
-  }
 }

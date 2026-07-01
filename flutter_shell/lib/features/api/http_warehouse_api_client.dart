@@ -346,29 +346,17 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<CheckoutSubmitPayload>>> fetchCheckoutRecords() async {
+  Future<WarehouseApiResult<List<CheckoutRecord>>> fetchCheckoutRecords() async {
     try {
       final data = await _post('/inventory/outbound/getUserOutboundInDay', {});
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => _mapCheckoutRecord(r as Map<String, dynamic>)).toList();
+      final records = rows.map((r) => CheckoutRecord.fromJson(r as Map<String, dynamic>)).toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
-  }
-
-  CheckoutSubmitPayload _mapCheckoutRecord(Map<String, dynamic> raw) {
-    final rawType = raw['type'] as int? ?? 1;
-    return CheckoutSubmitPayload(
-      inventoryId: raw['inventoryId'] as int? ?? 0,
-      quantity: raw['num'] as int? ?? (raw['quantity'] as num?)?.toInt() ?? 0,
-      type: rawType,
-      totalPrice: (raw['totalPrice'] as num?)?.toDouble(),
-      costUnitPrice: (raw['costUnitPrice'] as num?)?.toDouble(),
-      outDescription: raw['outDescription'] as String?,
-    );
   }
 
   @override
@@ -391,11 +379,11 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<ReturnSubmitPayload>>> fetchReturnRecords() async {
+  Future<WarehouseApiResult<List<ReturnRecord>>> fetchReturnRecords() async {
     try {
       final data = await _post('/inventory/loan/getUserLoanInDay', {});
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => _mapReturnRecord(r as Map<String, dynamic>)).toList();
+      final records = rows.map((r) => ReturnRecord.fromJson(r as Map<String, dynamic>)).toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
@@ -403,14 +391,6 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
   }
-
-  ReturnSubmitPayload _mapReturnRecord(Map<String, dynamic> raw) => ReturnSubmitPayload(
-        loanId: raw['loanId'] as int? ?? (raw['id'] as int? ?? 0),
-        freightId: raw['freightId'] as int? ?? 0,
-        storageId: raw['storageId'] as int? ?? 0,
-        returnQty: raw['num'] as int? ?? (raw['returnQty'] as num?)?.toInt() ?? 0,
-        remark: raw['remark'] as String? ?? '',
-      );
 
   @override
   Future<WarehouseApiResult<BusinessSubmitResult>> submitInventoryCheck(InventoryCheckSubmitPayload payload) async {
@@ -430,11 +410,11 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<InventoryCheckSubmitPayload>>> fetchInventoryCheckRecords() async {
+  Future<WarehouseApiResult<List<InventoryCheckRecord>>> fetchInventoryCheckRecords() async {
     try {
       final data = await _post('/inventory/checkOrder/getUserCheckInDay', {});
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => _mapInventoryCheckRecord(r as Map<String, dynamic>)).toList();
+      final records = rows.map((r) => InventoryCheckRecord.fromJson(r as Map<String, dynamic>)).toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
@@ -442,10 +422,4 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
   }
-
-  InventoryCheckSubmitPayload _mapInventoryCheckRecord(Map<String, dynamic> raw) => InventoryCheckSubmitPayload(
-        inventoryId: raw['inventoryId'] as int? ?? 0,
-        actualQty: raw['actualQty'] as int? ?? (raw['num'] as num?)?.toInt() ?? 0,
-        remark: raw['remark'] as String? ?? '',
-      );
 }

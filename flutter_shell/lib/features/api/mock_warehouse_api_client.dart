@@ -77,7 +77,7 @@ class MockWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<CheckoutSubmitPayload>>> fetchCheckoutRecords() async {
+  Future<WarehouseApiResult<List<CheckoutRecord>>> fetchCheckoutRecords() async {
     return const WarehouseApiResult(success: true, data: []);
   }
 
@@ -92,7 +92,7 @@ class MockWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<ReturnSubmitPayload>>> fetchReturnRecords() async {
+  Future<WarehouseApiResult<List<ReturnRecord>>> fetchReturnRecords() async {
     return const WarehouseApiResult(success: true, data: []);
   }
 
@@ -107,7 +107,7 @@ class MockWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<InventoryCheckSubmitPayload>>> fetchInventoryCheckRecords() async {
+  Future<WarehouseApiResult<List<InventoryCheckRecord>>> fetchInventoryCheckRecords() async {
     return const WarehouseApiResult(success: true, data: []);
   }
 

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../components/app_bottom_sheet.dart';
+import '../../components/record_card.dart';
 import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
-import '../../components/record_card.dart';
+import '../api/warehouse_api_models.dart';
 import '../settings/server_config_page.dart';
 import '../settings/server_config_store.dart';
 
@@ -12,6 +14,10 @@ import '../settings/server_config_store.dart';
 
 /// Available tabs in the warehouse shell.
 enum WarehouseTab { checkout, returnForm, inventoryCheck, settings }
+
+/// Which kind of business record a [RecordItem] carries.  Drives the record
+/// detail BottomSheet layout.
+enum RecordKind { checkout, returnForm, inventoryCheck }
 
 // ---- Component-local constants ----
 //
@@ -26,7 +32,8 @@ class _WS {
   static const accentBarH = 14.0;
   static const statusIconSize = 16.0;
   static const resultIconSize = 20.0;
-  static const imageHintIconSize = 16.0;
+  static const detailRowVPad = 12.0;
+  static const detailMetaIconSize = 14.0;
 }
 
 // ---- Public widget ----
@@ -34,10 +41,10 @@ class _WS {
 /// Warehouse bottom navigation shell — Web parity.
 ///
 /// Four tabs: 出库 / 归还 / 盘点 / 设置.
-/// No AppBar.  Each business tab shows a restrained scan card and record
-/// section.  The scan card fires [onScanRequested] with the current tab.
-/// The settings tab fires [onSettingsRequested].
-/// No manual "发起" buttons — the primary flow is scan → auto-open form.
+/// No AppBar.  Each business tab shows a restrained scan card (with a
+/// per-tab call-to-action), and a record section.  Tapping a record opens
+/// a detail BottomSheet.  The scan card fires [onScanRequested] with the
+/// current tab.
 class WarehouseShellMin extends StatefulWidget {
   const WarehouseShellMin({
     super.key,
@@ -134,15 +141,13 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     }
     final tabInfo = _tabInfo(_activeTab);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(tabInfo.tabName),
-          const SizedBox(height: AppSpacing.lg),
-          _buildScanCard(),
-          const SizedBox(height: AppSpacing.sm),
-          _buildImageRecognitionHint(),
+          _buildStatusRow(),
+          const SizedBox(height: AppSpacing.md),
+          _buildScanCard(tabInfo.scanCta),
           const SizedBox(height: AppSpacing.xl),
           _buildRecordSection(
             sectionTitle: tabInfo.recordTitle,
@@ -153,26 +158,22 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     );
   }
 
-  // ── Header ──
+  // ── Status row ──
+  //
+  // Per task-041: top large title removed.  Only the compact server status
+  // line remains.
 
-  Widget _buildHeader(String tabName) {
+  Widget _buildStatusRow() {
     final serverName = (widget.activeServerName == null || widget.activeServerName!.isEmpty)
         ? '未配置'
         : widget.activeServerName!;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Text(tabName, style: AppTextStyles.title),
-        const SizedBox(height: AppSpacing.xs),
-        Row(
-          children: [
-            Icon(Icons.cloud_outlined, size: _WS.statusIconSize, color: AppDesignColors.textSecondary),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              '当前服务器：$serverName',
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-            ),
-          ],
+        Icon(Icons.cloud_outlined, size: _WS.statusIconSize, color: AppDesignColors.textSecondary),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          '当前服务器：$serverName',
+          style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
         ),
       ],
     );
@@ -180,11 +181,10 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 
   // ── Scan card ──
   //
-  // Restrained outline card: white surface, thin border, centered outline
-  // scan icon in primary accent, primary label + secondary helper.  No large
-  // solid colour block, no heavy shadow.
+  // Restrained outline card with a per-tab call-to-action.  No subtitle,
+  // no image-recognition hint (removed in task-041 for Web parity).
 
-  Widget _buildScanCard() {
+  Widget _buildScanCard(String ctaText) {
     return GestureDetector(
       key: const Key('scan_card'),
       onTap: () => widget.onScanRequested?.call(_activeTab),
@@ -205,33 +205,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
           children: [
             Icon(Icons.qr_code_scanner, size: _WS.scanIconSize, color: AppDesignColors.primary),
             const SizedBox(height: AppSpacing.md),
-            Text('点击扫码', style: AppTextStyles.title),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              '扫描条码或二维码',
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── "从图片识别" hint ──
-
-  Widget _buildImageRecognitionHint() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.image, size: _WS.imageHintIconSize, color: AppDesignColors.textSecondary),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              '从图片识别',
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-            ),
+            Text(ctaText, style: AppTextStyles.title),
           ],
         ),
       ),
@@ -263,12 +237,14 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         ),
         const SizedBox(height: AppSpacing.md),
         if (widget.records != null && widget.records!.isNotEmpty)
-          ...widget.records!.map((r) => Padding(
+          ...widget.records!.asMap().entries.map((entry) => Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: RecordCard(
-              title: r.title,
-              detail: r.detail,
-              status: r.status,
+              title: entry.value.title,
+              detail: entry.value.detail,
+              status: entry.value.status,
+              index: entry.key,
+              onTap: () => _openRecordDetail(entry.value),
             ),
           ))
         else if (widget.lastScanCode != null && widget.lastScanCode!.isNotEmpty)
@@ -280,6 +256,110 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       ],
     );
   }
+
+  // ── Record detail BottomSheet ──
+
+  void _openRecordDetail(RecordItem record) {
+    final info = _tabInfo(_activeTab);
+    showAppBottomSheet(
+      context: context,
+      title: info.detailTitle,
+      child: _buildRecordDetail(record),
+    );
+  }
+
+  /// Renders Web-parity detail rows for the given record.  Switches on
+  /// [RecordItem.kind] and reads the typed [RecordItem.source] DTO.
+  /// Missing fields render "-" rather than fabricated data.
+  Widget _buildRecordDetail(RecordItem record) {
+    switch (record.kind) {
+      case RecordKind.checkout:
+        final r = record.source as CheckoutRecord?;
+        return r == null ? _detailHeader(record.title, '', '') : _checkoutDetail(r);
+      case RecordKind.returnForm:
+        final r = record.source as ReturnRecord?;
+        return r == null ? _detailHeader(record.title, '', '') : _returnDetail(r);
+      case RecordKind.inventoryCheck:
+        final r = record.source as InventoryCheckRecord?;
+        return r == null ? _detailHeader(record.title, '', '') : _inventoryDetail(r);
+    }
+  }
+
+  Widget _checkoutDetail(CheckoutRecord r) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _detailHeader(r.itemName, r.spec, r.code),
+        _DetailRow(label: '数量', value: '${r.quantity} 件 · ${r.method}'),
+        if (r.costPrice > 0) _DetailRow(label: '成本单价', value: '¥${r.costPrice.toStringAsFixed(2)}'),
+        _DetailRow(label: '状态', value: _orDash(r.status)),
+        _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
+        if (r.type == 1) ...[
+          _DetailRow(label: '销售总价', value: '¥${r.saleTotalPrice.toStringAsFixed(2)}'),
+          _DetailRow(label: '销售单价', value: '¥${r.saleUnitPrice.toStringAsFixed(2)}'),
+        ],
+        _DetailMeta(operatorName: r.operatorName, time: r.time, remark: r.remark),
+      ],
+    );
+  }
+
+  Widget _returnDetail(ReturnRecord r) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _detailHeader(r.itemName, r.spec, r.code),
+        _DetailRow(label: '归还数量', value: '${r.returnQty} 件'),
+        _DetailRow(label: '外借人', value: _orDash(r.borrower)),
+        _DetailRow(label: '状态', value: _orDash(r.status)),
+        _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
+        _DetailMeta(operatorName: r.operatorName, time: r.time, remark: r.remark),
+      ],
+    );
+  }
+
+  Widget _inventoryDetail(InventoryCheckRecord r) {
+    final diff = r.difference;
+    final diffText = diff > 0 ? '+$diff' : '$diff';
+    final loss = diff != 0 ? (diff.abs() * r.costPrice) : 0.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _detailHeader(r.itemName, r.spec, r.code),
+        _DetailRow(label: '实盘数量', value: '${r.actualQty} 件'),
+        _DetailRow(label: '账面库存', value: '${r.bookQty} 件'),
+        _DetailRow(label: '盘点差值', value: '$diffText 件'),
+        if (r.costPrice > 0) _DetailRow(label: '成本单价', value: '¥${r.costPrice.toStringAsFixed(2)}'),
+        if (r.costPrice > 0 && diff != 0)
+          _DetailRow(label: diff < 0 ? '损失' : '溢价', value: '¥${loss.toStringAsFixed(2)}'),
+        _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
+        _DetailMeta(operatorName: r.operatorName, time: r.time, remark: r.remark),
+      ],
+    );
+  }
+
+  /// Header block: item name (title) + "spec · code" subtitle line.
+  Widget _detailHeader(String itemName, String spec, String code) {
+    final sub = [spec, code].where((s) => s.isNotEmpty).join(' · ');
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(itemName.isEmpty ? '-' : itemName, style: AppTextStyles.title),
+          if (sub.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
+              child: Text(
+                sub,
+                style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _orDash(String value) => value.isEmpty ? '-' : value;
 
   Widget _buildLastScanResult(String code) {
     return Container(
@@ -355,13 +435,33 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   _TabInfo _tabInfo(WarehouseTab tab) {
     switch (tab) {
       case WarehouseTab.checkout:
-        return _TabInfo(tabName: '出库', recordTitle: '出库记录', emptyText: '暂无出库记录');
+        return _TabInfo(
+          scanCta: '点击扫码出库',
+          recordTitle: '出库记录',
+          emptyText: '暂无出库记录',
+          detailTitle: '出库详情',
+        );
       case WarehouseTab.returnForm:
-        return _TabInfo(tabName: '归还', recordTitle: '归还记录', emptyText: '暂无归还记录');
+        return _TabInfo(
+          scanCta: '点击扫码归还',
+          recordTitle: '归还记录',
+          emptyText: '暂无归还记录',
+          detailTitle: '归还详情',
+        );
       case WarehouseTab.inventoryCheck:
-        return _TabInfo(tabName: '盘点', recordTitle: '盘点记录', emptyText: '暂无盘点记录');
+        return _TabInfo(
+          scanCta: '点击扫码盘点',
+          recordTitle: '盘点记录',
+          emptyText: '暂无盘点记录',
+          detailTitle: '盘点详情',
+        );
       case WarehouseTab.settings:
-        return _TabInfo(tabName: '设置', recordTitle: '', emptyText: '设置页面');
+        return _TabInfo(
+          scanCta: '',
+          recordTitle: '',
+          emptyText: '设置页面',
+          detailTitle: '',
+        );
     }
   }
 }
@@ -369,23 +469,113 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 // ---- Record item model ----
 
 /// Minimal record data for display in the shell's record section.
+///
+/// [title]/[detail]/[status] drive the list card.  [kind] + [source] carry
+/// the typed DTO used to render the record detail BottomSheet.
 class RecordItem {
   final String title;
   final String detail;
   final String? status;
-  const RecordItem({required this.title, required this.detail, this.status});
+  final RecordKind kind;
+  final Object? source;
+
+  const RecordItem({
+    required this.title,
+    required this.detail,
+    this.status,
+    this.kind = RecordKind.checkout,
+    this.source,
+  });
+}
+
+// ---- Detail-sheet presentational helpers (token-compliant) ----
+
+/// A label/value row separated by a thin divider, mirroring Web `Row`.
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: _WS.detailRowVPad),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppDesignColors.borderMuted),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          const Spacer(),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Operator · time · remark strip, mirroring Web `MetaStrip`.
+class _DetailMeta extends StatelessWidget {
+  const _DetailMeta({required this.operatorName, required this.time, required this.remark});
+  final String operatorName;
+  final String time;
+  final String remark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: AppSpacing.sm,
+        children: [
+          _metaItem(Icons.person_outline, operatorName, true),
+          _metaItem(Icons.access_time, time, false),
+          if (remark.isNotEmpty) _metaItem(Icons.notes, remark, false),
+        ],
+      ),
+    );
+  }
+
+  Widget _metaItem(IconData icon, String text, bool emphasized) {
+    final value = text.isEmpty ? '-' : text;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: _WS.detailMetaIconSize, color: AppDesignColors.textSecondary),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          value,
+          style: emphasized
+              ? AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)
+              : AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+        ),
+      ],
+    );
+  }
 }
 
 // ---- Tab info data class ----
 
 class _TabInfo {
-  final String tabName;
+  final String scanCta;
   final String recordTitle;
   final String emptyText;
+  final String detailTitle;
 
   const _TabInfo({
-    required this.tabName,
+    required this.scanCta,
     required this.recordTitle,
     required this.emptyText,
+    required this.detailTitle,
   });
 }

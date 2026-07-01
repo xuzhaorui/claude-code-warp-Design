@@ -36,7 +36,7 @@ abstract class WarehouseApiClient {
   Future<WarehouseApiResult<BusinessSubmitResult>> submitCheckout(CheckoutSubmitPayload payload);
 
   /// Fetch checkout records for the current user today.
-  Future<WarehouseApiResult<List<CheckoutSubmitPayload>>> fetchCheckoutRecords();
+  Future<WarehouseApiResult<List<CheckoutRecord>>> fetchCheckoutRecords();
 
   // ── Return (归还) ──
 
@@ -46,7 +46,7 @@ abstract class WarehouseApiClient {
   Future<WarehouseApiResult<BusinessSubmitResult>> submitReturn(ReturnSubmitPayload payload);
 
   /// Fetch return records (recent 100).
-  Future<WarehouseApiResult<List<ReturnSubmitPayload>>> fetchReturnRecords();
+  Future<WarehouseApiResult<List<ReturnRecord>>> fetchReturnRecords();
 
   // ── Inventory Check (盘点) ──
 
@@ -56,7 +56,7 @@ abstract class WarehouseApiClient {
   Future<WarehouseApiResult<BusinessSubmitResult>> submitInventoryCheck(InventoryCheckSubmitPayload payload);
 
   /// Fetch inventory check records (recent 100).
-  Future<WarehouseApiResult<List<InventoryCheckSubmitPayload>>> fetchInventoryCheckRecords();
+  Future<WarehouseApiResult<List<InventoryCheckRecord>>> fetchInventoryCheckRecords();
 
   // ── Auth ──
 
