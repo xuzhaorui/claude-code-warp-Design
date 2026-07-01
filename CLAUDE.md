@@ -88,3 +88,7 @@ Flutter analyze/test/build 失败是真正阻塞项。
 - API 路径和代理策略不得随意更改。
 - UI 保持 375px–428px 移动端单手操作优先。
 - `Design.md` token 与 Flutter token 文件必须可追踪对应。
+
+## Notes
+
+- 做任何任务都从第一性原理的角度出发
