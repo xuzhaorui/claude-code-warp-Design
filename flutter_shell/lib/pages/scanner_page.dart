@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../design/app_design_colors.dart';
 import '../features/scanner/scanner_adapter.dart';
 
 /// Result popped back to caller when a code is decoded (legacy mode).
@@ -96,22 +98,62 @@ class _ScannerPageState extends State<ScannerPage> {
     super.dispose();
   }
 
+  /// Focus window: a centered square of side = min(screenW, screenH) * 0.7.
+  /// Stored as normalized rect [0..1] in image space, computed lazily.
+  static const _windowFraction = 0.7;
+
+  /// Returns true if the barcode's center falls inside the focus window.
+  /// Both the barcode corners and the window are compared in normalized
+  /// [0..1] image coordinates.
+  bool _isInsideFocusWindow(Barcode barcode, Size imageSize) {
+    final corners = barcode.corners;
+    if (corners.isEmpty) {
+      // No corner data — accept (fallback to old behaviour).
+      return true;
+    }
+    if (imageSize.isEmpty) return true;
+
+    // Barcode center in image pixels.
+    double sx = 0, sy = 0;
+    for (final c in corners) {
+      sx += c.dx;
+      sy += c.dy;
+    }
+    final cx = (sx / corners.length) / imageSize.width;
+    final cy = (sy / corners.length) / imageSize.height;
+
+    // Focus window: centered square, side = _windowFraction.
+    final half = _windowFraction / 2;
+    return cx >= 0.5 - half &&
+        cx <= 0.5 + half &&
+        cy >= 0.5 - half &&
+        cy <= 0.5 + half;
+  }
+
   void _onDetect(BarcodeCapture capture) {
     if (_completed) return;
-    final barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
-    final barcode = barcodes.first;
-    final raw = barcode.rawValue;
-    if (raw == null || raw.isEmpty) return;
+    final imageSize = capture.size;
+    // Prefer a barcode whose center is inside the focus window.
+    Barcode? picked;
+    for (final b in capture.barcodes) {
+      if (b.rawValue == null || b.rawValue!.isEmpty) continue;
+      if (_isInsideFocusWindow(b, imageSize)) {
+        picked = b;
+        break;
+      }
+    }
+    // Fallback: if none inside the window, ignore (do not accept stray codes).
+    if (picked == null) return;
 
+    final raw = picked.rawValue!;
     _completed = true;
-    debugPrint('[ScannerPage] scan result: $raw');
+    debugPrint('[ScannerPage] scan result (in window): $raw');
 
     if (widget.adapter != null) {
       widget.onScanResult?.call(raw);
     } else {
       Navigator.of(context)
-          .pop(ScanResult(text: raw, format: barcode.format.name));
+          .pop(ScanResult(text: raw, format: picked.format.name));
     }
   }
 
@@ -133,6 +175,8 @@ class _ScannerPageState extends State<ScannerPage> {
       body: Stack(
         children: [
           MobileScanner(controller: _controller, onDetect: _onDetect),
+          // Focus-window overlay.
+          Positioned.fill(child: _FocusOverlay(fraction: _windowFraction)),
           Positioned(
             top: 0,
             left: 0,
@@ -178,4 +222,117 @@ class _ScannerPageState extends State<ScannerPage> {
       ),
     );
   }
+}
+
+/// A semi-transparent scrim with a transparent centered square cut-out and
+/// an orange corner-bracket frame, signalling the scan focus area.
+class _FocusOverlay extends StatelessWidget {
+  const _FocusOverlay({required this.fraction});
+  final double fraction;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        final side = math.min(w, h) * fraction;
+        final left = (w - side) / 2;
+        final top = (h - side) / 2;
+        final window = Rect.fromLTWH(left, top, side, side);
+        return Stack(
+          children: [
+            // Scrim with a hole for the focus window.
+            ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withValues(alpha: 0.45),
+                BlendMode.srcOut,
+              ),
+              child: Stack(
+                children: [
+                  Container(color: Colors.black.withValues(alpha: 0.45)),
+                  Positioned(
+                    left: window.left,
+                    top: window.top,
+                    width: window.width,
+                    height: window.height,
+                    child: Container(color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            // Orange corner brackets around the window.
+            Positioned(
+              left: window.left,
+              top: window.top,
+              width: window.width,
+              height: window.height,
+              child: CustomPaint(painter: _BracketPainter()),
+            ),
+            // Hint text below the window.
+            Positioned(
+              left: 0,
+              right: 0,
+              top: window.bottom + 24,
+              child: Center(
+                child: Text(
+                  '将二维码对准框内',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _BracketPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = AppDesignColors.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    const len = 32.0;
+    final w = size.width;
+    final h = size.height;
+    // Top-left
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, len)
+        ..lineTo(0, 0)
+        ..lineTo(len, 0),
+      paint,
+    );
+    // Top-right
+    canvas.drawPath(
+      Path()
+        ..moveTo(w - len, 0)
+        ..lineTo(w, 0)
+        ..lineTo(w, len),
+      paint,
+    );
+    // Bottom-left
+    canvas.drawPath(
+      Path()
+        ..moveTo(0, h - len)
+        ..lineTo(0, h)
+        ..lineTo(len, h),
+      paint,
+    );
+    // Bottom-right
+    canvas.drawPath(
+      Path()
+        ..moveTo(w - len, h)
+        ..lineTo(w, h)
+        ..lineTo(w, h - len),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

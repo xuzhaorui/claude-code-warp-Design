@@ -291,8 +291,8 @@ class BlackSubmitButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppDesignColors.textPrimary,
-            foregroundColor: AppDesignColors.scannerLight,
+            backgroundColor: AppDesignColors.primary,
+            foregroundColor: AppDesignColors.textPrimary,
             shape: const StadiumBorder(),
             elevation: 0,
           ),
@@ -302,7 +302,7 @@ class BlackSubmitButton extends StatelessWidget {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(AppDesignColors.scannerLight),
+                    valueColor: AlwaysStoppedAnimation(AppDesignColors.textPrimary),
                   ),
                 )
               : Text(text, style: AppTextStyles.label),

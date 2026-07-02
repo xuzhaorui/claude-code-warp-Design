@@ -39,8 +39,8 @@ class _WS {
   static const accentBarH = 14.0;
   static const statusIconSize = 18.0;
   static const resultIconSize = 20.0;
-  static const detailRowVPad = 12.0;
-  static const detailMetaIconSize = 14.0;
+  static const detailRowVPad = 14.0;
+  static const detailMetaIconSize = 18.0;
 }
 
 // ---- Public widget ----
@@ -600,7 +600,7 @@ class _DetailRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: AppTextStyles.caption.copyWith(
+            style: AppTextStyles.body.copyWith(
               color: AppDesignColors.textSecondary,
             ),
           ),
@@ -609,7 +609,7 @@ class _DetailRow extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+              style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -659,8 +659,8 @@ class _DetailMeta extends StatelessWidget {
         Text(
           value,
           style: emphasized
-              ? AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)
-              : AppTextStyles.caption.copyWith(
+              ? AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)
+              : AppTextStyles.body.copyWith(
                   color: AppDesignColors.textSecondary,
                 ),
         ),

@@ -332,7 +332,7 @@ class _BlackSegmented<T> extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
-                  color: active ? AppDesignColors.textPrimary : null,
+                  color: active ? AppDesignColors.primary : null,
                   borderRadius: BorderRadius.all(AppRadii.pill),
                 ),
                 child: Text(
@@ -340,7 +340,7 @@ class _BlackSegmented<T> extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: active ? AppDesignColors.scannerLight : AppDesignColors.textSecondary,
+                    color: active ? AppDesignColors.textPrimary : AppDesignColors.textSecondary,
                   ),
                 ),
               ),
