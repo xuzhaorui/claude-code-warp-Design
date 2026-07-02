@@ -230,5 +230,58 @@ void main() {
       await tester.pump();
       expect(find.text('设置'), findsOneWidget);
     });
+
+    // task: add form has a 取消 button.
+    testWidgets('add form has a 取消 button that closes the form', (tester) async {
+      final store = InMemoryServerConfigStore();
+      await tester.pumpWidget(wrapApp(ServerConfigPage(store: store)));
+      await tester.tap(find.text('添加服务器'));
+      await tester.pump();
+      expect(find.text('取消'), findsOneWidget);
+      await tester.tap(find.text('取消'));
+      await tester.pump();
+      // Form closed — add button visible again.
+      expect(find.text('添加服务器'), findsOneWidget);
+      expect(find.text('保存'), findsNothing);
+    });
+
+    // task: delete a server.
+    testWidgets('deleting a server removes it from the list', (tester) async {
+      final store = InMemoryServerConfigStore();
+      await store.saveServers([
+        ServerConfig(name: 'A', baseUrl: 'http://a'),
+        ServerConfig(name: 'B', baseUrl: 'http://b'),
+      ]);
+      await store.setActiveServer('http://a');
+      await tester.pumpWidget(wrapApp(ServerConfigPage(store: store)));
+      await tester.pumpAndSettle();
+      // Open options for server A via its more-vert icon.
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('删除'));
+      await tester.pumpAndSettle();
+      // A is gone, B remains.
+      expect(find.text('A'), findsNothing);
+      expect(find.text('B'), findsOneWidget);
+    });
+
+    // task: edit a server prefills the form.
+    testWidgets('editing a server prefills the form with 修改服务器 title', (tester) async {
+      final store = InMemoryServerConfigStore();
+      await store.saveServers([
+        ServerConfig(name: 'A', baseUrl: 'http://a'),
+      ]);
+      await store.setActiveServer('http://a');
+      await tester.pumpWidget(wrapApp(ServerConfigPage(store: store)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('修改'));
+      await tester.pumpAndSettle();
+      expect(find.text('修改服务器'), findsOneWidget);
+      // Form fields prefilled with server A's values.
+      expect(find.text('保存'), findsOneWidget);
+      expect(find.text('取消'), findsOneWidget);
+    });
   });
 }

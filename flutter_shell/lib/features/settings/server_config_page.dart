@@ -52,6 +52,9 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
   bool _statusIsError = false;
   bool _showForm = false;
 
+  /// When non-null, the form is editing an existing server; when null, adding.
+  ServerConfig? _editingServer;
+
   /// task-046: settings home (简洁入口页) vs server-config management view.
   bool _showManagement = false;
 
@@ -84,9 +87,22 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
     }
 
     final config = ServerConfig(name: name, baseUrl: url);
-    final updated = [..._servers, config];
+    List<ServerConfig> updated;
+    if (_editingServer != null) {
+      // Edit existing: replace the entry that matches the editing server.
+      updated = _servers
+          .map((s) => s.normalizedBaseUrl == _editingServer!.normalizedBaseUrl ? config : s)
+          .toList();
+      // If the active server was the one edited, keep it active under the new URL.
+      if (_activeServer?.normalizedBaseUrl == _editingServer!.normalizedBaseUrl) {
+        await _store.setActiveServer(config.normalizedBaseUrl);
+      }
+    } else {
+      // Add new.
+      updated = [..._servers, config];
+      await _store.setActiveServer(config.normalizedBaseUrl);
+    }
     await _store.saveServers(updated);
-    await _store.setActiveServer(config.normalizedBaseUrl);
 
     if (!mounted) return;
     setState(() {
@@ -95,10 +111,85 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
       _statusMessage = '服务配置已保存';
       _statusIsError = false;
       _showForm = false;
+      _editingServer = null;
       _nameController.clear();
       _urlController.clear();
     });
     widget.onConfigured?.call();
+  }
+
+  void _handleCancel() {
+    setState(() {
+      _showForm = false;
+      _editingServer = null;
+      _nameController.clear();
+      _urlController.clear();
+      _statusMessage = null;
+    });
+  }
+
+  void _handleEdit(ServerConfig config) {
+    setState(() {
+      _editingServer = config;
+      _showForm = true;
+      _nameController.text = config.name;
+      _urlController.text = config.baseUrl;
+      _statusMessage = null;
+    });
+  }
+
+  Future<void> _handleDelete(ServerConfig config) async {
+    final updated = _servers
+        .where((s) => s.normalizedBaseUrl != config.normalizedBaseUrl)
+        .toList();
+    await _store.saveServers(updated);
+    // Clear active if it was the deleted server.
+    if (_activeServer?.normalizedBaseUrl == config.normalizedBaseUrl) {
+      _activeServer = null;
+      // Note: we do not call onServerChanged here since deleting doesn't
+      // switch to a new server; the caller can re-select or re-add.
+    }
+    if (!mounted) return;
+    setState(() {
+      _servers = updated;
+      _statusMessage = '已删除「${config.name}」';
+      _statusIsError = false;
+    });
+  }
+
+  /// Open a bottom sheet with 修改 / 删除 options for a server tile.
+  void _showServerOptions(ServerConfig config) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('修改'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _handleEdit(config);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+              title: Text('删除', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _handleDelete(config);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('取消'),
+              onTap: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _handleTestConnection() {
@@ -308,10 +399,17 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
         leadingIcon: isActive
             ? Icons.radio_button_checked
             : Icons.radio_button_off,
-        trailing: const Icon(
-          Icons.chevron_right,
-          size: 20,
-          color: AppDesignColors.textSecondary,
+        trailing: GestureDetector(
+          onTap: () => _showServerOptions(config),
+          behavior: HitTestBehavior.opaque,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.sm),
+            child: Icon(
+              Icons.more_vert,
+              size: 20,
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
         ),
         onTap: () => _handleSelect(config),
       ),
@@ -333,6 +431,7 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
   }
 
   Widget _buildForm() {
+    final isEditing = _editingServer != null;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -343,7 +442,7 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '添加服务器',
+            isEditing ? '修改服务器' : '添加服务器',
             style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -374,6 +473,14 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
                   text: '测试连接',
                   variant: AppButtonVariant.secondary,
                   onPressed: _handleTestConnection,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: AppButton(
+                  text: '取消',
+                  variant: AppButtonVariant.secondary,
+                  onPressed: _handleCancel,
                 ),
               ),
             ],
