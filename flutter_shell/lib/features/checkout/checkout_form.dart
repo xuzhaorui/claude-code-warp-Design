@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import '../../components/app_button.dart';
-import '../../components/app_form_section.dart';
-import '../../components/app_segmented_control.dart';
-import '../../components/app_stepper.dart';
-import '../../components/app_text_field.dart';
 import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
@@ -12,16 +8,31 @@ import '../../design/app_text_styles.dart';
 import '../api/warehouse_api_client.dart';
 import 'checkout_form_rules.dart';
 
-/// Minimal checkout (出库) form UI widget.
+// ---- Component-local constants ----
+//
+// Per Design.md, component-local numeric constants (panel width, badge
+// rotation/skew, stepper button sizes) are allowed when mirroring the Web
+// layout and not promoting a new design token.
+class _CF {
+  _CF._();
+  static const leftPanelWidth = 135.0;
+  static const badgeRotate = -0.017; // ~ -1deg, Web rotate(-1deg)
+  static const badgeSkew = -0.087; // ~ -5deg, Web skewX(-5deg)
+  static const badgeInnerSkew = 0.14; // ~ +8deg, Web skewX(8deg) on text
+  static const stepperHeight = 56.0;
+  static const stepperBtnSize = 44.0;
+  static const submitHeight = 52.0;
+}
+
+/// Checkout (出库) form — Web-parity two-column layout.
 ///
-/// Composes [AppSegmentedControl], [AppStepper], [AppTextField], and
-/// [AppButton] inside [AppFormSection] containers.  All business logic
-/// (overStock, isLoss, canSubmit, payload) delegates to
-/// [CheckoutFormRules.evaluate] / [buildPayload].
+/// Left panel: item info (库存 badge + 货物名称/仓库/编号/规格).
+/// Right panel: 外销/外借 segmented, 出库数量 stepper, sale fields / remark,
+/// 成本单价, black 提交 button.
 ///
-/// When [apiClient] is provided, the form calls [WarehouseApiClient.submitCheckout]
-/// on submit and manages loading / error state internally.
-/// When [apiClient] is null, [onSubmit] is called directly (for test/mock use).
+/// All business logic (overStock, isLoss, canSubmit, payload, submit)
+/// delegates to [CheckoutFormRules] and is unchanged from the single-column
+/// version.  Only the visual tree was rewritten to match the Web form.
 class CheckoutFormMin extends StatefulWidget {
   const CheckoutFormMin({
     super.key,
@@ -139,150 +150,514 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
     final isSale = _method == CheckoutMethod.sale;
     final canSubmit = ev.canSubmit && !_isSubmitting;
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppFormSection(
-              title: itemCode(item),
-              subtitle: item.itemName,
-              child: _itemInfoContent(item),
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Left: item info panel ──
+          Container(
+            width: _CF.leftPanelWidth,
+            decoration: const BoxDecoration(
+              color: AppDesignColors.surface,
+              border: Border(
+                right: BorderSide(color: AppDesignColors.borderMuted),
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            AppSegmentedControl<CheckoutMethod>(
-              options: const [
-                AppSegmentedOption(value: CheckoutMethod.sale, label: '外销'),
-                AppSegmentedOption(value: CheckoutMethod.borrow, label: '外借'),
-              ],
-              selectedValue: _method,
-              onChanged: _onMethodChanged,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _StockBadge(stockQty: item.stockQty),
+                  const SizedBox(height: AppSpacing.md),
+                  _InfoField(label: '货物名称', value: item.itemName),
+                  const SizedBox(height: AppSpacing.sm),
+                  _InfoField(label: '仓库', value: item.warehouse),
+                  const SizedBox(height: AppSpacing.sm),
+                  _InfoField(label: '编号', value: item.code),
+                  const SizedBox(height: AppSpacing.sm),
+                  _InfoField(label: '规格', value: item.spec),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            AppStepper(
-              value: _parseIntForStepper(_quantity),
-              min: 1,
-              max: item.stockQty,
-              onChanged: _onQuantityChanged,
-              label: '出库数量',
-            ),
-            if (ev.overStock)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
-                child: Text(
-                  '超出库存数量（库存: ${item.stockQty}）',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppDesignColors.textPrimary,
-                    fontWeight: FontWeight.w600,
+          ),
+          // ── Right: form panel ──
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _BlackSegmented<CheckoutMethod>(
+                    options: const [
+                      _SegOption(value: CheckoutMethod.sale, label: '外销'),
+                      _SegOption(value: CheckoutMethod.borrow, label: '外借'),
+                    ],
+                    selectedValue: _method,
+                    onChanged: _onMethodChanged,
                   ),
-                ),
-              ),
-            if (isSale) ...[
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: '销售总价',
-                hint: '0',
-                keyboardType: TextInputType.number,
-                onChanged: _onSaleTotalChanged,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: AppDesignColors.surfaceMuted,
-                  borderRadius: BorderRadius.all(AppRadii.md),
-                ),
-                child: Row(
-                  children: [
-                    Text('销售单价：', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-                    const Spacer(),
-                    Text('¥${ev.saleUnitPrice.toStringAsFixed(2)}',
-                        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: AppSpacing.md),
+                  _BlackStepper(
+                    label: '出库数量',
+                    value: _quantity,
+                    min: 1,
+                    max: item.stockQty,
+                    error: ev.overStock,
+                    onChanged: _onQuantityChanged,
+                  ),
+                  if (ev.overStock)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
+                      child: Text(
+                        '超出库存数量（库存: ${item.stockQty}）',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppDesignColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  if (isSale) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    _SalePriceField(
+                      value: _saleTotalPrice,
+                      onChanged: _onSaleTotalChanged,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: AppDesignColors.surfaceMuted,
+                        borderRadius: BorderRadius.all(AppRadii.md),
+                      ),
+                      child: Row(
+                        children: [
+                          Text('销售单价：',
+                              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                          const Spacer(),
+                          Text('¥${ev.saleUnitPrice.toStringAsFixed(2)}',
+                              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    if (ev.isLoss && !_confirmLoss) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      _LossWarning(costPrice: item.costPrice, onConfirm: () => setState(() => _confirmLoss = true)),
+                    ],
+                    if (ev.isLoss && _confirmLoss)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        child: Text('已确认亏损操作',
+                            style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                      ),
                   ],
-                ),
-              ),
-              if (ev.isLoss && !_confirmLoss) ...[
-                const SizedBox(height: AppSpacing.sm),
-                _LossWarning(costPrice: item.costPrice, onConfirm: () => setState(() => _confirmLoss = true)),
-              ],
-              if (ev.isLoss && _confirmLoss)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Text('已确认亏损操作',
-                      style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-                ),
-            ],
-            if (!isSale) ...[
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(label: '出库备注（选填）', onChanged: _onRemarkChanged),
-            ],
-            if (widget.showCostPrice) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text('成本单价：¥${item.costPrice.toStringAsFixed(2)}',
-                  style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-            ],
-            // Submit error
-            if (_submitError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Text(_submitError!,
-                    style: AppTextStyles.caption.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                      fontWeight: FontWeight.w600,
-                    )),
-              ),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: _isSubmitting ? '提交中...' : '提交',
-                loading: _isSubmitting,
-                onPressed: canSubmit ? _handleSubmit : null,
+                  if (!isSale) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    _RemarkField(value: _remark, onChanged: _onRemarkChanged),
+                  ],
+                  if (widget.showCostPrice) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text('成本单价：¥${item.costPrice.toStringAsFixed(2)}',
+                        style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                  ],
+                  if (_submitError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Text(_submitError!,
+                          style: AppTextStyles.caption.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          )),
+                    ),
+                  const SizedBox(height: AppSpacing.lg),
+                  _BlackSubmitButton(
+                    text: _isSubmitting ? '提交中...' : '提交',
+                    loading: _isSubmitting,
+                    onPressed: canSubmit ? _handleSubmit : null,
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Left-panel: rotated 库存 badge (Web BadgeField) ──
+
+class _StockBadge extends StatelessWidget {
+  const _StockBadge({required this.stockQty});
+  final int stockQty;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: _CF.badgeRotate,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: AppDesignColors.primary,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Transform(
+          alignment: Alignment.center,
+          transform: Matrix4.skewX(_CF.badgeSkew),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+            decoration: BoxDecoration(
+              color: AppDesignColors.primarySoft,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.skewX(_CF.badgeInnerSkew),
+              child: Text(
+                '$stockQty',
+                style: AppTextStyles.title.copyWith(
+                  fontWeight: FontWeight.w900,
+                  fontStyle: FontStyle.italic,
+                  color: AppDesignColors.primary,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
+}
 
-  String itemCode(CheckoutItemSnapshot item) {
-    final parts = [item.itemName, item.code].where((s) => s.isNotEmpty);
-    return parts.isNotEmpty ? parts.join(' / ') : '货物信息';
-  }
+// ── Left-panel: label/value info field (Web InfoField) ──
 
-  Widget _itemInfoContent(CheckoutItemSnapshot item) {
+class _InfoField extends StatelessWidget {
+  const _InfoField({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _infoRow('库存', '${item.stockQty}'),
-        _infoRow('编号', item.code),
-        _infoRow('仓库', item.warehouse),
-        _infoRow('规格', item.spec),
+        Text(label,
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            )),
+        const SizedBox(height: 2),
+        Text(
+          value.isEmpty ? '-' : value,
+          style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
+}
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+// ── Right-panel: black segmented control (Web method selector) ──
+
+class _BlackSegmented<T> extends StatelessWidget {
+  const _BlackSegmented({
+    required this.options,
+    required this.selectedValue,
+    required this.onChanged,
+  });
+  final List<_SegOption<T>> options;
+  final T selectedValue;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: AppDesignColors.surfaceMuted,
+        borderRadius: BorderRadius.all(AppRadii.pill),
+      ),
       child: Row(
+        children: options.map((o) {
+          final active = o.value == selectedValue;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(o.value),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: active ? AppDesignColors.textPrimary : null,
+                  borderRadius: BorderRadius.all(AppRadii.pill),
+                ),
+                child: Text(
+                  o.label,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: active ? AppDesignColors.scannerLight : AppDesignColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _SegOption<T> {
+  const _SegOption({required this.value, required this.label});
+  final T value;
+  final String label;
+}
+
+// ── Right-panel: black-accent stepper (Web Stepper) ──
+
+class _BlackStepper extends StatelessWidget {
+  const _BlackStepper({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.error,
+    required this.onChanged,
+  });
+  final String label;
+  final String value;
+  final int min;
+  final int max;
+  final bool error;
+  final ValueChanged<num> onChanged;
+
+  int get _current {
+    if (value.isEmpty) return min;
+    return int.tryParse(value) ?? min;
+  }
+
+  void _step(int dir) {
+    final next = (_current + dir).clamp(min, max);
+    onChanged(next);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: _CF.stepperHeight,
+      decoration: BoxDecoration(
+        color: AppDesignColors.surfaceMuted,
+        borderRadius: BorderRadius.all(AppRadii.md),
+        border: error
+            ? Border.all(color: Theme.of(context).colorScheme.error, width: 2)
+            : null,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          SizedBox(width: 56, child: Text(label,
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary))),
-          Expanded(child: Text(value, style: AppTextStyles.body, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          // Floating label
+          Positioned(
+            top: 0,
+            left: AppSpacing.md,
+            child: Container(
+              color: AppDesignColors.surfaceMuted,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+              child: Text(
+                label,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppDesignColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              _roundButton(
+                glyph: '−',
+                onTap: () => _step(-1),
+                dark: false,
+              ),
+              Expanded(
+                child: TextField(
+                  controller: TextEditingController(text: value.isEmpty ? '' : value),
+                  textAlign: TextAlign.center,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
+                  decoration: const InputDecoration(
+                    isCollapsed: true,
+                    border: InputBorder.none,
+                    hintText: '0',
+                  ),
+                  onChanged: (raw) {
+                    if (raw.isEmpty) {
+                      onChanged(min);
+                      return;
+                    }
+                    final n = int.tryParse(raw);
+                    if (n != null) onChanged(n.clamp(min, max));
+                  },
+                ),
+              ),
+              _roundButton(
+                glyph: '+',
+                onTap: () => _step(1),
+                dark: true,
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  int _parseIntForStepper(String s) {
-    if (s.isEmpty) return 1;
-    return int.tryParse(s) ?? 1;
+  Widget _roundButton({required String glyph, required VoidCallback onTap, required bool dark}) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: _CF.stepperBtnSize,
+        height: _CF.stepperBtnSize,
+        decoration: BoxDecoration(
+          color: dark ? AppDesignColors.textPrimary : AppDesignColors.borderMuted,
+          borderRadius: BorderRadius.all(AppRadii.sm),
+        ),
+        child: Center(
+          child: Text(
+            glyph,
+            style: AppTextStyles.title.copyWith(
+              fontWeight: FontWeight.w700,
+              color: dark ? AppDesignColors.scannerLight : AppDesignColors.textPrimary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Right-panel: sale price field (Web Stepper controls=false) ──
+
+class _SalePriceField extends StatelessWidget {
+  const _SalePriceField({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppDesignColors.surfaceMuted,
+        borderRadius: BorderRadius.all(AppRadii.md),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Text('销售总价', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: TextFormField(
+              controller: TextEditingController(text: value),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textAlign: TextAlign.right,
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+              decoration: const InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+                prefixText: '¥ ',
+                hintText: '0',
+              ),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Right-panel: remark field (外借) ──
+
+class _RemarkField extends StatelessWidget {
+  const _RemarkField({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppDesignColors.surfaceMuted,
+        borderRadius: BorderRadius.all(AppRadii.md),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('出库备注（选填）', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          TextFormField(
+            controller: TextEditingController(text: value),
+            style: AppTextStyles.body,
+            decoration: const InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: AppSpacing.xs),
+            ),
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Right-panel: black submit button (Web 提交) ──
+
+class _BlackSubmitButton extends StatelessWidget {
+  const _BlackSubmitButton({
+    required this.text,
+    required this.loading,
+    required this.onPressed,
+  });
+  final String text;
+  final bool loading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onPressed == null;
+    return Opacity(
+      opacity: disabled ? 0.4 : 1.0,
+      child: SizedBox(
+        width: double.infinity,
+        height: _CF.submitHeight,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppDesignColors.textPrimary,
+            foregroundColor: AppDesignColors.scannerLight,
+            shape: const StadiumBorder(),
+            elevation: 0,
+          ),
+          child: loading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(AppDesignColors.scannerLight),
+                  ),
+                )
+              : Text(text, style: AppTextStyles.label),
+        ),
+      ),
+    );
   }
 }
 

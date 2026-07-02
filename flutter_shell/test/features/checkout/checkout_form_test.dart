@@ -333,5 +333,30 @@ void main() {
       ));
       expect(find.byType(CheckoutFormMin), findsOneWidget);
     });
+
+    // 19. Web-parity two-column layout: left item-info panel with 库存 badge
+    testWidgets('two-column layout shows 库存 badge and item fields', (tester) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.pump();
+      // Left panel: 库存 badge value (stockQty=100) + item info labels.
+      expect(find.text('100'), findsOneWidget);
+      expect(find.text('货物名称'), findsOneWidget);
+      expect(find.text('仓库'), findsOneWidget);
+      expect(find.text('编号'), findsOneWidget);
+      expect(find.text('规格'), findsOneWidget);
+      // Right panel: segmented options present.
+      expect(find.text('外销'), findsOneWidget);
+      expect(find.text('外借'), findsOneWidget);
+    });
+
+    // 20. black segmented switches method on tap
+    testWidgets('segmented switches to 外借 on tap', (tester) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.pump();
+      await tester.tap(find.text('外借'));
+      await tester.pump();
+      // After switching to 外借, the remark field appears.
+      expect(find.text('出库备注（选填）'), findsOneWidget);
+    });
   });
 }

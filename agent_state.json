@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-07-02T09:30:00Z",
+  "updatedAt": "2026-07-02T13:30:00Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -820,11 +820,37 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-044-real-device-checkout-web-parity-smoke"
+    },
+    {
+      "id": "iter-044-checkout-form-two-column-web-parity",
+      "goal": "重写出库表单为 Web parity 双栏布局：左物资信息面板（旋转库存徽章）+ 右表单（黑色分段/步进/提交）。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/checkout/checkout_form.dart",
+        "flutter_shell/test/features/checkout/checkout_form_test.dart",
+        "agent_state.json"
+      ],
+      "changes": {
+        "twoColumnLayout": "左 135px 物资信息面板 + 右 Expanded 表单",
+        "stockBadge": "_StockBadge 旋转/倾斜橙色徽章（Web BadgeField）",
+        "blackControls": "_BlackSegmented / _BlackStepper / _BlackSubmitButton 用 textPrimary(#292524) 作黑色",
+        "logicPreserved": "CheckoutFormRules / 提交 / 亏损确认 / canSubmit 不变"
+      },
+      "tests": {
+        "totalFlutterTests": 384
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 384/384",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-045-real-device-checkout-form-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-043-checkout-web-parity-visual-identity",
-    "lastCompletedGoal": "恢复三个业务 tab 的 Web 视觉标识，保留 task-042 结构性修复。",
+    "lastCompletedIterationId": "iter-044-checkout-form-two-column-web-parity",
+    "lastCompletedGoal": "重写出库表单为 Web parity 双栏布局。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
@@ -836,7 +862,7 @@
       "AppFormSection",
       "AppSegmentedControl"
     ],
-    "testCount": 382,
+    "testCount": 384,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",
