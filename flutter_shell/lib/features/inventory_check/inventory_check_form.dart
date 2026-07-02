@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../components/app_button.dart';
-import '../../components/app_form_section.dart';
-import '../../components/app_stepper.dart';
-import '../../components/app_text_field.dart';
+import '../../components/form_widgets.dart';
 import '../../design/app_design_colors.dart';
 import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
@@ -11,6 +8,11 @@ import '../../design/app_text_styles.dart';
 import '../api/warehouse_api_client.dart';
 import 'inventory_check_form_rules.dart';
 
+/// Inventory-check (盘点) form — Web-parity two-column layout.
+///
+/// Left panel: 账面数量 badge + 货物名称/编号/规格.
+/// Right panel: 盘点真实数量 stepper + 差值 box (green/red) + remark +
+/// black 提交盘点 button.  Mirrors `src/components/Forms/InventoryCheckForm.jsx`.
 class InventoryCheckFormMin extends StatefulWidget {
   const InventoryCheckFormMin({
     super.key,
@@ -93,86 +95,107 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
     final diffColor = ev.diffQty > 0 ? cs.primary : ev.diffQty < 0 ? cs.error : AppDesignColors.textPrimary;
     final diffText = ev.diffQty > 0 ? '+${ev.diffQty}' : '${ev.diffQty}';
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppFormSection(
-              title: item.itemName.isNotEmpty ? item.itemName : '盘点货物',
-              subtitle: '账面数量：${item.stockQty}',
-              child: _itemInfoContent(item),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            AppStepper(value: _parseIntForStepper(_actualQty), min: 0, max: 99999, onChanged: _onQtyChanged, label: '盘点真实数量'),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppDesignColors.surfaceMuted,
-                borderRadius: BorderRadius.all(AppRadii.md),
-              ),
-              child: Row(
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Left: item info panel ──
+          ItemInfoPanel(
+            children: [
+              StockBadge(label: '账面数量', value: '${item.stockQty}'),
+              const SizedBox(height: AppSpacing.md),
+              InfoField(label: '货物名称', value: item.itemName),
+              const SizedBox(height: AppSpacing.sm),
+              InfoField(label: '编号', value: item.code),
+              const SizedBox(height: AppSpacing.sm),
+              InfoField(label: '规格', value: item.spec),
+            ],
+          ),
+          // ── Right: form panel ──
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('盘点差异：', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-                  const Spacer(),
-                  Text(diffText, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600, color: diffColor)),
+                  BlackStepper(
+                    label: '盘点真实数量',
+                    value: _actualQty,
+                    min: 0,
+                    max: 99999,
+                    onChanged: _onQtyChanged,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppDesignColors.surfaceMuted,
+                      borderRadius: BorderRadius.all(AppRadii.md),
+                    ),
+                    child: Row(
+                      children: [
+                        Text('差值', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                        const Spacer(),
+                        Text(diffText,
+                            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700, color: diffColor)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _RemarkField(value: _remark, onChanged: _onRemarkChanged),
+                  if (_submitError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Text(_submitError!,
+                          style: AppTextStyles.caption.copyWith(color: cs.error, fontWeight: FontWeight.w600)),
+                    ),
+                  const SizedBox(height: AppSpacing.lg),
+                  BlackSubmitButton(
+                    text: _isSubmitting ? '提交中...' : '提交盘点',
+                    loading: _isSubmitting,
+                    onPressed: canSubmit ? _handleSubmit : null,
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            AppTextField(label: '盘点备注（选填）', onChanged: _onRemarkChanged),
-            if (_submitError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Text(_submitError!,
-                    style: AppTextStyles.caption.copyWith(color: cs.error, fontWeight: FontWeight.w600)),
-              ),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: _isSubmitting ? '提交中...' : '提交盘点',
-                loading: _isSubmitting,
-                onPressed: canSubmit ? _handleSubmit : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _itemInfoContent(InventoryCheckItemSnapshot item) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _infoRow('账面', '${item.stockQty}'),
-        _infoRow('编号', item.code),
-        _infoRow('规格', item.spec),
-      ],
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        children: [
-          SizedBox(width: 56, child: Text(label,
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary))),
-          Expanded(child: Text(value, style: AppTextStyles.body, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          ),
         ],
       ),
     );
   }
+}
 
-  int _parseIntForStepper(String s) {
-    if (s.isEmpty) return 1;
-    return int.tryParse(s) ?? 1;
+class _RemarkField extends StatelessWidget {
+  const _RemarkField({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppDesignColors.surfaceMuted,
+        borderRadius: BorderRadius.all(AppRadii.md),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('盘点备注（选填）', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          TextFormField(
+            controller: TextEditingController(text: value),
+            style: AppTextStyles.body,
+            decoration: const InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: AppSpacing.xs),
+            ),
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
   }
 }

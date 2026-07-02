@@ -37,12 +37,15 @@ void main() {
       expect(find.text('100'), findsAtLeast(1));
     });
 
-    // 3. renders bookQty
-    testWidgets('renders bookQty in subtitle', (tester) async {
+    // 3. renders bookQty in left-panel badge
+    testWidgets('renders bookQty in badge', (tester) async {
       await tester.pumpWidget(wrapApp(
         InventoryCheckFormMin(item: _item),
       ));
-      expect(find.text('账面数量：100'), findsOneWidget);
+      // task-045: AppFormSection subtitle replaced by a StockBadge in the
+      // left panel; bookQty (100) renders as the badge value.
+      expect(find.text('账面数量'), findsOneWidget);
+      expect(find.text('100'), findsAtLeast(1));
     });
 
     // 4. actualQty stepper changes quantity
@@ -95,7 +98,9 @@ void main() {
       await tester.pumpWidget(wrapApp(
         InventoryCheckFormMin(item: _item),
       ));
-      // Initial is 100, diff = 0, shows "0".
+      // Initial is 100, diff = 0.  The diff box renders "差值" label + "0".
+      // The stepper input shows "100"; its hint "0" only renders when empty.
+      expect(find.text('差值'), findsOneWidget);
       expect(find.text('0'), findsOneWidget);
     });
 
@@ -230,6 +235,18 @@ void main() {
         InventoryCheckFormMin(item: _item, apiClient: MockWarehouseApiClient()),
       ));
       expect(find.byType(InventoryCheckFormMin), findsOneWidget);
+    });
+
+    // 16. two-column layout: left panel item fields + black submit
+    testWidgets('two-column layout shows item fields and 提交盘点', (tester) async {
+      await tester.pumpWidget(wrapApp(InventoryCheckFormMin(item: _item)));
+      await tester.pump();
+      // Left panel item info.
+      expect(find.text('货物名称'), findsOneWidget);
+      expect(find.text('编号'), findsOneWidget);
+      expect(find.text('规格'), findsOneWidget);
+      // Black submit button label.
+      expect(find.text('提交盘点'), findsOneWidget);
     });
   });
 }

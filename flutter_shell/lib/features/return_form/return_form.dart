@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../components/app_button.dart';
-import '../../components/app_form_section.dart';
-import '../../components/app_stepper.dart';
-import '../../components/app_text_field.dart';
+import '../../components/form_widgets.dart';
 import '../../design/app_design_colors.dart';
+import '../../design/app_radii.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_text_styles.dart';
 import '../api/warehouse_api_client.dart';
 import 'return_form_rules.dart';
 
+/// Return (归还) form — Web-parity two-column layout.
+///
+/// Left panel: 在借数量 badge + 货物名称/外借人/仓库.
+/// Right panel: 成本单价 CostBadge (if shown) + 归还数量 stepper + remark +
+/// black 确认归还 button.  Mirrors `src/components/Forms/ReturnForm.jsx`.
 class ReturnFormMin extends StatefulWidget {
   const ReturnFormMin({
     super.key,
@@ -99,89 +102,103 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
     final ev = _evaluation;
     final canSubmit = ev.canSubmit && !_isSubmitting;
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppFormSection(
-              title: record.itemName.isNotEmpty ? record.itemName : '归还货物',
-              subtitle: '在借数量：${record.borrowQty}',
-              child: _itemInfoContent(record),
-            ),
-            if (widget.showCostPrice && record.costPrice > 0)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Text('成本单价：¥${record.costPrice.toStringAsFixed(2)}',
-                    style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
-              ),
-            AppStepper(
-              value: _parseIntForStepper(_returnQty),
-              min: 1,
-              max: record.borrowQty,
-              onChanged: _onQtyChanged,
-              label: '归还数量',
-            ),
-            if (ev.overQty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
-                child: Text('超出在借数量（在借: ${record.borrowQty}）',
-                    style: AppTextStyles.caption.copyWith(
-                        color: AppDesignColors.textPrimary, fontWeight: FontWeight.w600)),
-              ),
-            const SizedBox(height: AppSpacing.md),
-            AppTextField(label: '归还备注（选填）', onChanged: _onRemarkChanged),
-            if (_submitError != null)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Text(_submitError!,
-                    style: AppTextStyles.caption.copyWith(
-                        color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600)),
-              ),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: _isSubmitting ? '提交中...' : '确认归还',
-                loading: _isSubmitting,
-                onPressed: canSubmit ? _handleSubmit : null,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _itemInfoContent(ReturnBorrowRecordSnapshot record) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _infoRow('在借', '${record.borrowQty}'),
-        _infoRow('借用人', record.borrower),
-        _infoRow('仓库', record.warehouse),
-      ],
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+    return IntrinsicHeight(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SizedBox(width: 56, child: Text(label,
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary))),
-          Expanded(child: Text(value, style: AppTextStyles.body, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          // ── Left: item info panel ──
+          ItemInfoPanel(
+            children: [
+              StockBadge(label: '在借数量', value: '${record.borrowQty}'),
+              const SizedBox(height: AppSpacing.md),
+              InfoField(label: '货物名称', value: record.itemName),
+              const SizedBox(height: AppSpacing.sm),
+              InfoField(label: '外借人', value: record.borrower),
+              const SizedBox(height: AppSpacing.sm),
+              InfoField(label: '仓库', value: record.warehouse),
+            ],
+          ),
+          // ── Right: form panel ──
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.showCostPrice && record.costPrice > 0) ...[
+                    CostBadge(value: '¥${record.costPrice.toStringAsFixed(2)}'),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                  BlackStepper(
+                    label: '归还数量',
+                    value: _returnQty,
+                    min: 1,
+                    max: record.borrowQty,
+                    error: ev.overQty,
+                    onChanged: _onQtyChanged,
+                  ),
+                  if (ev.overQty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
+                      child: Text('超出在借数量（在借: ${record.borrowQty}）',
+                          style: AppTextStyles.caption.copyWith(
+                              color: AppDesignColors.textPrimary, fontWeight: FontWeight.w600)),
+                    ),
+                  const SizedBox(height: AppSpacing.md),
+                  _RemarkField(value: _remark, onChanged: _onRemarkChanged),
+                  if (_submitError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: Text(_submitError!,
+                          style: AppTextStyles.caption.copyWith(
+                              color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600)),
+                    ),
+                  const SizedBox(height: AppSpacing.lg),
+                  BlackSubmitButton(
+                    text: _isSubmitting ? '提交中...' : '确认归还',
+                    loading: _isSubmitting,
+                    onPressed: canSubmit ? _handleSubmit : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+}
 
-  int _parseIntForStepper(String s) {
-    if (s.isEmpty) return 1;
-    return int.tryParse(s) ?? 1;
+class _RemarkField extends StatelessWidget {
+  const _RemarkField({required this.value, required this.onChanged});
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppDesignColors.surfaceMuted,
+        borderRadius: BorderRadius.all(AppRadii.md),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('归还备注（选填）', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          TextFormField(
+            controller: TextEditingController(text: value),
+            style: AppTextStyles.body,
+            decoration: const InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(top: AppSpacing.xs),
+            ),
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
   }
 }

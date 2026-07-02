@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-07-02T13:30:00Z",
+  "updatedAt": "2026-07-02T14:30:00Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -846,11 +846,42 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-045-real-device-checkout-form-smoke"
+    },
+    {
+      "id": "iter-045-return-inventory-forms-two-column-web-parity",
+      "goal": "归还/盘点表单改为与出库一致的 Web parity 双栏布局；提取共享表单控件。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/form_widgets.dart",
+        "flutter_shell/lib/features/checkout/checkout_form.dart",
+        "flutter_shell/lib/features/return_form/return_form.dart",
+        "flutter_shell/lib/features/inventory_check/inventory_check_form.dart",
+        "flutter_shell/test/features/return_form/return_form_test.dart",
+        "flutter_shell/test/features/inventory_check/inventory_check_form_test.dart",
+        "agent_state.json"
+      ],
+      "changes": {
+        "sharedWidgets": "新增 form_widgets.dart：StockBadge/InfoField/BlackStepper/BlackSubmitButton/ItemInfoPanel/CostBadge",
+        "returnTwoColumn": "归还表单：左在借数量徽章+货物名称/外借人/仓库，右黑色步进+备注+确认归还",
+        "inventoryTwoColumn": "盘点表单：左账面数量徽章+货物名称/编号/规格，右黑色步进+差值框+备注+提交盘点",
+        "checkoutRefactored": "出库表单改用共享控件，行为不变",
+        "logicPreserved": "三表单的 rules/payload/提交/canSubmit 全部不变"
+      },
+      "tests": {
+        "totalFlutterTests": 386
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 386/386",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-046-real-device-all-forms-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-044-checkout-form-two-column-web-parity",
-    "lastCompletedGoal": "重写出库表单为 Web parity 双栏布局。",
+    "lastCompletedIterationId": "iter-045-return-inventory-forms-two-column-web-parity",
+    "lastCompletedGoal": "归还/盘点表单改为与出库一致的 Web parity 双栏布局。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
@@ -860,9 +891,10 @@
       "AppBottomSheet",
       "AppStepper",
       "AppFormSection",
-      "AppSegmentedControl"
+      "AppSegmentedControl",
+      "ItemInfoPanel/StockBadge/InfoField/BlackStepper/BlackSubmitButton/CostBadge"
     ],
-    "testCount": 384,
+    "testCount": 386,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",

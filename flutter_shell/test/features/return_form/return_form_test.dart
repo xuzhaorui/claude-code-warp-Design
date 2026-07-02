@@ -33,11 +33,14 @@ void main() {
     });
 
     // 2. renders borrow qty in subtitle
-    testWidgets('renders borrow qty in subtitle', (tester) async {
+    testWidgets('renders borrow qty in badge', (tester) async {
       await tester.pumpWidget(wrapApp(
         ReturnFormMin(record: _record),
       ));
-      expect(find.text('在借数量：50'), findsOneWidget);
+      // task-045: the AppFormSection subtitle was replaced by a StockBadge
+      // in the left panel; the borrowQty (50) renders as the badge value.
+      expect(find.text('在借数量'), findsOneWidget);
+      expect(find.text('50'), findsOneWidget);
     });
 
     // 3. quantity stepper changes quantity
@@ -187,6 +190,18 @@ void main() {
         ReturnFormMin(record: _record, apiClient: MockWarehouseApiClient()),
       ));
       expect(find.byType(ReturnFormMin), findsOneWidget);
+    });
+
+    // 15. two-column layout: left panel item fields + black submit
+    testWidgets('two-column layout shows item fields and 确认归还', (tester) async {
+      await tester.pumpWidget(wrapApp(ReturnFormMin(record: _record)));
+      await tester.pump();
+      // Left panel item info.
+      expect(find.text('货物名称'), findsOneWidget);
+      expect(find.text('外借人'), findsOneWidget);
+      expect(find.text('仓库'), findsOneWidget);
+      // Black submit button label.
+      expect(find.text('确认归还'), findsOneWidget);
     });
   });
 }
