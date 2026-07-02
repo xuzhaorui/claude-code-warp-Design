@@ -76,9 +76,10 @@ void main() {
     });
 
     // 9. image-recognition hint rendered (Web parity, restored in task-043)
-    testWidgets('image recognition hint renders', (tester) async {
+    // 9. image-recognition hint removed (task-046)
+    testWidgets('image recognition hint removed', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
-      expect(find.text('从图片识别'), findsOneWidget);
+      expect(find.text('从图片识别'), findsNothing);
     });
 
     // 10. checkout records section renders
@@ -252,19 +253,25 @@ void main() {
       expect(captured, WarehouseTab.returnForm);
     });
 
-    // 25. status row surfaces the active server name when provided
-    testWidgets('status row shows active server name', (tester) async {
+    // 25. status row shows the current user when provided (task-046)
+    testWidgets('status row shows current user name', (tester) async {
       await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(activeServerName: 'CS'),
+        const WarehouseShellMin(activeUsername: 'admin'),
       ));
-      expect(find.textContaining('当前服务器'), findsOneWidget);
-      expect(find.textContaining('CS'), findsOneWidget);
+      expect(find.textContaining('当前用户'), findsOneWidget);
+      expect(find.textContaining('admin'), findsOneWidget);
     });
 
-    // 26. status row shows 未配置 when no server name provided
-    testWidgets('status row shows 未配置 when no server name', (tester) async {
+    // 26. status row shows 未知 when no username provided
+    testWidgets('status row shows 未知 when no username', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
-      expect(find.textContaining('未配置'), findsOneWidget);
+      expect(find.textContaining('未知'), findsOneWidget);
+    });
+
+    // 26b. no 当前服务器 on main screen (task-046)
+    testWidgets('main screen does not show 当前服务器', (tester) async {
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
+      expect(find.textContaining('当前服务器'), findsNothing);
     });
 
     // 27. checkout nav label still present (top title removed, nav remains)

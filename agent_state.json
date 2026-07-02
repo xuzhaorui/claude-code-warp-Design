@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-07-02T14:30:00Z",
+  "updatedAt": "2026-07-02T16:00:00Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -877,11 +877,45 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-046-real-device-all-forms-smoke"
+    },
+    {
+      "id": "iter-046-real-device-ui-fix-after-smoke",
+      "goal": "修复真机暴露的 UI/UX 缺陷：表单数量标题遮挡、主界面用户信息、记录总价、设置页结构。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/components/form_widgets.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_form_wiring.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/main.dart",
+        "flutter_shell/lib/features/settings/server_config_page.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart",
+        "flutter_shell/test/features/settings/server_config_page_test.dart",
+        "agent_state.json"
+      ],
+      "changes": {
+        "stepperLabelFix": "BlackStepper 改 Stack→Column，数量标题独立行不再被按钮遮挡",
+        "labelReadability": "InfoField 等灰色标签 caption→body，真机可读性提升",
+        "removeImageRecognition": "主界面删除从图片识别入口",
+        "serverToUser": "状态行 当前服务器→当前用户（activeUsername，person icon，body 字号）",
+        "costToTotal": "出库记录详情行 成本¥→总价¥（用 saleTotalPrice，缺失显示 -）",
+        "settingsTwoLevel": "设置页改为简洁首页（设置+服务器配置卡片+退出登录）+ 点卡片进管理页（含返回）"
+      },
+      "tests": {
+        "totalFlutterTests": 390
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 390/390",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-047-real-device-regression-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-045-return-inventory-forms-two-column-web-parity",
-    "lastCompletedGoal": "归还/盘点表单改为与出库一致的 Web parity 双栏布局。",
+    "lastCompletedIterationId": "iter-046-real-device-ui-fix-after-smoke",
+    "lastCompletedGoal": "修复真机暴露的 UI/UX 缺陷：表单数量标题遮挡、主界面用户信息、记录总价、设置页结构。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",
@@ -894,7 +928,7 @@
       "AppSegmentedControl",
       "ItemInfoPanel/StockBadge/InfoField/BlackStepper/BlackSubmitButton/CostBadge"
     ],
-    "testCount": 386,
+    "testCount": 390,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",

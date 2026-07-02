@@ -17,7 +17,6 @@ class _FW {
   static const badgeRotate = -0.017; // ~ -1deg, Web rotate(-1deg)
   static const badgeSkew = -0.087; // ~ -5deg, Web skewX(-5deg)
   static const badgeInnerSkew = 0.14; // ~ +8deg, Web skewX(8deg) on text
-  static const stepperHeight = 56.0;
   static const stepperBtnSize = 36.0;
   static const submitHeight = 52.0;
 }
@@ -138,11 +137,11 @@ class InfoField extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(label,
-            style: AppTextStyles.caption.copyWith(
+            style: AppTextStyles.body.copyWith(
               color: AppDesignColors.textSecondary,
               fontWeight: FontWeight.w600,
             )),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           value.isEmpty ? '-' : value,
           style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
@@ -188,7 +187,6 @@ class BlackStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: _FW.stepperHeight,
       decoration: BoxDecoration(
         color: AppDesignColors.surfaceMuted,
         borderRadius: BorderRadius.all(AppRadii.md),
@@ -196,25 +194,20 @@ class BlackStepper extends StatelessWidget {
             ? Border.all(color: Theme.of(context).colorScheme.error, width: 2)
             : null,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      child: Stack(
-        alignment: Alignment.center,
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            top: 0,
-            left: AppSpacing.md,
-            child: Container(
-              color: AppDesignColors.surfaceMuted,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              child: Text(
-                label,
-                style: AppTextStyles.caption.copyWith(
-                  color: AppDesignColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+          // Label sits ABOVE the buttons in its own row — no overlap.
+          Text(
+            label,
+            style: AppTextStyles.body.copyWith(
+              color: AppDesignColors.primary,
+              fontWeight: FontWeight.w700,
             ),
           ),
+          const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
               _roundButton(glyph: '−', onTap: () => _step(-1), dark: false),

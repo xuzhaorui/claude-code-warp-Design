@@ -37,8 +37,7 @@ class _WS {
   static const badgeVPad = 6.0;
   static const accentBarW = 3.0;
   static const accentBarH = 14.0;
-  static const statusIconSize = 16.0;
-  static const imageHintIconSize = 16.0;
+  static const statusIconSize = 18.0;
   static const resultIconSize = 20.0;
   static const detailRowVPad = 12.0;
   static const detailMetaIconSize = 14.0;
@@ -61,7 +60,7 @@ class WarehouseShellMin extends StatefulWidget {
     this.scanError,
     this.records,
     this.serverConfigStore,
-    this.activeServerName,
+    this.activeUsername,
     this.onScanRequested,
     this.onSettingsRequested,
     this.onTabChanged,
@@ -81,9 +80,9 @@ class WarehouseShellMin extends StatefulWidget {
   /// Defaults to [PersistentServerConfigStore] when null.
   final ServerConfigStore? serverConfigStore;
 
-  /// Display name of the currently active server, shown in the small status
-  /// row of each business tab.  Null/empty shows "未配置".
-  final String? activeServerName;
+  /// Display name of the currently logged-in user, shown in the status row
+  /// of each business tab.  Null/empty shows "未知".
+  final String? activeUsername;
 
   /// Fired when the scan card is tapped. Carries the current tab.
   final ValueChanged<WarehouseTab>? onScanRequested;
@@ -165,8 +164,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
           _buildStatusRow(),
           const SizedBox(height: AppSpacing.md),
           _buildScanCard(tabInfo.badgeLabel),
-          const SizedBox(height: AppSpacing.sm),
-          _buildImageRecognitionHint(),
           const SizedBox(height: AppSpacing.xl),
           _buildRecordSection(
             sectionTitle: tabInfo.recordTitle,
@@ -179,20 +176,22 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 
   // ── Status row ──
   //
-  // Per task-041: top large title removed.  Only the compact server status
-  // line remains.
+  // Shows the currently logged-in user (task-046: replaced 当前服务器).
 
   Widget _buildStatusRow() {
-    final serverName = (widget.activeServerName == null || widget.activeServerName!.isEmpty)
-        ? '未配置'
-        : widget.activeServerName!;
+    final username = (widget.activeUsername == null || widget.activeUsername!.isEmpty)
+        ? '未知'
+        : widget.activeUsername!;
     return Row(
       children: [
-        Icon(Icons.cloud_outlined, size: _WS.statusIconSize, color: AppDesignColors.textSecondary),
+        Icon(Icons.person_outline, size: _WS.statusIconSize, color: AppDesignColors.textPrimary),
         const SizedBox(width: AppSpacing.xs),
         Text(
-          '当前服务器：$serverName',
-          style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+          '当前用户：$username',
+          style: AppTextStyles.body.copyWith(
+            color: AppDesignColors.textPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     );
@@ -260,31 +259,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
               ),
             ),
             const SizedBox(height: _WS.cardSpacer),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── "从图片识别" hint ──
-  //
-  // Web-parity low-emphasis affordance under the scan card.  Functional
-  // image upload is not yet implemented in Flutter; rendered as a visual
-  // link matching Web.
-
-  Widget _buildImageRecognitionHint() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.image, size: _WS.imageHintIconSize, color: AppDesignColors.textSecondary),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              '从图片识别',
-              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-            ),
           ],
         ),
       ),

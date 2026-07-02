@@ -156,5 +156,39 @@ void main() {
       await tester.pump();
       expect(fired, isTrue);
     });
+
+    // task-046: settings home (图四 style) shows 设置 + 服务器配置 card.
+    testWidgets('settings home shows 设置 title and 服务器配置 card', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+      ));
+      expect(find.text('设置'), findsOneWidget);
+      expect(find.text('服务器配置'), findsOneWidget);
+      expect(find.text('管理连接的服务器地址'), findsOneWidget);
+    });
+
+    testWidgets('settings home does not show 当前服务器 / 添加服务器', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+      ));
+      expect(find.text('当前服务器'), findsNothing);
+      expect(find.text('可用服务器'), findsNothing);
+      expect(find.text('添加服务器'), findsNothing);
+    });
+
+    testWidgets('tapping 服务器配置 enters management view', (tester) async {
+      await tester.pumpWidget(wrapApp(
+        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+      ));
+      await tester.tap(find.text('服务器配置'));
+      await tester.pump();
+      // Management view shows the add-server button + empty state.
+      expect(find.text('添加服务器'), findsOneWidget);
+      expect(find.text('暂无服务配置'), findsOneWidget);
+      // Back arrow returns to home.
+      await tester.tap(find.byIcon(Icons.arrow_back));
+      await tester.pump();
+      expect(find.text('设置'), findsOneWidget);
+    });
   });
 }

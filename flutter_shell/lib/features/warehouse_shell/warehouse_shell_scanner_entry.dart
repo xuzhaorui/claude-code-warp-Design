@@ -36,7 +36,7 @@ class WarehouseShellScannerEntry extends StatefulWidget {
     super.key,
     this.adapter,
     this.apiClient,
-    this.activeServerName,
+    this.activeUsername,
     this.onScanResult,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
@@ -50,9 +50,9 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   /// or [HttpWarehouseApiClient] for production.
   final WarehouseApiClient? apiClient;
 
-  /// Display name of the currently active server, surfaced in the shell's
+  /// Display name of the currently logged-in user, surfaced in the shell's
   /// status row.  Passed through to [WarehouseShellMin].
-  final String? activeServerName;
+  final String? activeUsername;
 
   /// Fired when the user requests logout from the settings page.
   final VoidCallback? onLogout;
@@ -101,7 +101,7 @@ class _WarehouseShellScannerEntryState
     return WarehouseShellFormWiring(
       scanError: _scanError,
       records: _records[_activeTab] ?? [],
-      activeServerName: widget.activeServerName,
+      activeUsername: widget.activeUsername,
       onCheckoutSubmit: widget.onCheckoutSubmit,
       onReturnSubmit: widget.onReturnSubmit,
       onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
@@ -186,13 +186,18 @@ class _WarehouseShellScannerEntryState
       case WarehouseTab.checkout:
         final result = await api.fetchCheckoutRecords();
         if (result.isSuccess && result.data != null) {
-          items = result.data!.map((r) => RecordItem(
-            title: r.itemName.isEmpty ? '出库 #${r.inventoryId}' : r.itemName,
-            detail: '${r.quantity} 件 · 成本 ¥${r.costPrice.toStringAsFixed(2)} · ${r.method}',
-            status: r.status,
-            kind: RecordKind.checkout,
-            source: r,
-          )).toList();
+          items = result.data!.map((r) {
+            final total = r.saleTotalPrice > 0
+                ? '¥${r.saleTotalPrice.toStringAsFixed(2)}'
+                : '-';
+            return RecordItem(
+              title: r.itemName.isEmpty ? '出库 #${r.inventoryId}' : r.itemName,
+              detail: '${r.quantity} 件 · 总价 $total · ${r.method}',
+              status: r.status,
+              kind: RecordKind.checkout,
+              source: r,
+            );
+          }).toList();
         }
       case WarehouseTab.returnForm:
         final result = await api.fetchReturnRecords();

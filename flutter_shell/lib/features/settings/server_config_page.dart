@@ -47,6 +47,9 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
   bool _statusIsError = false;
   bool _showForm = false;
 
+  /// task-046: settings home (简洁入口页) vs server-config management view.
+  bool _showManagement = false;
+
   @override
   void initState() {
     super.initState();
@@ -115,19 +118,84 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
 
   @override
   Widget build(BuildContext context) {
+    // task-046: two-level structure.
+    //  - When shown during initial server setup (no onLogout), go straight
+    //    to the management view so the user can configure a server.
+    //  - When shown inside the shell (onLogout wired), default to a简洁
+    //    settings home; tap 服务器配置 to enter the management view.
+    final initialSetup = widget.onLogout == null;
+    if (initialSetup || _showManagement) {
+      return _buildManagementView();
+    }
+    return _buildSettingsHome();
+  }
+
+  // ── Settings home (图四 style) ──
+
+  Widget _buildSettingsHome() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Page title + small status subtitle for clearer hierarchy.
-          Text('服务配置', style: AppTextStyles.title),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            '管理可用服务器与当前连接',
-            style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
-          ),
+          Text('设置', style: AppTextStyles.title),
           const SizedBox(height: AppSpacing.xl),
+          // Single entry card → server-config management view.
+          AppSelectCard(
+            title: '服务器配置',
+            subtitle: '管理连接的服务器地址',
+            leadingIcon: Icons.dns_outlined,
+            trailing: const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: AppDesignColors.textSecondary,
+            ),
+            onTap: () => setState(() => _showManagement = true),
+          ),
+          // Logout.
+          if (widget.onLogout != null) ...[
+            const SizedBox(height: AppSpacing.xl),
+            SizedBox(
+              width: double.infinity,
+              child: AppButton(
+                text: '退出登录',
+                variant: AppButtonVariant.secondary,
+                onPressed: widget.onLogout,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Server-config management view (current/available/add) ──
+
+  Widget _buildManagementView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Back row (only when entered from settings home).
+          if (_showManagement) ...[
+            GestureDetector(
+              onTap: () => setState(() => _showManagement = false),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.arrow_back, size: 20, color: AppDesignColors.textPrimary),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text('服务器配置', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ] else ...[
+            Text('服务配置', style: AppTextStyles.title),
+            const SizedBox(height: AppSpacing.xl),
+          ],
 
           // Current server section.
           if (_activeServer != null) ...[
@@ -160,20 +228,6 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
 
           // Status message.
           if (_statusMessage != null) _buildStatusMessage(),
-
-          // Logout — low-emphasis secondary action, only when wired in
-          // (i.e. when shown inside the shell, not during initial setup).
-          if (widget.onLogout != null) ...[
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              width: double.infinity,
-              child: AppButton(
-                text: '退出登录',
-                variant: AppButtonVariant.secondary,
-                onPressed: widget.onLogout,
-              ),
-            ),
-          ],
         ],
       ),
     );
