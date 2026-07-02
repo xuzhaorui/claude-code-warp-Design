@@ -21,6 +21,7 @@ class ServerConfigPage extends StatefulWidget {
     this.store,
     this.onConfigured,
     this.onLogout,
+    this.onServerChanged,
   });
 
   final ServerConfigStore? store;
@@ -32,6 +33,10 @@ class ServerConfigPage extends StatefulWidget {
   /// Called when the user taps "退出登录".  Only relevant when the page is
   /// shown inside the shell (not during initial server setup).
   final VoidCallback? onLogout;
+
+  /// Called when an existing server is selected as the new active server.
+  /// Used by the app shell to clear the old session and return to login.
+  final VoidCallback? onServerChanged;
 
   @override
   State<ServerConfigPage> createState() => _ServerConfigPageState();
@@ -107,6 +112,7 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
     await _store.setActiveServer(config.normalizedBaseUrl);
     if (!mounted) return;
     setState(() => _activeServer = config);
+    widget.onServerChanged?.call();
   }
 
   @override
@@ -185,9 +191,18 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.arrow_back, size: 20, color: AppDesignColors.textPrimary),
+                  const Icon(
+                    Icons.arrow_back,
+                    size: 20,
+                    color: AppDesignColors.textPrimary,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
-                  Text('服务器配置', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                  Text(
+                    '服务器配置',
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -260,7 +275,10 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
   /// Small "当前" pill badge marking the active server.
   Widget _buildCurrentBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: AppDesignColors.primarySoft,
         borderRadius: BorderRadius.all(AppRadii.pill),
@@ -273,14 +291,17 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
   }
 
   Widget _buildServerTile(ServerConfig config) {
-    final isActive = _activeServer?.normalizedBaseUrl == config.normalizedBaseUrl;
+    final isActive =
+        _activeServer?.normalizedBaseUrl == config.normalizedBaseUrl;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: AppSelectCard(
         title: config.name,
         subtitle: config.normalizedBaseUrl,
         selected: isActive,
-        leadingIcon: isActive ? Icons.radio_button_checked : Icons.radio_button_off,
+        leadingIcon: isActive
+            ? Icons.radio_button_checked
+            : Icons.radio_button_off,
         trailing: const Icon(
           Icons.chevron_right,
           size: 20,
@@ -297,7 +318,9 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
         child: Text(
           '暂无服务配置',
-          style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
+          style: AppTextStyles.body.copyWith(
+            color: AppDesignColors.textSecondary,
+          ),
         ),
       ),
     );
@@ -313,7 +336,10 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('添加服务器', style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            '添加服务器',
+            style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: AppSpacing.md),
           TextFormField(
             controller: _nameController,
@@ -334,10 +360,7 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
           Row(
             children: [
               Expanded(
-                child: AppButton(
-                  text: '保存',
-                  onPressed: _handleSave,
-                ),
+                child: AppButton(text: '保存', onPressed: _handleSave),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -360,7 +383,9 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
       child: Text(
         _statusMessage!,
         style: AppTextStyles.body.copyWith(
-          color: _statusIsError ? AppDesignColors.textSecondary : AppDesignColors.primary,
+          color: _statusIsError
+              ? AppDesignColors.textSecondary
+              : AppDesignColors.primary,
         ),
       ),
     );

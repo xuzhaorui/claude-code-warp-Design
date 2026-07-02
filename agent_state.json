@@ -911,12 +911,56 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-047-real-device-regression-smoke"
+    },
+    {
+      "id": "iter-047-session-server-login-flow-fixes",
+      "goal": "修复会话过期自动回登录、切换服务器清 session、登录页更换服务器入口、当前用户显示真实昵称。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/api/http_warehouse_api_client.dart",
+        "flutter_shell/lib/features/api/warehouse_api_models.dart",
+        "flutter_shell/lib/features/auth/login_page.dart",
+        "flutter_shell/lib/features/settings/server_config_page.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_form_wiring.dart",
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell_scanner_entry.dart",
+        "flutter_shell/lib/main.dart",
+        "flutter_shell/test/app_session_flow_test.dart",
+        "flutter_shell/test/features/api/http_warehouse_api_client_test.dart",
+        "flutter_shell/test/features/api/warehouse_api_client_test.dart",
+        "flutter_shell/test/features/auth/login_page_test.dart",
+        "flutter_shell/test/features/settings/server_config_page_test.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_scanner_entry_test.dart",
+        "agent_state.json"
+      ],
+      "changes": {
+        "sessionExpiredRedirect": "记录加载/扫码 lookup 遇到 未登录或会话已过期 failure 后冒泡 onSessionExpired，main 清本地登录和 cookie 后回 LoginPage",
+        "serverSwitchLogout": "设置页已登录管理视图切换 active server 后冒泡 onServerChanged，main 清旧 session 并为新服务器重建 HttpWarehouseApiClient",
+        "loginServerSwitcher": "LoginPage 显示 服务器：{name} + swap_horiz + 更换，点击进入服务器配置路由，返回后重建 client",
+        "displayName": "AuthSession.displayName 使用 profile.nickName / profile.user.nickName / username；main 持久化并展示 displayName"
+      },
+      "tests": {
+        "totalFlutterTests": 399,
+        "added": [
+          "app_session_flow_test: 切换服务器清 session/cookie 并回登录",
+          "login_page_test: 登录页服务器入口显示与点击",
+          "warehouse_shell_scanner_entry_test: session-expired fetch 冒泡",
+          "api tests: displayName 与 clearPersistedSession"
+        ]
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 399/399 (NO_PROXY for flutter_tester)",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-048-real-device-session-flow-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-046-real-device-ui-fix-after-smoke",
-    "lastCompletedGoal": "修复真机暴露的 UI/UX 缺陷：表单数量标题遮挡、主界面用户信息、记录总价、设置页结构。",
-    "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
+    "lastCompletedIterationId": "iter-047-session-server-login-flow-fixes",
+    "lastCompletedGoal": "修复会话过期自动回登录、切换服务器清 session、登录页更换服务器入口、当前用户显示真实昵称。",
+    "pendingTask": "task-048-real-device-session-flow-smoke",
     "availableFlutterComponents": [
       "RecordCard",
       "AppTextField",
@@ -928,7 +972,7 @@
       "AppSegmentedControl",
       "ItemInfoPanel/StockBadge/InfoField/BlackStepper/BlackSubmitButton/CostBadge"
     ],
-    "testCount": 390,
+    "testCount": 399,
     "designLintWarnings": 0,
     "knownWarnings": [
       "mobile_scanner KGP warning: plugin compatibility warning, non-blocking unless build fails",

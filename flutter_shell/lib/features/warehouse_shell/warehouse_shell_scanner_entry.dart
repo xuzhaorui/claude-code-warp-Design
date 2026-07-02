@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 
 import '../../pages/scanner_page.dart';
 import '../api/warehouse_api_client.dart';
+import '../api/warehouse_api_models.dart';
 import '../business_forms/business_form_sheets.dart';
 import '../checkout/checkout_form_rules.dart';
 import '../inventory_check/inventory_check_form_rules.dart';
@@ -42,6 +43,8 @@ class WarehouseShellScannerEntry extends StatefulWidget {
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
     this.onLogout,
+    this.onSessionExpired,
+    this.onServerChanged,
   });
 
   final ScannerAdapter? adapter;
@@ -54,8 +57,15 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   /// status row.  Passed through to [WarehouseShellMin].
   final String? activeUsername;
 
+  /// Fired when the API signals the session has expired (401/302) so the
+  /// app shell can clear state and return to the login page.
+  final VoidCallback? onSessionExpired;
+
   /// Fired when the user requests logout from the settings page.
   final VoidCallback? onLogout;
+
+  /// Fired when the active server is switched inside the settings page.
+  final VoidCallback? onServerChanged;
 
   final ValueChanged<String>? onScanResult;
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
@@ -83,7 +93,9 @@ class _WarehouseShellScannerEntryState
     super.initState();
     // Load the default tab's records on mount so the list is populated
     // immediately, not only after the first submit.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchRecords(_activeTab));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _fetchRecords(_activeTab),
+    );
   }
 
   /// Called when the active business tab changes — refreshes that tab's
@@ -91,6 +103,18 @@ class _WarehouseShellScannerEntryState
   void _onTabChanged(WarehouseTab tab) {
     _activeTab = tab;
     _fetchRecords(tab);
+  }
+
+  /// Returns true (and fires [onSessionExpired]) when an API result signals
+  /// the session has expired (401/未登录).  Used by lookup + fetch paths to
+  /// bail out and let the app shell redirect to login.
+  bool _isSessionExpired(WarehouseApiResult? result) {
+    final msg = result?.message ?? '';
+    if (result != null && result.isFailure && msg.contains('未登录')) {
+      widget.onSessionExpired?.call();
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -111,6 +135,8 @@ class _WarehouseShellScannerEntryState
       },
       onTabChanged: _onTabChanged,
       onLogout: widget.onLogout,
+      onSessionExpired: widget.onSessionExpired,
+      onServerChanged: widget.onServerChanged,
     );
   }
 
@@ -146,7 +172,11 @@ class _WarehouseShellScannerEntryState
     await _lookupCode(context, tab, code);
   }
 
-  Future<void> _lookupCode(BuildContext context, WarehouseTab tab, String code) async {
+  Future<void> _lookupCode(
+    BuildContext context,
+    WarehouseTab tab,
+    String code,
+  ) async {
     final api = widget.apiClient;
     if (api == null) {
       // No API client — fall back to fixture (original behaviour).
@@ -185,6 +215,7 @@ class _WarehouseShellScannerEntryState
     switch (tab) {
       case WarehouseTab.checkout:
         final result = await api.fetchCheckoutRecords();
+        if (_isSessionExpired(result)) return;
         if (result.isSuccess && result.data != null) {
           items = result.data!.map((r) {
             final total = r.saleTotalPrice > 0
@@ -201,17 +232,23 @@ class _WarehouseShellScannerEntryState
         }
       case WarehouseTab.returnForm:
         final result = await api.fetchReturnRecords();
+        if (_isSessionExpired(result)) return;
         if (result.isSuccess && result.data != null) {
-          items = result.data!.map((r) => RecordItem(
-            title: r.itemName.isEmpty ? '归还 #${r.id}' : r.itemName,
-            detail: '${r.returnQty} 件 · ${r.borrower}',
-            status: r.status,
-            kind: RecordKind.returnForm,
-            source: r,
-          )).toList();
+          items = result.data!
+              .map(
+                (r) => RecordItem(
+                  title: r.itemName.isEmpty ? '归还 #${r.id}' : r.itemName,
+                  detail: '${r.returnQty} 件 · ${r.borrower}',
+                  status: r.status,
+                  kind: RecordKind.returnForm,
+                  source: r,
+                ),
+              )
+              .toList();
         }
       case WarehouseTab.inventoryCheck:
         final result = await api.fetchInventoryCheckRecords();
+        if (_isSessionExpired(result)) return;
         if (result.isSuccess && result.data != null) {
           items = result.data!.map((r) {
             final diff = r.difference;
@@ -240,6 +277,7 @@ class _WarehouseShellScannerEntryState
   Future<void> _lookupCheckout(BuildContext context, String code) async {
     final result = await widget.apiClient!.findItemByCode(code);
     if (!mounted) return;
+    if (_isSessionExpired(result)) return;
 
     if (!result.isSuccess || result.data == null) {
       setState(() => _scanError = result.message ?? '未找到该物资');
@@ -260,11 +298,11 @@ class _WarehouseShellScannerEntryState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
       showCheckoutFormSheet(
-          context: context,
-          item: snapshot,
-          apiClient: widget.apiClient,
-          onSubmitSuccess: _onSubmitSuccess(WarehouseTab.checkout),
-          onSubmit: widget.onCheckoutSubmit,
+        context: context,
+        item: snapshot,
+        apiClient: widget.apiClient,
+        onSubmitSuccess: _onSubmitSuccess(WarehouseTab.checkout),
+        onSubmit: widget.onCheckoutSubmit,
       );
     });
   }
@@ -272,6 +310,7 @@ class _WarehouseShellScannerEntryState
   Future<void> _lookupReturn(BuildContext context, String code) async {
     final result = await widget.apiClient!.findBorrowersByQrcode(code);
     if (!mounted) return;
+    if (_isSessionExpired(result)) return;
 
     if (!result.isSuccess || result.data == null || result.data!.isEmpty) {
       setState(() => _scanError = result.message ?? '未找到借用记录');
@@ -306,6 +345,7 @@ class _WarehouseShellScannerEntryState
   Future<void> _lookupInventory(BuildContext context, String code) async {
     final result = await widget.apiClient!.findItemByCode(code);
     if (!mounted) return;
+    if (_isSessionExpired(result)) return;
 
     if (!result.isSuccess || result.data == null) {
       setState(() => _scanError = result.message ?? '未找到该物资');
@@ -335,7 +375,10 @@ class _WarehouseShellScannerEntryState
 
   /// Fallback: open form with fixture data (no API client set).
   void _openBusinessFormForTabWithFixtures(
-      BuildContext context, WarehouseTab tab, String code) {
+    BuildContext context,
+    WarehouseTab tab,
+    String code,
+  ) {
     debugPrint('[ScannerFlow] open $tab form (fixture) code=$code');
     switch (tab) {
       case WarehouseTab.checkout:

@@ -33,6 +33,8 @@ class WarehouseShellFormWiring extends StatelessWidget {
     this.onSettingsRequested,
     this.onTabChanged,
     this.onLogout,
+    this.onSessionExpired,
+    this.onServerChanged,
   });
 
   final String? lastScanCode;
@@ -61,6 +63,12 @@ class WarehouseShellFormWiring extends StatelessWidget {
   /// Fired when the user requests logout from the settings page.
   final VoidCallback? onLogout;
 
+  /// Fired when API results indicate the current session has expired.
+  final VoidCallback? onSessionExpired;
+
+  /// Fired when the active server is switched inside the settings page.
+  final VoidCallback? onServerChanged;
+
   @override
   Widget build(BuildContext context) {
     return WarehouseShellMin(
@@ -72,6 +80,7 @@ class WarehouseShellFormWiring extends StatelessWidget {
       onSettingsRequested: onSettingsRequested,
       onTabChanged: onTabChanged,
       onLogout: onLogout,
+      onServerChanged: onServerChanged,
     );
   }
 }

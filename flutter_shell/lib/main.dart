@@ -31,9 +31,11 @@ class _WarehouseAppState extends State<WarehouseApp> {
   static const _kLoggedIn = 'wms.loggedIn';
   static const _kSessionUsername = 'wms.sessionUsername';
 
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   final ServerConfigStore _configStore = PersistentServerConfigStore();
   WarehouseApiClient? _apiClient;
   AuthSession? _session;
+  String? _activeServerName;
   bool _initialized = false;
   bool _needsServerConfig = true;
 
@@ -51,6 +53,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
     if (mounted) {
       setState(() {
         _needsServerConfig = active == null;
+        _activeServerName = active?.name;
         _initialized = true;
       });
     }
@@ -76,20 +79,45 @@ class _WarehouseAppState extends State<WarehouseApp> {
   }
 
   void _onServerConfigured() async {
-    await _configStore.loadActiveServer();
+    final active = await _configStore.loadActiveServer();
     if (!mounted) return;
     setState(() {
       _apiClient = HttpWarehouseApiClient(configStore: _configStore);
       _needsServerConfig = false;
+      _activeServerName = active?.name;
     });
   }
 
   void _onLoggedIn(AuthSession session) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kLoggedIn, true);
-    await prefs.setString(_kSessionUsername, session.username);
+    await prefs.setString(_kSessionUsername, session.displayName);
     if (!mounted) return;
     setState(() => _session = session);
+  }
+
+  Future<void> _clearLocalSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kLoggedIn, false);
+    await prefs.remove(_kSessionUsername);
+    final client = _apiClient;
+    if (client is HttpWarehouseApiClient) {
+      await client.clearPersistedSession();
+    }
+    if (!mounted) return;
+    setState(() => _session = null);
+  }
+
+  Future<void> _recreateClientForActiveServer() async {
+    final active = await _configStore.loadActiveServer();
+    if (!mounted) return;
+    setState(() {
+      _apiClient = active == null
+          ? null
+          : HttpWarehouseApiClient(configStore: _configStore);
+      _needsServerConfig = active == null;
+      _activeServerName = active?.name;
+    });
   }
 
   Future<void> _onLogout() async {
@@ -99,30 +127,42 @@ class _WarehouseAppState extends State<WarehouseApp> {
     } catch (_) {
       // ignore — local clear is authoritative for the UI
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_kLoggedIn, false);
-    await prefs.remove(_kSessionUsername);
+    await _clearLocalSession();
     if (!mounted) return;
-    setState(() {
-      _session = null;
-      _apiClient = null;
-    });
+    setState(() => _apiClient = null);
     // Recreate the API client (without a restored session) so the next login
     // starts clean.  Active server stays configured.
-    final active = await _configStore.loadActiveServer();
-    if (mounted) {
-      setState(() {
-        if (active != null) {
-          _apiClient = HttpWarehouseApiClient(configStore: _configStore);
-        }
-        _needsServerConfig = active == null;
-      });
-    }
+    await _recreateClientForActiveServer();
+  }
+
+  Future<void> _onSessionExpired() async {
+    await _clearLocalSession();
+    await _recreateClientForActiveServer();
+  }
+
+  Future<void> _onServerChanged() async {
+    await _clearLocalSession();
+    await _recreateClientForActiveServer();
+  }
+
+  void _openServerConfigFromLogin() async {
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+    await navigator.push<void>(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: AppTheme.light.scaffoldBackgroundColor,
+          body: SafeArea(child: ServerConfigPage(store: _configStore)),
+        ),
+      ),
+    );
+    await _onServerChanged();
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       title: '仓库管理',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
@@ -132,9 +172,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
 
   Widget _buildHome() {
     if (!_initialized) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_needsServerConfig) {
@@ -151,13 +189,17 @@ class _WarehouseAppState extends State<WarehouseApp> {
       return LoginPage(
         apiClient: _apiClient!,
         onLoggedIn: _onLoggedIn,
+        activeServerName: _activeServerName,
+        onChangeServer: _openServerConfigFromLogin,
       );
     }
 
     return WarehouseShellScannerEntry(
       apiClient: _apiClient,
-      activeUsername: _session?.username,
+      activeUsername: _session?.displayName,
       onLogout: _onLogout,
+      onSessionExpired: _onSessionExpired,
+      onServerChanged: _onServerChanged,
     );
   }
 }

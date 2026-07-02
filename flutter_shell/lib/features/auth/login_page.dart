@@ -16,10 +16,14 @@ class LoginPage extends StatefulWidget {
     super.key,
     required this.apiClient,
     required this.onLoggedIn,
+    this.activeServerName,
+    this.onChangeServer,
   });
 
   final WarehouseApiClient apiClient;
   final ValueChanged<AuthSession> onLoggedIn;
+  final String? activeServerName;
+  final VoidCallback? onChangeServer;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -83,10 +87,16 @@ class _LoginPageState extends State<LoginPage> {
                     color: AppDesignColors.primary,
                     borderRadius: BorderRadius.all(AppRadii.lg),
                   ),
-                  child: const Icon(Icons.inventory_2, size: 48, color: Colors.white),
+                  child: const Icon(
+                    Icons.inventory_2,
+                    size: 48,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text('仓库管理', style: AppTextStyles.display),
+                const SizedBox(height: AppSpacing.sm),
+                _buildServerSwitcher(),
                 const SizedBox(height: AppSpacing.xxl),
 
                 // Username
@@ -119,9 +129,12 @@ class _LoginPageState extends State<LoginPage> {
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: Text(_error!, style: AppTextStyles.body.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                    )),
+                    child: Text(
+                      _error!,
+                      style: AppTextStyles.body.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
                   ),
 
                 // Login button
@@ -137,8 +150,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            width: 24, height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : Text('登录', style: AppTextStyles.label),
                   ),
@@ -147,6 +164,42 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildServerSwitcher() {
+    final serverName =
+        (widget.activeServerName == null || widget.activeServerName!.isEmpty)
+        ? '未配置'
+        : widget.activeServerName!;
+    return GestureDetector(
+      key: const Key('change_server_entry'),
+      onTap: widget.onChangeServer,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '服务器：$serverName',
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          const Icon(
+            Icons.swap_horiz,
+            size: 18,
+            color: AppDesignColors.textSecondary,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            '更换',
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

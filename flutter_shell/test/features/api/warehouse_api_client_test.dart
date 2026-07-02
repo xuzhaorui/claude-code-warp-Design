@@ -182,7 +182,12 @@ void main() {
     test('fail mode makes return fail', () async {
       client.setFailMode(true);
       final result = await client.submitReturn(
-        const ReturnSubmitPayload(loanId: 1, freightId: 1, storageId: 1, returnQty: 1),
+        const ReturnSubmitPayload(
+          loanId: 1,
+          freightId: 1,
+          storageId: 1,
+          returnQty: 1,
+        ),
       );
       expect(result.isSuccess, isFalse);
     });
@@ -240,6 +245,31 @@ void main() {
       const result = WarehouseApiResult(success: false, message: 'error');
       expect(result.isSuccess, isFalse);
       expect(result.isFailure, isTrue);
+    });
+
+    test('AuthSession displayName prefers profile nickName', () {
+      final session = AuthSession(
+        username: 'admin',
+        profile: const {'nickName': '超级管理员'},
+        loggedAt: DateTime.now(),
+      );
+      expect(session.displayName, '超级管理员');
+    });
+
+    test('AuthSession displayName falls back to nested user nickName', () {
+      final session = AuthSession(
+        username: 'admin',
+        profile: const {
+          'user': {'nickName': '仓库员'},
+        },
+        loggedAt: DateTime.now(),
+      );
+      expect(session.displayName, '仓库员');
+    });
+
+    test('AuthSession displayName falls back to username', () {
+      final session = AuthSession(username: 'admin', loggedAt: DateTime.now());
+      expect(session.displayName, 'admin');
     });
   });
 

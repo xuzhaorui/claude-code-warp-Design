@@ -15,30 +15,22 @@ Widget wrapApp(Widget child) {
 void main() {
   group('ServerConfigPage', () {
     testWidgets('renders title', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const ServerConfigPage(),
-      ));
+      await tester.pumpWidget(wrapApp(const ServerConfigPage()));
       expect(find.text('服务配置'), findsOneWidget);
     });
 
     testWidgets('empty state shows 暂无服务配置', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const ServerConfigPage(),
-      ));
+      await tester.pumpWidget(wrapApp(const ServerConfigPage()));
       expect(find.text('暂无服务配置'), findsOneWidget);
     });
 
     testWidgets('renders 添加服务器 button', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const ServerConfigPage(),
-      ));
+      await tester.pumpWidget(wrapApp(const ServerConfigPage()));
       expect(find.text('添加服务器'), findsOneWidget);
     });
 
     testWidgets('tap 添加服务器 shows form', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const ServerConfigPage(),
-      ));
+      await tester.pumpWidget(wrapApp(const ServerConfigPage()));
       await tester.tap(find.text('添加服务器'));
       await tester.pump();
       expect(find.text('保存'), findsOneWidget);
@@ -46,9 +38,9 @@ void main() {
     });
 
     testWidgets('test connection shows placeholder', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore()),
-      ));
+      await tester.pumpWidget(
+        wrapApp(ServerConfigPage(store: InMemoryServerConfigStore())),
+      );
       await tester.tap(find.text('添加服务器'));
       await tester.pump();
       await tester.tap(find.text('测试连接'));
@@ -57,15 +49,18 @@ void main() {
     });
 
     testWidgets('save valid config displays success message', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore()),
-      ));
+      await tester.pumpWidget(
+        wrapApp(ServerConfigPage(store: InMemoryServerConfigStore())),
+      );
       await tester.tap(find.text('添加服务器'));
       await tester.pump();
 
       // Type server name and URL
       await tester.enterText(find.byType(TextFormField).first, '主服务器');
-      await tester.enterText(find.byType(TextFormField).last, 'http://192.168.1.100:8080');
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        'http://192.168.1.100:8080',
+      );
       await tester.tap(find.text('保存'));
       await tester.pump();
 
@@ -74,13 +69,14 @@ void main() {
 
     testWidgets('after save active server is displayed', (tester) async {
       final store = InMemoryServerConfigStore();
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: store),
-      ));
+      await tester.pumpWidget(wrapApp(ServerConfigPage(store: store)));
       await tester.tap(find.text('添加服务器'));
       await tester.pump();
       await tester.enterText(find.byType(TextFormField).first, '主服务器');
-      await tester.enterText(find.byType(TextFormField).last, 'http://192.168.1.100:8080');
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        'http://192.168.1.100:8080',
+      );
       await tester.tap(find.text('保存'));
       await tester.pump();
 
@@ -89,22 +85,23 @@ void main() {
     });
 
     testWidgets('settings page does not call real API', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const ServerConfigPage(),
-      ));
+      await tester.pumpWidget(wrapApp(const ServerConfigPage()));
       // No real API call triggered — verified by absence of network calls.
       expect(find.byType(ServerConfigPage), findsOneWidget);
     });
 
-    testWidgets('shows section labels 可用服务器 and 当前 badge after save', (tester) async {
+    testWidgets('shows section labels 可用服务器 and 当前 badge after save', (
+      tester,
+    ) async {
       final store = InMemoryServerConfigStore();
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: store),
-      ));
+      await tester.pumpWidget(wrapApp(ServerConfigPage(store: store)));
       await tester.tap(find.text('添加服务器'));
       await tester.pump();
       await tester.enterText(find.byType(TextFormField).first, '主服务器');
-      await tester.enterText(find.byType(TextFormField).last, 'http://192.168.1.100:8080');
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        'http://192.168.1.100:8080',
+      );
       await tester.tap(find.text('保存'));
       await tester.pump();
 
@@ -114,7 +111,9 @@ void main() {
       expect(find.text('当前'), findsOneWidget);
     });
 
-    testWidgets('selecting a server marks it active via chevron tile', (tester) async {
+    testWidgets('selecting a server marks it active via chevron tile', (
+      tester,
+    ) async {
       final store = InMemoryServerConfigStore();
       // Seed two servers so the list is selectable.
       await store.saveServers([
@@ -132,26 +131,61 @@ void main() {
       expect(find.byIcon(Icons.radio_button_checked), findsWidgets);
     });
 
+    testWidgets('selecting a server fires onServerChanged when wired', (
+      tester,
+    ) async {
+      final store = InMemoryServerConfigStore();
+      await store.saveServers([
+        const ServerConfig(name: 'A', baseUrl: 'http://a'),
+        const ServerConfig(name: 'B', baseUrl: 'http://b'),
+      ]);
+      await store.setActiveServer('http://a');
+      bool fired = false;
+
+      await tester.pumpWidget(
+        wrapApp(
+          ServerConfigPage(
+            store: store,
+            onLogout: () {},
+            onServerChanged: () => fired = true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('服务器配置'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('B'));
+      await tester.pumpAndSettle();
+
+      expect(fired, isTrue);
+    });
+
     // task-042: logout button only renders when onLogout is wired (in-shell).
     testWidgets('renders 退出登录 when onLogout provided', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
-      ));
+      await tester.pumpWidget(
+        wrapApp(
+          ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+        ),
+      );
       expect(find.text('退出登录'), findsOneWidget);
     });
 
     testWidgets('does not render 退出登录 during initial setup', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const ServerConfigPage(),
-      ));
+      await tester.pumpWidget(wrapApp(const ServerConfigPage()));
       expect(find.text('退出登录'), findsNothing);
     });
 
     testWidgets('tapping 退出登录 fires onLogout', (tester) async {
       bool fired = false;
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () => fired = true),
-      ));
+      await tester.pumpWidget(
+        wrapApp(
+          ServerConfigPage(
+            store: InMemoryServerConfigStore(),
+            onLogout: () => fired = true,
+          ),
+        ),
+      );
       await tester.tap(find.text('退出登录'));
       await tester.pump();
       expect(fired, isTrue);
@@ -159,27 +193,33 @@ void main() {
 
     // task-046: settings home (图四 style) shows 设置 + 服务器配置 card.
     testWidgets('settings home shows 设置 title and 服务器配置 card', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
-      ));
+      await tester.pumpWidget(
+        wrapApp(
+          ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+        ),
+      );
       expect(find.text('设置'), findsOneWidget);
       expect(find.text('服务器配置'), findsOneWidget);
       expect(find.text('管理连接的服务器地址'), findsOneWidget);
     });
 
     testWidgets('settings home does not show 当前服务器 / 添加服务器', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
-      ));
+      await tester.pumpWidget(
+        wrapApp(
+          ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+        ),
+      );
       expect(find.text('当前服务器'), findsNothing);
       expect(find.text('可用服务器'), findsNothing);
       expect(find.text('添加服务器'), findsNothing);
     });
 
     testWidgets('tapping 服务器配置 enters management view', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
-      ));
+      await tester.pumpWidget(
+        wrapApp(
+          ServerConfigPage(store: InMemoryServerConfigStore(), onLogout: () {}),
+        ),
+      );
       await tester.tap(find.text('服务器配置'));
       await tester.pump();
       // Management view shows the add-server button + empty state.

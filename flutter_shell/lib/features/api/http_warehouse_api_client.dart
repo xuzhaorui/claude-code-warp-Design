@@ -38,8 +38,8 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     required ServerConfigStore configStore,
     http.Client? httpClient,
     bool restoreSession = true,
-  })  : _configStore = configStore,
-        _httpClient = httpClient ?? http.Client() {
+  }) : _configStore = configStore,
+       _httpClient = httpClient ?? http.Client() {
     // Restoring reads SharedPreferences, which requires an initialized
     // binding; pure unit tests pass restoreSession: false to skip this.
     if (restoreSession) {
@@ -98,9 +98,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   /// Common request headers. Includes session cookie if logged in.
   /// Always sends `X-Requested-With: XMLHttpRequest` as Web does.
   Map<String, String> _headers() {
-    final h = <String, String>{
-      'X-Requested-With': 'XMLHttpRequest',
-    };
+    final h = <String, String>{'X-Requested-With': 'XMLHttpRequest'};
     if (_sessionCookie != null) {
       h['Cookie'] = _sessionCookie!;
     }
@@ -113,7 +111,8 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     if (setCookie == null) return;
     // Grab the first cookie (JSESSIONID=xxx) and ignore attributes
     final firstCookie = setCookie.split(';').first.trim();
-    if (firstCookie.startsWith('JSESSIONID=') || firstCookie.startsWith('SESSION=')) {
+    if (firstCookie.startsWith('JSESSIONID=') ||
+        firstCookie.startsWith('SESSION=')) {
       _sessionCookie = firstCookie;
       _persistSessionCookie(firstCookie);
     }
@@ -123,6 +122,15 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   void _clearCookies() {
     _sessionCookie = null;
     _removeSessionCookie();
+  }
+
+  /// Public hook for the app shell to clear the persisted session when the
+  /// server signals expiry (401/302) or when the active server changes.
+  /// Only clears local storage — does NOT call the server logout endpoint
+  /// (the session is already invalid in those cases).
+  Future<void> clearPersistedSession() async {
+    _sessionCookie = null;
+    await _removeSessionCookie();
   }
 
   Future<void> _persistSessionCookie(String cookie) async {
@@ -165,7 +173,10 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
 
     final contentType = response.headers['content-type'] ?? '';
     if (contentType.contains('text/html')) {
-      throw WarehouseApiError(message: '服务器返回了HTML而不是JSON', httpStatus: response.statusCode);
+      throw WarehouseApiError(
+        message: '服务器返回了HTML而不是JSON',
+        httpStatus: response.statusCode,
+      );
     }
 
     Map<String, dynamic> data;
@@ -212,7 +223,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     final streamed = await _httpClient.send(request);
     final response = await http.Response.fromStream(streamed);
     debugPrint('[Debug_HTTP] >>> GET $urlValue');
-    debugPrint('[Debug_HTTP] <<< status=${response.statusCode} Location=${response.headers['location']}');
+    debugPrint(
+      '[Debug_HTTP] <<< status=${response.statusCode} Location=${response.headers['location']}',
+    );
     return _parseResponse(response);
   }
 
@@ -220,10 +233,15 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   /// POST request with form body, returns parsed JSON.
   /// If [allowRedirect] is true, 302 responses are treated as success
   /// (Spring Security login redirect pattern) and parsed as JSON.
-  Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> fields, {bool saveCookie = false, bool allowRedirect = false}) async {
+  Future<Map<String, dynamic>> _post(
+    String path,
+    Map<String, dynamic> fields, {
+    bool saveCookie = false,
+    bool allowRedirect = false,
+  }) async {
     final urlValue = await _buildUrl(path);
     final parsed = Uri.parse(urlValue);
-    
+
     final request = http.Request('POST', parsed);
     request.headers.addAll({
       ..._headers(),
@@ -231,40 +249,52 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     });
     request.bodyFields = _formBody(fields);
     request.followRedirects = false;
-    
+
     final streamed = await _httpClient.send(request);
     final response = await http.Response.fromStream(streamed);
-    
+
     if (saveCookie) _saveCookies(response);
-    
+
     // Handle Spring Security 302 login redirect: success + session cookie
     if (allowRedirect && response.statusCode == 302) {
       final location = response.headers['location'] ?? '';
-      if (response.headers['set-cookie'] != null && !location.contains('error')) {
+      if (response.headers['set-cookie'] != null &&
+          !location.contains('error')) {
         // Login succeeded: return empty data to signal success
-        return <String, dynamic>{'success': true, 'code': '0', 'data': <String, dynamic>{}};
+        return <String, dynamic>{
+          'success': true,
+          'code': '0',
+          'data': <String, dynamic>{},
+        };
       }
     }
-    
+
     return _parseResponse(response);
   }
 
   // ── Auth methods ──
 
   @override
-  Future<WarehouseApiResult<AuthSession>> login(String username, String password) async {
+  Future<WarehouseApiResult<AuthSession>> login(
+    String username,
+    String password,
+  ) async {
     try {
-      final respData = await _post('/login', {
-        'username': username,
-        'password': password,
-        'rememberMe': 'true',
-      }, saveCookie: true, allowRedirect: true);
+      final respData = await _post(
+        '/login',
+        {'username': username, 'password': password, 'rememberMe': 'true'},
+        saveCookie: true,
+        allowRedirect: true,
+      );
       // parse response data with safe type conversion
       final rawValue = respData['data'] ?? respData;
       final raw = rawValue is Map
           ? rawValue.map((k, v) => MapEntry(k.toString(), v))
           : <String, dynamic>{};
-      final profile = raw['profile'] as Map<String, dynamic>? ?? {};
+      final profileValue = raw['profile'];
+      final profile = profileValue is Map
+          ? profileValue.map((k, v) => MapEntry(k.toString(), v))
+          : raw;
       final session = AuthSession(
         username: raw['loginName'] as String? ?? username,
         profile: profile,
@@ -272,7 +302,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       );
       return WarehouseApiResult(success: true, data: session);
     } on WarehouseApiError catch (e) {
-      debugPrint('[Debug_Auth] login WarehouseApiError: code=${e.serverCode} message=${e.message} httpStatus=${e.httpStatus}');
+      debugPrint(
+        '[Debug_Auth] login WarehouseApiError: code=${e.serverCode} message=${e.message} httpStatus=${e.httpStatus}',
+      );
       return WarehouseApiResult(success: false, message: e.message);
     } catch (e) {
       debugPrint('[Debug_Auth] login unexpected: $e ${e.runtimeType}');
@@ -300,10 +332,15 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   @override
   Future<WarehouseApiResult<WarehouseItem>> findItemByCode(String code) async {
     try {
-      final data = await _get('/inventory/list/outbound_qrcode/${Uri.encodeComponent(code)}');
+      final data = await _get(
+        '/inventory/list/outbound_qrcode/${Uri.encodeComponent(code)}',
+      );
       final raw = (data['data'] ?? data) as Map<String, dynamic>?;
       if (raw == null || raw.isEmpty) {
-        return const WarehouseApiResult(success: false, message: '未找到该编号对应的库存货物');
+        return const WarehouseApiResult(
+          success: false,
+          message: '未找到该编号对应的库存货物',
+        );
       }
       final item = WarehouseItem(
         id: raw['id'] as int? ?? 0,
@@ -323,11 +360,17 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<BorrowRecord>>> findBorrowersByQrcode(String qrcode) async {
+  Future<WarehouseApiResult<List<BorrowRecord>>> findBorrowersByQrcode(
+    String qrcode,
+  ) async {
     try {
-      final data = await _get('/inventory/loan/loan_borrower_qrcode/${Uri.encodeComponent(qrcode)}');
+      final data = await _get(
+        '/inventory/loan/loan_borrower_qrcode/${Uri.encodeComponent(qrcode)}',
+      );
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => _mapBorrowRecord(r as Map<String, dynamic>)).toList();
+      final records = rows
+          .map((r) => _mapBorrowRecord(r as Map<String, dynamic>))
+          .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
@@ -337,21 +380,24 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   BorrowRecord _mapBorrowRecord(Map<String, dynamic> raw) => BorrowRecord(
-        id: raw['id'] as int? ?? 0,
-        loanId: raw['id'] as int? ?? 0,
-        inventoryId: raw['inventoryId'] as int? ?? 0,
-        itemName: raw['freightName'] as String? ?? '',
-        warehouse: raw['storageName'] as String? ?? '',
-        code: raw['freightNumber'] as String? ?? '',
-        spec: raw['specification'] as String? ?? '',
-        borrowQty: (raw['loanQuantity'] as num?)?.toInt() ?? 0,
-        costPrice: (raw['loanPrice'] as num?)?.toDouble() ?? 0.0,
-        borrower: raw['userName'] as String? ?? '',
-        borrowTime: raw['recentLoanInboundTime'] as String? ?? '',
-      );
+    id: raw['id'] as int? ?? 0,
+    loanId: raw['id'] as int? ?? 0,
+    inventoryId: raw['inventoryId'] as int? ?? 0,
+    itemName: raw['freightName'] as String? ?? '',
+    warehouse: raw['storageName'] as String? ?? '',
+    code: raw['freightNumber'] as String? ?? '',
+    spec: raw['specification'] as String? ?? '',
+    borrowQty: (raw['loanQuantity'] as num?)?.toInt() ?? 0,
+    costPrice: (raw['loanPrice'] as num?)?.toDouble() ?? 0.0,
+    borrower: raw['userName'] as String? ?? '',
+    borrowTime: raw['recentLoanInboundTime'] as String? ?? '',
+  );
 
   @override
-  Future<WarehouseApiResult<BorrowRecord>> getBorrowerDetail(int inventoryId, int borrowerUserId) async {
+  Future<WarehouseApiResult<BorrowRecord>> getBorrowerDetail(
+    int inventoryId,
+    int borrowerUserId,
+  ) async {
     try {
       final data = await _get('/inventory/loan/$inventoryId/$borrowerUserId');
       final raw = (data['data'] ?? data) as Map<String, dynamic>?;
@@ -367,20 +413,31 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<BusinessSubmitResult>> submitCheckout(CheckoutSubmitPayload payload) async {
+  Future<WarehouseApiResult<BusinessSubmitResult>> submitCheckout(
+    CheckoutSubmitPayload payload,
+  ) async {
     try {
       final fields = <String, dynamic>{
         'inventoryId': payload.inventoryId,
         'num': payload.quantity,
         'type': payload.type,
       };
-      if (payload.type == 1 && payload.totalPrice != null) fields['totalPrice'] = payload.totalPrice;
-      if (payload.type == 1 && payload.costUnitPrice != null) fields['costUnitPrice'] = payload.costUnitPrice;
-      if (payload.type == 2 && payload.outDescription != null && payload.outDescription!.isNotEmpty) {
+      if (payload.type == 1 && payload.totalPrice != null) {
+        fields['totalPrice'] = payload.totalPrice;
+      }
+      if (payload.type == 1 && payload.costUnitPrice != null) {
+        fields['costUnitPrice'] = payload.costUnitPrice;
+      }
+      if (payload.type == 2 &&
+          payload.outDescription != null &&
+          payload.outDescription!.isNotEmpty) {
         fields['outDescription'] = payload.outDescription;
       }
       await _post('/inventory/list/outbound', fields);
-      return const WarehouseApiResult(success: true, data: BusinessSubmitResult(message: '出库成功'));
+      return const WarehouseApiResult(
+        success: true,
+        data: BusinessSubmitResult(message: '出库成功'),
+      );
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
     } catch (e) {
@@ -389,11 +446,14 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<CheckoutRecord>>> fetchCheckoutRecords() async {
+  Future<WarehouseApiResult<List<CheckoutRecord>>>
+  fetchCheckoutRecords() async {
     try {
       final data = await _post('/inventory/outbound/getUserOutboundInDay', {});
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => CheckoutRecord.fromJson(r as Map<String, dynamic>)).toList();
+      final records = rows
+          .map((r) => CheckoutRecord.fromJson(r as Map<String, dynamic>))
+          .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
@@ -403,7 +463,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<BusinessSubmitResult>> submitReturn(ReturnSubmitPayload payload) async {
+  Future<WarehouseApiResult<BusinessSubmitResult>> submitReturn(
+    ReturnSubmitPayload payload,
+  ) async {
     try {
       final fields = <String, dynamic>{
         'loanId': payload.loanId,
@@ -413,7 +475,10 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       };
       if (payload.remark.isNotEmpty) fields['remark'] = payload.remark;
       await _post('/inventory/loan/inbound', fields);
-      return const WarehouseApiResult(success: true, data: BusinessSubmitResult(message: '归还成功'));
+      return const WarehouseApiResult(
+        success: true,
+        data: BusinessSubmitResult(message: '归还成功'),
+      );
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
     } catch (e) {
@@ -426,7 +491,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     try {
       final data = await _post('/inventory/loan/getUserLoanInDay', {});
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => ReturnRecord.fromJson(r as Map<String, dynamic>)).toList();
+      final records = rows
+          .map((r) => ReturnRecord.fromJson(r as Map<String, dynamic>))
+          .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
@@ -436,7 +503,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<BusinessSubmitResult>> submitInventoryCheck(InventoryCheckSubmitPayload payload) async {
+  Future<WarehouseApiResult<BusinessSubmitResult>> submitInventoryCheck(
+    InventoryCheckSubmitPayload payload,
+  ) async {
     try {
       final fields = <String, dynamic>{
         'inventoryId': payload.inventoryId,
@@ -444,7 +513,10 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       };
       if (payload.remark.isNotEmpty) fields['remark'] = payload.remark;
       await _post('/inventory/checkOrder/saveCheck', fields);
-      return const WarehouseApiResult(success: true, data: BusinessSubmitResult(message: '盘点提交成功'));
+      return const WarehouseApiResult(
+        success: true,
+        data: BusinessSubmitResult(message: '盘点提交成功'),
+      );
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);
     } catch (e) {
@@ -453,11 +525,14 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   }
 
   @override
-  Future<WarehouseApiResult<List<InventoryCheckRecord>>> fetchInventoryCheckRecords() async {
+  Future<WarehouseApiResult<List<InventoryCheckRecord>>>
+  fetchInventoryCheckRecords() async {
     try {
       final data = await _post('/inventory/checkOrder/getUserCheckInDay', {});
       final rows = _normalizeRows(data);
-      final records = rows.map((r) => InventoryCheckRecord.fromJson(r as Map<String, dynamic>)).toList();
+      final records = rows
+          .map((r) => InventoryCheckRecord.fromJson(r as Map<String, dynamic>))
+          .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
       return WarehouseApiResult(success: false, message: e.message);

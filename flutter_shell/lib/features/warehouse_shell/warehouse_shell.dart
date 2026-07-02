@@ -65,6 +65,7 @@ class WarehouseShellMin extends StatefulWidget {
     this.onSettingsRequested,
     this.onTabChanged,
     this.onLogout,
+    this.onServerChanged,
   });
 
   final WarehouseTab initialTab;
@@ -97,6 +98,9 @@ class WarehouseShellMin extends StatefulWidget {
   /// Fired when the user requests logout from the settings page.
   final VoidCallback? onLogout;
 
+  /// Fired when the active server is switched inside the in-shell settings page.
+  final VoidCallback? onServerChanged;
+
   @override
   State<WarehouseShellMin> createState() => _WarehouseShellMinState();
 }
@@ -119,9 +123,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppDesignColors.background,
-      body: SafeArea(
-        child: _buildTabContent(),
-      ),
+      body: SafeArea(child: _buildTabContent()),
       bottomNavigationBar: SizedBox(
         height: _WS.bottomNavHeight,
         child: BottomNavigationBar(
@@ -146,18 +148,32 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   }
 
   BottomNavigationBarItem _navItem(IconData icon, String label) {
-    return BottomNavigationBarItem(icon: Icon(icon, size: _WS.navIconSize), label: label);
+    return BottomNavigationBarItem(
+      icon: Icon(icon, size: _WS.navIconSize),
+      label: label,
+    );
   }
 
   // ── Tab content ──
 
   Widget _buildTabContent() {
     if (_activeTab == WarehouseTab.settings) {
-      return ServerConfigPage(store: widget.serverConfigStore, onLogout: widget.onLogout);
+      return ServerConfigPage(
+        store: widget.serverConfigStore,
+        onLogout: widget.onLogout,
+        onServerChanged: widget.onLogout == null
+            ? null
+            : widget.onServerChanged,
+      );
     }
     final tabInfo = _tabInfo(_activeTab);
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.xxl),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.xxl,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -179,12 +195,17 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   // Shows the currently logged-in user (task-046: replaced 当前服务器).
 
   Widget _buildStatusRow() {
-    final username = (widget.activeUsername == null || widget.activeUsername!.isEmpty)
+    final username =
+        (widget.activeUsername == null || widget.activeUsername!.isEmpty)
         ? '未知'
         : widget.activeUsername!;
     return Row(
       children: [
-        Icon(Icons.person_outline, size: _WS.statusIconSize, color: AppDesignColors.textPrimary),
+        Icon(
+          Icons.person_outline,
+          size: _WS.statusIconSize,
+          color: AppDesignColors.textPrimary,
+        ),
         const SizedBox(width: AppSpacing.xs),
         Text(
           '当前用户：$username',
@@ -242,7 +263,10 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
             ),
             Center(
               child: Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.xxl, bottom: AppSpacing.sm),
+                padding: const EdgeInsets.only(
+                  top: AppSpacing.xxl,
+                  bottom: AppSpacing.sm,
+                ),
                 child: Container(
                   width: _WS.scanIconBox,
                   height: _WS.scanIconBox,
@@ -285,21 +309,26 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            Text(sectionTitle, style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              sectionTitle,
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
         if (widget.records != null && widget.records!.isNotEmpty)
-          ...widget.records!.asMap().entries.map((entry) => Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: RecordCard(
-              title: entry.value.title,
-              detail: entry.value.detail,
-              status: entry.value.status,
-              index: entry.key,
-              onTap: () => _openRecordDetail(entry.value),
+          ...widget.records!.asMap().entries.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: RecordCard(
+                title: entry.value.title,
+                detail: entry.value.detail,
+                status: entry.value.status,
+                index: entry.key,
+                onTap: () => _openRecordDetail(entry.value),
+              ),
             ),
-          ))
+          )
         else if (widget.scanError != null && widget.scanError!.isNotEmpty)
           _buildScanError(widget.scanError!)
         else
@@ -326,13 +355,19 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     switch (record.kind) {
       case RecordKind.checkout:
         final r = record.source as CheckoutRecord?;
-        return r == null ? _detailHeader(record.title, '', '') : _checkoutDetail(r);
+        return r == null
+            ? _detailHeader(record.title, '', '')
+            : _checkoutDetail(r);
       case RecordKind.returnForm:
         final r = record.source as ReturnRecord?;
-        return r == null ? _detailHeader(record.title, '', '') : _returnDetail(r);
+        return r == null
+            ? _detailHeader(record.title, '', '')
+            : _returnDetail(r);
       case RecordKind.inventoryCheck:
         final r = record.source as InventoryCheckRecord?;
-        return r == null ? _detailHeader(record.title, '', '') : _inventoryDetail(r);
+        return r == null
+            ? _detailHeader(record.title, '', '')
+            : _inventoryDetail(r);
     }
   }
 
@@ -342,14 +377,28 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       children: [
         _detailHeader(r.itemName, r.spec, r.code),
         _DetailRow(label: '数量', value: '${r.quantity} 件 · ${r.method}'),
-        if (r.costPrice > 0) _DetailRow(label: '成本单价', value: '¥${r.costPrice.toStringAsFixed(2)}'),
+        if (r.costPrice > 0)
+          _DetailRow(
+            label: '成本单价',
+            value: '¥${r.costPrice.toStringAsFixed(2)}',
+          ),
         _DetailRow(label: '状态', value: _orDash(r.status)),
         _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
         if (r.type == 1) ...[
-          _DetailRow(label: '销售总价', value: '¥${r.saleTotalPrice.toStringAsFixed(2)}'),
-          _DetailRow(label: '销售单价', value: '¥${r.saleUnitPrice.toStringAsFixed(2)}'),
+          _DetailRow(
+            label: '销售总价',
+            value: '¥${r.saleTotalPrice.toStringAsFixed(2)}',
+          ),
+          _DetailRow(
+            label: '销售单价',
+            value: '¥${r.saleUnitPrice.toStringAsFixed(2)}',
+          ),
         ],
-        _DetailMeta(operatorName: r.operatorName, time: r.time, remark: r.remark),
+        _DetailMeta(
+          operatorName: r.operatorName,
+          time: r.time,
+          remark: r.remark,
+        ),
       ],
     );
   }
@@ -363,7 +412,11 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         _DetailRow(label: '外借人', value: _orDash(r.borrower)),
         _DetailRow(label: '状态', value: _orDash(r.status)),
         _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
-        _DetailMeta(operatorName: r.operatorName, time: r.time, remark: r.remark),
+        _DetailMeta(
+          operatorName: r.operatorName,
+          time: r.time,
+          remark: r.remark,
+        ),
       ],
     );
   }
@@ -379,11 +432,22 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         _DetailRow(label: '实盘数量', value: '${r.actualQty} 件'),
         _DetailRow(label: '账面库存', value: '${r.bookQty} 件'),
         _DetailRow(label: '盘点差值', value: '$diffText 件'),
-        if (r.costPrice > 0) _DetailRow(label: '成本单价', value: '¥${r.costPrice.toStringAsFixed(2)}'),
+        if (r.costPrice > 0)
+          _DetailRow(
+            label: '成本单价',
+            value: '¥${r.costPrice.toStringAsFixed(2)}',
+          ),
         if (r.costPrice > 0 && diff != 0)
-          _DetailRow(label: diff < 0 ? '损失' : '溢价', value: '¥${loss.toStringAsFixed(2)}'),
+          _DetailRow(
+            label: diff < 0 ? '损失' : '溢价',
+            value: '¥${loss.toStringAsFixed(2)}',
+          ),
         _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
-        _DetailMeta(operatorName: r.operatorName, time: r.time, remark: r.remark),
+        _DetailMeta(
+          operatorName: r.operatorName,
+          time: r.time,
+          remark: r.remark,
+        ),
       ],
     );
   }
@@ -402,7 +466,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
               padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
                 sub,
-                style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+                style: AppTextStyles.caption.copyWith(
+                  color: AppDesignColors.textSecondary,
+                ),
               ),
             ),
         ],
@@ -423,12 +489,18 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_amber, color: AppDesignColors.textSecondary, size: _WS.resultIconSize),
+          Icon(
+            Icons.warning_amber,
+            color: AppDesignColors.textSecondary,
+            size: _WS.resultIconSize,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               message,
-              style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                color: AppDesignColors.textSecondary,
+              ),
             ),
           ),
         ],
@@ -442,7 +514,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
         child: Text(
           text,
-          style: AppTextStyles.body.copyWith(color: AppDesignColors.textSecondary),
+          style: AppTextStyles.body.copyWith(
+            color: AppDesignColors.textSecondary,
+          ),
         ),
       ),
     );
@@ -519,14 +593,17 @@ class _DetailRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: _WS.detailRowVPad),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppDesignColors.borderMuted),
-        ),
+        border: Border(bottom: BorderSide(color: AppDesignColors.borderMuted)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
           const Spacer(),
           Flexible(
             child: Text(
@@ -543,7 +620,11 @@ class _DetailRow extends StatelessWidget {
 
 /// Operator · time · remark strip, mirroring Web `MetaStrip`.
 class _DetailMeta extends StatelessWidget {
-  const _DetailMeta({required this.operatorName, required this.time, required this.remark});
+  const _DetailMeta({
+    required this.operatorName,
+    required this.time,
+    required this.remark,
+  });
   final String operatorName;
   final String time;
   final String remark;
@@ -569,13 +650,19 @@ class _DetailMeta extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: _WS.detailMetaIconSize, color: AppDesignColors.textSecondary),
+        Icon(
+          icon,
+          size: _WS.detailMetaIconSize,
+          color: AppDesignColors.textSecondary,
+        ),
         const SizedBox(width: AppSpacing.xs),
         Text(
           value,
           style: emphasized
               ? AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)
-              : AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+              : AppTextStyles.caption.copyWith(
+                  color: AppDesignColors.textSecondary,
+                ),
         ),
       ],
     );
