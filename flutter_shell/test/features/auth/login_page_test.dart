@@ -23,7 +23,7 @@ void main() {
         ),
       );
 
-      expect(find.text('服务器：主服务器'), findsOneWidget);
+      expect(find.text('当前使用用户：主服务器'), findsOneWidget);
       expect(find.byIcon(Icons.swap_horiz), findsOneWidget);
       expect(find.text('更换'), findsOneWidget);
     });
@@ -41,7 +41,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byKey(const Key('change_server_entry')));
+      await tester.tap(find.widgetWithText(ElevatedButton, '更换'));
       await tester.pump();
 
       expect(fired, isTrue);

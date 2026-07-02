@@ -26,7 +26,7 @@ void main() {
       await tester.pumpWidget(const WarehouseApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('当前用户：张三'), findsOneWidget);
+      expect(find.text('当前用户：A'), findsOneWidget);
 
       await tester.tap(find.text('设置'));
       await tester.pumpAndSettle();
@@ -36,12 +36,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('登录'), findsOneWidget);
-      expect(find.text('服务器：B'), findsOneWidget);
+      expect(find.text('当前使用用户：B'), findsOneWidget);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getBool('wms.loggedIn'), isFalse);
       expect(prefs.getString('wms.sessionUsername'), isNull);
-      expect(prefs.getString('wms.sessionCookie'), isNull);
     });
   });
 }

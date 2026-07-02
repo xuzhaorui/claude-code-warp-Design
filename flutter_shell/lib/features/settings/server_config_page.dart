@@ -183,10 +183,16 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Back row (only when entered from settings home).
-          if (_showManagement) ...[
+          // Back row.
+          if (_showManagement || Navigator.of(context).canPop()) ...[
             GestureDetector(
-              onTap: () => setState(() => _showManagement = false),
+              onTap: () {
+                if (_showManagement) {
+                  setState(() => _showManagement = false);
+                } else {
+                  Navigator.of(context).maybePop();
+                }
+              },
               behavior: HitTestBehavior.opaque,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -344,8 +350,8 @@ class _ServerConfigPageState extends State<ServerConfigPage> {
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(
-              labelText: '服务器名称',
-              hintText: '如：主服务器',
+              labelText: '用户名称',
+              hintText: '如：张三',
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

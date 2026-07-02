@@ -36,6 +36,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
   WarehouseApiClient? _apiClient;
   AuthSession? _session;
   String? _activeServerName;
+  String? _activeServerUrl;
   bool _initialized = false;
   bool _needsServerConfig = true;
 
@@ -54,6 +55,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
       setState(() {
         _needsServerConfig = active == null;
         _activeServerName = active?.name;
+        _activeServerUrl = active?.normalizedBaseUrl;
         _initialized = true;
       });
     }
@@ -85,6 +87,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
       _apiClient = HttpWarehouseApiClient(configStore: _configStore);
       _needsServerConfig = false;
       _activeServerName = active?.name;
+      _activeServerUrl = active?.normalizedBaseUrl;
     });
   }
 
@@ -117,6 +120,7 @@ class _WarehouseAppState extends State<WarehouseApp> {
           : HttpWarehouseApiClient(configStore: _configStore);
       _needsServerConfig = active == null;
       _activeServerName = active?.name;
+      _activeServerUrl = active?.normalizedBaseUrl;
     });
   }
 
@@ -152,7 +156,12 @@ class _WarehouseAppState extends State<WarehouseApp> {
       MaterialPageRoute(
         builder: (_) => Scaffold(
           backgroundColor: AppTheme.light.scaffoldBackgroundColor,
-          body: SafeArea(child: ServerConfigPage(store: _configStore)),
+          body: SafeArea(
+            child: ServerConfigPage(
+              store: _configStore,
+              onServerChanged: _onServerChanged,
+            ),
+          ),
         ),
       ),
     );
@@ -190,13 +199,14 @@ class _WarehouseAppState extends State<WarehouseApp> {
         apiClient: _apiClient!,
         onLoggedIn: _onLoggedIn,
         activeServerName: _activeServerName,
+        activeServerUrl: _activeServerUrl,
         onChangeServer: _openServerConfigFromLogin,
       );
     }
 
     return WarehouseShellScannerEntry(
       apiClient: _apiClient,
-      activeUsername: _session?.displayName,
+      activeUsername: _activeServerName ?? '未知',
       onLogout: _onLogout,
       onSessionExpired: _onSessionExpired,
       onServerChanged: _onServerChanged,

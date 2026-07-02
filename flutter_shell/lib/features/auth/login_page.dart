@@ -17,12 +17,14 @@ class LoginPage extends StatefulWidget {
     required this.apiClient,
     required this.onLoggedIn,
     this.activeServerName,
+    this.activeServerUrl,
     this.onChangeServer,
   });
 
   final WarehouseApiClient apiClient;
   final ValueChanged<AuthSession> onLoggedIn;
   final String? activeServerName;
+  final String? activeServerUrl;
   final VoidCallback? onChangeServer;
 
   @override
@@ -169,38 +171,59 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildServerSwitcher() {
-    final serverName =
+    final name =
         (widget.activeServerName == null || widget.activeServerName!.isEmpty)
         ? '未配置'
         : widget.activeServerName!;
-    return GestureDetector(
-      key: const Key('change_server_entry'),
-      onTap: widget.onChangeServer,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+    final url = widget.activeServerUrl ?? '';
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (name != '未配置') ...[
           Text(
-            '服务器：$serverName',
-            style: AppTextStyles.caption.copyWith(
+            '当前使用用户：$name',
+            style: AppTextStyles.body.copyWith(
+              color: AppDesignColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (url.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '具体服务器：$url',
+                style: AppTextStyles.body.copyWith(
+                  color: AppDesignColors.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+        ] else
+          Text(
+            '未配置服务器',
+            style: AppTextStyles.body.copyWith(
               color: AppDesignColors.textSecondary,
             ),
           ),
-          const SizedBox(width: AppSpacing.xs),
-          const Icon(
-            Icons.swap_horiz,
-            size: 18,
-            color: AppDesignColors.textSecondary,
-          ),
-          const SizedBox(width: AppSpacing.xs),
-          Text(
-            '更换',
-            style: AppTextStyles.caption.copyWith(
-              color: AppDesignColors.textSecondary,
+        if (widget.onChangeServer != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            height: 36,
+            child: ElevatedButton.icon(
+              onPressed: widget.onChangeServer,
+              icon: const Icon(Icons.swap_horiz, size: 18),
+              label: const Text('更换', style: TextStyle(fontSize: 14)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppDesignColors.primary,
+                foregroundColor: AppDesignColors.textPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(AppRadii.pill),
+                ),
+              ),
             ),
           ),
         ],
-      ),
+      ],
     );
   }
 }
