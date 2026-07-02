@@ -1,5 +1,5 @@
 ﻿{
-    "commit":  "dd8977f537b0e1fbbb2395e623effb45a0c1b9a5",
+    "commit":  "f1bdb63b07d341cf6a2d55238c15da97bc672a4f",
     "scopedStatusPaths":  [
                               "CLAUDE.md",
                               "package.json",
@@ -14,7 +14,7 @@
                               "physical-gate.config.json",
                               "physical-gate.report.json"
                           ],
-    "createdAt":  "2026-07-02T18:25:43Z",
+    "createdAt":  "2026-07-02T22:25:18Z",
     "branch":  "feature/warehouse-app",
     "gitStatusHash":  "EMPTY",
     "allowedDirty":  [
