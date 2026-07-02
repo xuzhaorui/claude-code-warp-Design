@@ -466,7 +466,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
               padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
                 sub,
-                style: AppTextStyles.caption.copyWith(
+                style: AppTextStyles.body.copyWith(
                   color: AppDesignColors.textSecondary,
                 ),
               ),

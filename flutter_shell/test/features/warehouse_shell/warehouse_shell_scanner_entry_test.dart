@@ -34,7 +34,10 @@ void main() {
         wrapApp(WarehouseShellScannerEntry(adapter: MockScannerAdapter())),
       );
       await tester.tap(find.byKey(const Key('scan_card')));
-      await tester.pumpAndSettle();
+      // ScannerPage has an infinite scan-line animation; pump the route
+      // transition explicitly instead of pumpAndSettle.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
       expect(find.text('退出扫码'), findsOneWidget);
     });
 

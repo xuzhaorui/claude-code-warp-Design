@@ -18,7 +18,10 @@ void main() {
         WarehouseShellScannerEntry(adapter: MockScannerAdapter()),
       ));
       await tester.tap(find.byKey(const Key('scan_card')));
-      await tester.pumpAndSettle();
+      // ScannerPage has an infinite scan-line animation; pump the route
+      // transition explicitly instead of pumpAndSettle.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
       expect(find.text('退出扫码'), findsOneWidget);
     });
 
@@ -43,7 +46,7 @@ void main() {
         ),
       ));
       await tester.tap(find.byKey(const Key('scan_card')));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 600));
       expect(businessTriggered, isFalse);
     });
 
@@ -118,7 +121,10 @@ void main() {
       ));
       // No apiClient set → uses fixture data. Scanner still opens.
       await tester.tap(find.byKey(const Key('scan_card')));
-      await tester.pumpAndSettle();
+      // ScannerPage has an infinite scan-line animation; pump the route
+      // transition explicitly instead of pumpAndSettle.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
       expect(find.text('退出扫码'), findsOneWidget);
     });
   });

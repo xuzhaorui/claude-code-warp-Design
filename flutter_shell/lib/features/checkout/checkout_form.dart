@@ -258,7 +258,10 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                     ),
                     if (ev.isLoss && !_confirmLoss) ...[
                       const SizedBox(height: AppSpacing.sm),
-                      _LossWarning(costPrice: item.costPrice, onConfirm: () => setState(() => _confirmLoss = true)),
+                      _LossWarning(costPrice: item.costPrice, onConfirm: () {
+                        setState(() => _confirmLoss = true);
+                        _recompute();
+                      }),
                     ],
                     if (ev.isLoss && _confirmLoss)
                       Padding(

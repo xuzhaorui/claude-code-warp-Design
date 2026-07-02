@@ -98,9 +98,9 @@ class _ScannerPageState extends State<ScannerPage> {
     super.dispose();
   }
 
-  /// Focus window: a centered square of side = min(screenW, screenH) * 0.7.
+  /// Focus window: a centered square of side = min(screenW, screenH) * 0.6.
   /// Stored as normalized rect [0..1] in image space, computed lazily.
-  static const _windowFraction = 0.7;
+  static const _windowFraction = 0.6;
 
   /// Returns true if the barcode's center falls inside the focus window.
   /// Both the barcode corners and the window are compared in normalized
@@ -225,10 +225,38 @@ class _ScannerPageState extends State<ScannerPage> {
 }
 
 /// A semi-transparent scrim with a transparent centered square cut-out and
-/// an orange corner-bracket frame, signalling the scan focus area.
-class _FocusOverlay extends StatelessWidget {
+/// an orange corner-bracket frame, signalling the scan focus area.  Includes
+/// an animated scan line that travels top→bottom inside the window.
+class _FocusOverlay extends StatefulWidget {
   const _FocusOverlay({required this.fraction});
   final double fraction;
+
+  @override
+  State<_FocusOverlay> createState() => _FocusOverlayState();
+}
+
+class _FocusOverlayState extends State<_FocusOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scan;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _scan = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +264,7 @@ class _FocusOverlay extends StatelessWidget {
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final h = constraints.maxHeight;
-        final side = math.min(w, h) * fraction;
+        final side = math.min(w, h) * widget.fraction;
         final left = (w - side) / 2;
         final top = (h - side) / 2;
         final window = Rect.fromLTWH(left, top, side, side);
@@ -269,6 +297,21 @@ class _FocusOverlay extends StatelessWidget {
               height: window.height,
               child: CustomPaint(painter: _BracketPainter()),
             ),
+            // Animated scan line (top → bottom inside the window).
+            Positioned(
+              left: window.left,
+              top: window.top,
+              width: window.width,
+              height: window.height,
+              child: AnimatedBuilder(
+                animation: _scan,
+                builder: (context, _) {
+                  return CustomPaint(
+                    painter: _ScanLinePainter(progress: _scan.value),
+                  );
+                },
+              ),
+            ),
             // Hint text below the window.
             Positioned(
               left: 0,
@@ -286,6 +329,35 @@ class _FocusOverlay extends StatelessWidget {
       },
     );
   }
+}
+
+/// Draws the moving horizontal scan line inside the focus window.
+class _ScanLinePainter extends CustomPainter {
+  _ScanLinePainter({required this.progress});
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final y = size.height * progress;
+    final linePaint = Paint()
+      ..color = AppDesignColors.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(8, y), Offset(size.width - 8, y), linePaint);
+    // Soft glow trail.
+    final glowPaint = Paint()
+      ..color = AppDesignColors.primary.withValues(alpha: 0.25)
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTWH(8, y - 8, size.width - 16, 8),
+      glowPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _ScanLinePainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }
 
 class _BracketPainter extends CustomPainter {
