@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../design/app_design_colors.dart';
@@ -148,6 +149,10 @@ class _ScannerPageState extends State<ScannerPage> {
     final raw = picked.rawValue!;
     _completed = true;
     debugPrint('[ScannerPage] scan result (in window): $raw');
+
+    // Haptic + sound feedback on a successful scan.
+    HapticFeedback.heavyImpact();
+    SystemSound.play(SystemSoundType.click);
 
     if (widget.adapter != null) {
       widget.onScanResult?.call(raw);
