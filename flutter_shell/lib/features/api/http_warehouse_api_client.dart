@@ -467,14 +467,17 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     ReturnSubmitPayload payload,
   ) async {
     try {
+      // Web `submitReturn` → POST /inventory/loan/loanReturnInbound
+      // body: {loanId, freightId, storageId, quantity, type:2, inDescription?}
       final fields = <String, dynamic>{
         'loanId': payload.loanId,
-        'num': payload.returnQty,
         'freightId': payload.freightId,
         'storageId': payload.storageId,
+        'quantity': payload.returnQty,
+        'type': 2,
       };
-      if (payload.remark.isNotEmpty) fields['remark'] = payload.remark;
-      await _post('/inventory/loan/inbound', fields);
+      if (payload.remark.isNotEmpty) fields['inDescription'] = payload.remark;
+      await _post('/inventory/loan/loanReturnInbound', fields);
       return const WarehouseApiResult(
         success: true,
         data: BusinessSubmitResult(message: '归还成功'),
@@ -489,7 +492,8 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   @override
   Future<WarehouseApiResult<List<ReturnRecord>>> fetchReturnRecords() async {
     try {
-      final data = await _post('/inventory/loan/getUserLoanInDay', {});
+      // Web `getReturnRecords` → GET /inventory/inbound/returnLogTop/100
+      final data = await _get('/inventory/inbound/returnLogTop/100');
       final rows = _normalizeRows(data);
       final records = rows
           .map((r) => ReturnRecord.fromJson(r as Map<String, dynamic>))
@@ -507,12 +511,14 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     InventoryCheckSubmitPayload payload,
   ) async {
     try {
+      // Web `submitInventoryCheck` → POST /calculate/calculate/mobilePhoneInventory
+      // body: {inventoryId, physicalInventoryQuantity, remark?}
       final fields = <String, dynamic>{
         'inventoryId': payload.inventoryId,
-        'actualQty': payload.actualQty,
+        'physicalInventoryQuantity': payload.actualQty,
       };
       if (payload.remark.isNotEmpty) fields['remark'] = payload.remark;
-      await _post('/inventory/checkOrder/saveCheck', fields);
+      await _post('/calculate/calculate/mobilePhoneInventory', fields);
       return const WarehouseApiResult(
         success: true,
         data: BusinessSubmitResult(message: '盘点提交成功'),
@@ -526,9 +532,10 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
 
   @override
   Future<WarehouseApiResult<List<InventoryCheckRecord>>>
-  fetchInventoryCheckRecords() async {
+      fetchInventoryCheckRecords() async {
     try {
-      final data = await _post('/inventory/checkOrder/getUserCheckInDay', {});
+      // Web `getInventoryCheckRecords` → GET /calculate/calculate/mobilePhoneInventoryLog/100
+      final data = await _get('/calculate/calculate/mobilePhoneInventoryLog/100');
       final rows = _normalizeRows(data);
       final records = rows
           .map((r) => InventoryCheckRecord.fromJson(r as Map<String, dynamic>))

@@ -146,7 +146,7 @@ void main() {
     test("success", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({
-        "loan/inbound": {"success": true},
+        "loanReturnInbound": {"success": true},
       });
       final client = HttpWarehouseApiClient(
         configStore: store,
@@ -169,7 +169,7 @@ void main() {
     test("success", () async {
       final store = await _setupStore();
       final http = FakeHttpClient({
-        "saveCheck": {"success": true},
+        "mobilePhoneInventory": {"success": true},
       });
       final client = HttpWarehouseApiClient(
         configStore: store,
