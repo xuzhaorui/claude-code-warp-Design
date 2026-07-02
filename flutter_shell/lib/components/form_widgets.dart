@@ -18,7 +18,7 @@ class _FW {
   static const badgeSkew = -0.087; // ~ -5deg, Web skewX(-5deg)
   static const badgeInnerSkew = 0.14; // ~ +8deg, Web skewX(8deg) on text
   static const stepperHeight = 56.0;
-  static const stepperBtnSize = 44.0;
+  static const stepperBtnSize = 36.0;
   static const submitHeight = 52.0;
 }
 
@@ -218,6 +218,7 @@ class BlackStepper extends StatelessWidget {
           Row(
             children: [
               _roundButton(glyph: '−', onTap: () => _step(-1), dark: false),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
                   controller: TextEditingController(text: value.isEmpty ? '' : value),
@@ -239,6 +240,7 @@ class BlackStepper extends StatelessWidget {
                   },
                 ),
               ),
+              const SizedBox(width: AppSpacing.sm),
               _roundButton(glyph: '+', onTap: () => _step(1), dark: true),
             ],
           ),
