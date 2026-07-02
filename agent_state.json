@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "project": "warehouse-app Flutter parity migration",
   "singleSourceOfTruth": true,
-  "updatedAt": "2026-07-01T17:40:00Z",
+  "updatedAt": "2026-07-02T09:30:00Z",
   "globalGoal": {
     "statement": "将现有仓库管理移动 Web APP 逐步改造为 Flutter 原生实现，并保持原 Web 版 UI/UX、业务流程、接口行为一致。",
     "nonGoals": [
@@ -795,11 +795,36 @@
         "debugBuild": "pass"
       },
       "nextTask": "task-043-real-device-defect-fix-smoke"
+    },
+    {
+      "id": "iter-043-checkout-web-parity-visual-identity",
+      "goal": "恢复三个业务 tab 的 Web 视觉标识（橙色斜体徽章扫码卡 + 从图片识别 + 圆形 chevron 卡片），保留 task-042 结构性修复。",
+      "status": "complete",
+      "files": [
+        "flutter_shell/lib/features/warehouse_shell/warehouse_shell.dart",
+        "flutter_shell/test/features/warehouse_shell/warehouse_shell_test.dart",
+        "agent_state.json"
+      ],
+      "changes": {
+        "scanCardWebIdentity": "primarySoft 卡片 + 左上 primary 斜体徽章 + 居中 115×115 primary 扫码图标盒",
+        "imageRecognitionHintRestored": "从图片识别 低优先级链接（视觉，未接上传）",
+        "keptTask042Fixes": ["持久登录", "退出登录", "tab 记录加载", "详情 BottomSheet", "SafeArea(top:true)", "无最近扫码", "无顶部大标题", "无 Debug"]
+      },
+      "tests": {
+        "totalFlutterTests": 382
+      },
+      "gates": {
+        "designLint": "pass: 0 errors, 0 warnings",
+        "flutterAnalyze": "pass",
+        "flutterTest": "pass: 382/382",
+        "debugBuild": "pass"
+      },
+      "nextTask": "task-044-real-device-checkout-web-parity-smoke"
     }
   ],
   "currentState": {
-    "lastCompletedIterationId": "iter-042-device-found-defect-fixes",
-    "lastCompletedGoal": "修复真机发现的 6 个缺陷：退出登录、顶部状态栏重叠、移除最近扫码提醒、登录状态持久化、记录按 tab 加载、记录点击详情。",
+    "lastCompletedIterationId": "iter-043-checkout-web-parity-visual-identity",
+    "lastCompletedGoal": "恢复三个业务 tab 的 Web 视觉标识，保留 task-042 结构性修复。",
     "pendingTask": "task-037-real-device-end-to-end-smoke (blocked on user device verification)",
     "availableFlutterComponents": [
       "RecordCard",

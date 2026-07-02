@@ -27,10 +27,18 @@ class _WS {
   _WS._();
   static const bottomNavHeight = 64.0;
   static const navIconSize = 28.0;
-  static const scanIconSize = 56.0;
+  // Web-parity scan-card metrics (CheckoutTab.jsx).  These are component-local
+  // numeric constants per Design.md's documented exception (mirror Web px,
+  // not promoted to design tokens).
+  static const scanIconBox = 115.0;
+  static const scanIconGlyph = 72.0;
+  static const cardSpacer = 120.0;
+  static const badgeHPad = 14.0;
+  static const badgeVPad = 6.0;
   static const accentBarW = 3.0;
   static const accentBarH = 14.0;
   static const statusIconSize = 16.0;
+  static const imageHintIconSize = 16.0;
   static const resultIconSize = 20.0;
   static const detailRowVPad = 12.0;
   static const detailMetaIconSize = 14.0;
@@ -156,7 +164,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         children: [
           _buildStatusRow(),
           const SizedBox(height: AppSpacing.md),
-          _buildScanCard(tabInfo.scanCta),
+          _buildScanCard(tabInfo.badgeLabel),
+          const SizedBox(height: AppSpacing.sm),
+          _buildImageRecognitionHint(),
           const SizedBox(height: AppSpacing.xl),
           _buildRecordSection(
             sectionTitle: tabInfo.recordTitle,
@@ -190,10 +200,11 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 
   // ── Scan card ──
   //
-  // Restrained outline card with a per-tab call-to-action.  No subtitle,
-  // no image-recognition hint (removed in task-041 for Web parity).
+  // Web-parity identity (CheckoutTab.jsx): primarySoft block with a
+  // top-left primary italic badge (tab name), a centered primary 115×115
+  // scan-icon box, and a spacer.  Tapping fires onScanRequested.
 
-  Widget _buildScanCard(String ctaText) {
+  Widget _buildScanCard(String badgeLabel) {
     return GestureDetector(
       key: const Key('scan_card'),
       onTap: () => widget.onScanRequested?.call(_activeTab),
@@ -201,20 +212,79 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppDesignColors.surface,
+          color: AppDesignColors.primarySoft,
           borderRadius: BorderRadius.all(AppRadii.lg),
-          border: Border.all(color: AppDesignColors.borderMuted),
         ),
-        padding: const EdgeInsets.symmetric(
-          vertical: AppSpacing.xl,
-          horizontal: AppSpacing.lg,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _WS.badgeHPad,
+                  vertical: _WS.badgeVPad,
+                ),
+                decoration: BoxDecoration(
+                  color: AppDesignColors.primary,
+                  borderRadius: BorderRadius.all(AppRadii.sm),
+                ),
+                child: Text(
+                  badgeLabel,
+                  style: AppTextStyles.title.copyWith(
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w900,
+                    color: AppDesignColors.scannerLight,
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xxl, bottom: AppSpacing.sm),
+                child: Container(
+                  width: _WS.scanIconBox,
+                  height: _WS.scanIconBox,
+                  decoration: BoxDecoration(
+                    color: AppDesignColors.primary,
+                    borderRadius: BorderRadius.all(AppRadii.md),
+                  ),
+                  child: Icon(
+                    Icons.qr_code_scanner,
+                    size: _WS.scanIconGlyph,
+                    color: AppDesignColors.scannerLight,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: _WS.cardSpacer),
+          ],
         ),
-        child: Column(
+      ),
+    );
+  }
+
+  // ── "从图片识别" hint ──
+  //
+  // Web-parity low-emphasis affordance under the scan card.  Functional
+  // image upload is not yet implemented in Flutter; rendered as a visual
+  // link matching Web.
+
+  Widget _buildImageRecognitionHint() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.qr_code_scanner, size: _WS.scanIconSize, color: AppDesignColors.primary),
-            const SizedBox(height: AppSpacing.md),
-            Text(ctaText, style: AppTextStyles.title),
+            Icon(Icons.image, size: _WS.imageHintIconSize, color: AppDesignColors.textSecondary),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              '从图片识别',
+              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary),
+            ),
           ],
         ),
       ),
@@ -410,28 +480,28 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     switch (tab) {
       case WarehouseTab.checkout:
         return _TabInfo(
-          scanCta: '点击扫码出库',
+          badgeLabel: '出库',
           recordTitle: '出库记录',
           emptyText: '暂无出库记录',
           detailTitle: '出库详情',
         );
       case WarehouseTab.returnForm:
         return _TabInfo(
-          scanCta: '点击扫码归还',
+          badgeLabel: '归还',
           recordTitle: '归还记录',
           emptyText: '暂无归还记录',
           detailTitle: '归还详情',
         );
       case WarehouseTab.inventoryCheck:
         return _TabInfo(
-          scanCta: '点击扫码盘点',
+          badgeLabel: '盘点',
           recordTitle: '盘点记录',
           emptyText: '暂无盘点记录',
           detailTitle: '盘点详情',
         );
       case WarehouseTab.settings:
         return _TabInfo(
-          scanCta: '',
+          badgeLabel: '',
           recordTitle: '',
           emptyText: '设置页面',
           detailTitle: '',
@@ -541,13 +611,13 @@ class _DetailMeta extends StatelessWidget {
 // ---- Tab info data class ----
 
 class _TabInfo {
-  final String scanCta;
+  final String badgeLabel;
   final String recordTitle;
   final String emptyText;
   final String detailTitle;
 
   const _TabInfo({
-    required this.scanCta,
+    required this.badgeLabel,
     required this.recordTitle,
     required this.emptyText,
     required this.detailTitle,

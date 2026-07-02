@@ -75,10 +75,10 @@ void main() {
       expect(captured, WarehouseTab.checkout);
     });
 
-    // 9. image-recognition hint removed (task-041 Web parity)
-    testWidgets('image recognition hint removed', (tester) async {
+    // 9. image-recognition hint rendered (Web parity, restored in task-043)
+    testWidgets('image recognition hint renders', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
-      expect(find.text('从图片识别'), findsNothing);
+      expect(find.text('从图片识别'), findsOneWidget);
     });
 
     // 10. checkout records section renders
@@ -203,36 +203,35 @@ void main() {
       expect(find.text('暂无出库记录'), findsOneWidget);
     });
 
-    // 24. checkout page shows the scan call-to-action text (per-tab)
-    testWidgets('checkout scan card shows 点击扫码出库', (tester) async {
+    // 24. checkout scan card shows the 出库 badge + scan icon (Web identity)
+    testWidgets('checkout scan card shows 出库 badge', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
-      expect(find.text('点击扫码出库'), findsOneWidget);
-      // subtitle removed in task-041
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
       expect(find.text('扫描条码或二维码'), findsNothing);
     });
 
-    // 24b. return tab scan CTA
-    testWidgets('return scan card shows 点击扫码归还', (tester) async {
+    // 24b. return tab scan badge
+    testWidgets('return scan card shows 归还 badge', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('归还').last);
       await tester.pump();
-      expect(find.text('点击扫码归还'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    // 24c. inventory tab scan CTA
-    testWidgets('inventory scan card shows 点击扫码盘点', (tester) async {
+    // 24c. inventory tab scan badge
+    testWidgets('inventory scan card shows 盘点 badge', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       await tester.tap(find.text('盘点').last);
       await tester.pump();
-      expect(find.text('点击扫码盘点'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
-    // 24d. top large titles removed
-    testWidgets('no large 出库 title header on checkout', (tester) async {
+    // 24d. top large page titles removed; 出库 appears only as nav label + scan badge
+    testWidgets('no large 出库 page title on checkout', (tester) async {
       await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
-      // 出库 still appears as the nav label, but NOT as a page title.
-      // The scan CTA is the primary text on the checkout tab.
-      expect(find.text('点击扫码出库'), findsOneWidget);
+      // 出库 appears as the scan-card badge and the nav label; there is no
+      // standalone page-title widget above the scan card.
+      expect(find.byIcon(Icons.qr_code_scanner), findsWidgets);
     });
 
     // 24e. Debug manual input no longer rendered in the shell
