@@ -248,7 +248,7 @@ class BlackStepper extends StatelessWidget {
         width: _FW.stepperBtnSize,
         height: _FW.stepperBtnSize,
         decoration: BoxDecoration(
-          color: dark ? AppDesignColors.textPrimary : AppDesignColors.borderMuted,
+          color: dark ? AppDesignColors.primary : AppDesignColors.borderMuted,
           borderRadius: BorderRadius.all(AppRadii.sm),
         ),
         child: Center(
@@ -256,7 +256,7 @@ class BlackStepper extends StatelessWidget {
             glyph,
             style: AppTextStyles.title.copyWith(
               fontWeight: FontWeight.w700,
-              color: dark ? AppDesignColors.scannerLight : AppDesignColors.textPrimary,
+              color: dark ? AppDesignColors.textPrimary : AppDesignColors.textPrimary,
             ),
           ),
         ),
@@ -265,9 +265,9 @@ class BlackStepper extends StatelessWidget {
   }
 }
 
-/// Full-width black submit button (Web `提交`/`确认归还`/`提交盘点`).
+/// Full-width submit button (Web `提交`/`确认归还`/`提交盘点`).
 ///
-/// textPrimary (#292524) background, scannerLight (white) text, pill shape,
+/// primary (#E8986E) background, textPrimary (#292524) text, pill shape,
 /// 40% opacity when disabled.
 class BlackSubmitButton extends StatelessWidget {
   const BlackSubmitButton({
@@ -305,7 +305,7 @@ class BlackSubmitButton extends StatelessWidget {
                     valueColor: AlwaysStoppedAnimation(AppDesignColors.textPrimary),
                   ),
                 )
-              : Text(text, style: AppTextStyles.label),
+              : Text(text, style: AppTextStyles.title),
         ),
       ),
     );
