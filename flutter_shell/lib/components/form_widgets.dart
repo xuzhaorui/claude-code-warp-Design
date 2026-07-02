@@ -157,61 +157,35 @@ class InfoField extends StatelessWidget {
 ///
 /// h56 surfaceMuted container, floating primary label, gray − button +
 /// center input + black + button.  Tap-to-step (hold-to-repeat omitted).
-class BlackStepper extends StatefulWidget {
+///
+/// Uses an externally-owned [controller] so the parent can manage cursor
+/// position and avoid TextEditingController recreation on each rebuild.
+class BlackStepper extends StatelessWidget {
   const BlackStepper({
     super.key,
     required this.label,
-    required this.value,
+    required this.controller,
     required this.min,
     required this.max,
     required this.onChanged,
     this.error = false,
   });
   final String label;
-  final String value;
+  final TextEditingController controller;
   final int min;
   final int max;
   final ValueChanged<num> onChanged;
   final bool error;
 
-  @override
-  State<BlackStepper> createState() => _BlackStepperState();
-}
-
-class _BlackStepperState extends State<BlackStepper> {
-  late TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.value);
-  }
-
-  @override
-  void didUpdateWidget(BlackStepper oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.value != oldWidget.value && widget.value != _controller.text) {
-      _controller.text = widget.value;
-      _controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: widget.value.length),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   int get _current {
-    if (widget.value.isEmpty) return widget.min;
-    return int.tryParse(widget.value) ?? widget.min;
+    final val = controller.text;
+    if (val.isEmpty) return min;
+    return int.tryParse(val) ?? min;
   }
 
   void _step(int dir) {
-    final next = (_current + dir).clamp(widget.min, widget.max);
-    widget.onChanged(next);
+    final next = (_current + dir).clamp(min, max);
+    onChanged(next);
   }
 
   @override
@@ -220,7 +194,7 @@ class _BlackStepperState extends State<BlackStepper> {
       decoration: BoxDecoration(
         color: AppDesignColors.surfaceMuted,
         borderRadius: BorderRadius.all(AppRadii.md),
-        border: widget.error
+        border: error
             ? Border.all(color: Theme.of(context).colorScheme.error, width: 2)
             : null,
       ),
@@ -230,7 +204,7 @@ class _BlackStepperState extends State<BlackStepper> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            widget.label,
+            label,
             style: AppTextStyles.body.copyWith(
               color: AppDesignColors.primary,
               fontWeight: FontWeight.w700,
@@ -243,7 +217,7 @@ class _BlackStepperState extends State<BlackStepper> {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: TextField(
-                  controller: _controller,
+                  controller: controller,
                   textAlign: TextAlign.center,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
@@ -255,14 +229,6 @@ class _BlackStepperState extends State<BlackStepper> {
                     isCollapsed: true,
                     border: InputBorder.none,
                   ),
-                  onChanged: (raw) {
-                    if (raw.isEmpty) {
-                      widget.onChanged(widget.min);
-                      return;
-                    }
-                    final n = int.tryParse(raw);
-                    if (n != null) widget.onChanged(n.clamp(widget.min, widget.max));
-                  },
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),

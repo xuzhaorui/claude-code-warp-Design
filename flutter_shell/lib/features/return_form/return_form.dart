@@ -132,7 +132,7 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
                   ],
                   BlackStepper(
                     label: '归还数量',
-                    value: _returnQty,
+                    controller: TextEditingController(text: _returnQty),
                     min: 1,
                     max: record.borrowQty,
                     error: ev.overQty,

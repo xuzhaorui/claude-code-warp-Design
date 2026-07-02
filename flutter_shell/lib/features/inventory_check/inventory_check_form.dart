@@ -121,7 +121,7 @@ class _InventoryCheckFormMinState extends State<InventoryCheckFormMin> {
                 children: [
                   BlackStepper(
                     label: '盘点真实数量',
-                    value: _actualQty,
+                    controller: TextEditingController(text: _actualQty),
                     min: 0,
                     max: 99999,
                     onChanged: _onQtyChanged,

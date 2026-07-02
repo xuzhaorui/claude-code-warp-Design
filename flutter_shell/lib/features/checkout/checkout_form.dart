@@ -52,6 +52,11 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   bool _isSubmitting = false;
   String? _submitError;
 
+  // Persistent TextEditingControllers to avoid cursor-position issues.
+  late final TextEditingController _qtyController;
+  late final TextEditingController _saleTotalController;
+  late final TextEditingController _remarkController;
+
   CheckoutFormInput get _input => CheckoutFormInput(
         quantity: _quantity,
         method: _method,
@@ -66,7 +71,47 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   @override
   void initState() {
     super.initState();
+    _qtyController = TextEditingController(text: '1');
+    _saleTotalController = TextEditingController();
+    _remarkController = TextEditingController();
+    _qtyController.addListener(_onQtyListener);
+    _saleTotalController.addListener(_onSaleTotalListener);
+    _remarkController.addListener(_onRemarkListener);
     _evaluation = CheckoutFormRules.evaluate(input: _input, item: widget.item);
+  }
+
+  @override
+  void dispose() {
+    _qtyController.removeListener(_onQtyListener);
+    _saleTotalController.removeListener(_onSaleTotalListener);
+    _remarkController.removeListener(_onRemarkListener);
+    _qtyController.dispose();
+    _saleTotalController.dispose();
+    _remarkController.dispose();
+    super.dispose();
+  }
+
+  void _onQtyListener() {
+    final raw = _qtyController.text;
+    if (raw.isEmpty) {
+      _quantity = '1';
+    } else {
+      final n = int.tryParse(raw);
+      if (n != null) _quantity = n.clamp(1, widget.item.stockQty).toString();
+    }
+    _confirmLoss = false;
+    _recompute();
+  }
+
+  void _onSaleTotalListener() {
+    _saleTotalPrice = _saleTotalController.text;
+    _confirmLoss = false;
+    _recompute();
+  }
+
+  void _onRemarkListener() {
+    _remark = _remarkController.text;
+    _recompute();
   }
 
   void _recompute() {
@@ -78,23 +123,16 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   void _onQuantityChanged(num v) {
     _quantity = v.toString();
     _confirmLoss = false;
+    _qtyController.text = _quantity;
+    _qtyController.selection = TextSelection.fromPosition(
+      TextPosition(offset: _quantity.length),
+    );
     _recompute();
   }
 
   void _onMethodChanged(CheckoutMethod m) {
     _method = m;
     _confirmLoss = false;
-    _recompute();
-  }
-
-  void _onSaleTotalChanged(String v) {
-    _saleTotalPrice = v;
-    _confirmLoss = false;
-    _recompute();
-  }
-
-  void _onRemarkChanged(String v) {
-    _remark = v;
     _recompute();
   }
 
@@ -178,7 +216,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                   const SizedBox(height: AppSpacing.md),
                   BlackStepper(
                     label: '出库数量',
-                    value: _quantity,
+                    controller: _qtyController,
                     min: 1,
                     max: item.stockQty,
                     error: ev.overStock,
@@ -198,8 +236,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                   if (isSale) ...[
                     const SizedBox(height: AppSpacing.md),
                     _SalePriceField(
-                      value: _saleTotalPrice,
-                      onChanged: _onSaleTotalChanged,
+                      controller: _saleTotalController,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Container(
@@ -232,7 +269,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                   ],
                   if (!isSale) ...[
                     const SizedBox(height: AppSpacing.md),
-                    _RemarkField(label: '出库备注（选填）', value: _remark, onChanged: _onRemarkChanged),
+                    _RemarkField(label: '出库备注（选填）', controller: _remarkController),
                   ],
                   if (widget.showCostPrice) ...[
                     const SizedBox(height: AppSpacing.md),
@@ -324,9 +361,8 @@ class _SegOption<T> {
 // ── Checkout-specific: sale price field (Web Stepper controls=false) ──
 
 class _SalePriceField extends StatelessWidget {
-  const _SalePriceField({required this.value, required this.onChanged});
-  final String value;
-  final ValueChanged<String> onChanged;
+  const _SalePriceField({required this.controller});
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -342,7 +378,7 @@ class _SalePriceField extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: TextFormField(
-              controller: TextEditingController(text: value),
+              controller: controller,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -356,7 +392,6 @@ class _SalePriceField extends StatelessWidget {
                 prefixText: '¥ ',
                 hintText: '0',
               ),
-              onChanged: onChanged,
             ),
           ),
         ],
@@ -368,10 +403,9 @@ class _SalePriceField extends StatelessWidget {
 // ── Shared remark field (checkout/return/inventory) ──
 
 class _RemarkField extends StatelessWidget {
-  const _RemarkField({required this.label, required this.value, required this.onChanged});
+  const _RemarkField({required this.label, required this.controller});
   final String label;
-  final String value;
-  final ValueChanged<String> onChanged;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -386,14 +420,13 @@ class _RemarkField extends StatelessWidget {
         children: [
           Text(label, style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
           TextFormField(
-            controller: TextEditingController(text: value),
+            controller: controller,
             style: AppTextStyles.body,
             decoration: const InputDecoration(
               isCollapsed: true,
               border: InputBorder.none,
               contentPadding: EdgeInsets.only(top: AppSpacing.xs),
             ),
-            onChanged: onChanged,
           ),
         ],
       ),
