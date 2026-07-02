@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../components/form_widgets.dart';
 import '../../design/app_design_colors.dart';
@@ -42,7 +43,7 @@ class CheckoutFormMin extends StatefulWidget {
 }
 
 class _CheckoutFormMinState extends State<CheckoutFormMin> {
-  String _quantity = '';
+  String _quantity = '1';
   CheckoutMethod _method = CheckoutMethod.sale;
   String _saleTotalPrice = '';
   String _remark = '';
@@ -112,17 +113,23 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
       _submitError = null;
     });
 
-    final result = await api.submitCheckout(payload);
-
-    if (!mounted) return;
-
-    if (result.isSuccess) {
-      widget.onSubmitSuccess?.call();
-      widget.onClose?.call();
-    } else {
+    try {
+      final result = await api.submitCheckout(payload);
+      if (!mounted) return;
+      if (result.isSuccess) {
+        widget.onSubmitSuccess?.call();
+        widget.onClose?.call();
+      } else {
+        setState(() {
+          _isSubmitting = false;
+          _submitError = result.message ?? '出库提交失败';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isSubmitting = false;
-        _submitError = result.message ?? '出库提交失败';
+        _submitError = '请求异常：$e';
       });
     }
   }
@@ -337,6 +344,10 @@ class _SalePriceField extends StatelessWidget {
             child: TextFormField(
               controller: TextEditingController(text: value),
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                LengthLimitingTextInputFormatter(10),
+              ],
               textAlign: TextAlign.right,
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
               decoration: const InputDecoration(
