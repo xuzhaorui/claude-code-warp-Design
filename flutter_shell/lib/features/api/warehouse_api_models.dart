@@ -1,3 +1,29 @@
+// ---- Safe parsing helpers ----
+//
+// The backend may return numeric ids/quantities as int, double, or String
+// (e.g. "100").  Web uses loose `Number()` coercion; these helpers mirror
+// that so a type mismatch never throws and silently empties a record list.
+
+String _toStr(dynamic v) {
+  if (v == null) return '';
+  if (v is String) return v;
+  return v.toString();
+}
+
+int? _toInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  return int.tryParse(v.toString());
+}
+
+double _toDouble(dynamic v) {
+  if (v == null) return 0.0;
+  if (v is double) return v;
+  if (v is num) return v.toDouble();
+  return double.tryParse(v.toString()) ?? 0.0;
+}
+
 /// API result wrapper matching Web's `{success, code, msg, data}` shape.
 class WarehouseApiResult<T> {
   final bool success;
@@ -201,45 +227,42 @@ class CheckoutRecord {
   String get method => type == 1 ? '外销' : '外借';
 
   factory CheckoutRecord.fromJson(Map<String, dynamic> raw) {
-    final quantity =
-        (raw['num'] as num?)?.toInt() ??
-        (raw['quantity'] as num?)?.toInt() ??
-        0;
-    final totalPrice = (raw['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    final costPrice =
-        (raw['costUnitPrice'] as num?)?.toDouble() ??
-        (raw['costPrice'] as num?)?.toDouble() ??
-        0.0;
+    final quantity = _toInt(raw['num']) ?? _toInt(raw['quantity']) ?? 0;
+    final totalPrice = _toDouble(raw['totalPrice']);
+    final costPrice = _toDouble(raw['costUnitPrice']) != 0.0
+        ? _toDouble(raw['costUnitPrice'])
+        : _toDouble(raw['costPrice']);
     // Web derives saleUnitPrice from outUnitPrice, falling back to totalPrice/num.
-    final saleUnitPrice =
-        (raw['outUnitPrice'] as num?)?.toDouble() ??
-        (quantity > 0 ? totalPrice / quantity : 0.0);
-    final outState = (raw['outState'] as num?)?.toInt() ?? 1;
+    final outUnit = _toDouble(raw['outUnitPrice']);
+    final saleUnitPrice = outUnit != 0.0
+        ? outUnit
+        : (quantity > 0 ? totalPrice / quantity : 0.0);
+    final outState = _toInt(raw['outState']) ?? 1;
     // numberAndSpec may carry "code/spec".
-    final parts = (raw['numberAndSpec'] as String?)?.split('/') ?? const [];
+    final parts = _toStr(raw['numberAndSpec']).split('/');
     return CheckoutRecord(
-      id: raw['id'] as int? ?? 0,
-      inventoryId: raw['inventoryId'] as int? ?? 0,
-      warehouse: raw['storageName'] as String? ?? '',
-      itemName: raw['freightName'] as String? ?? '',
-      code:
-          (raw['freightNumber'] as String?) ??
-          (parts.isNotEmpty ? parts[0] : ''),
-      spec:
-          (raw['specification'] as String?) ??
-          (parts.length > 1 ? parts[1] : ''),
+      id: int.tryParse(_toStr(raw['id'])) ?? 0,
+      inventoryId: int.tryParse(_toStr(raw['inventoryId'])) ?? 0,
+      warehouse: _toStr(raw['storageName']),
+      itemName: _toStr(raw['freightName']),
+      code: _toStr(raw['freightNumber']).isNotEmpty
+          ? _toStr(raw['freightNumber'])
+          : (parts.isNotEmpty ? parts[0] : ''),
+      spec: _toStr(raw['specification']).isNotEmpty
+          ? _toStr(raw['specification'])
+          : (parts.length > 1 ? parts[1] : ''),
       quantity: quantity,
-      type: raw['type'] as int? ?? 1,
+      type: _toInt(raw['type']) ?? 1,
       saleTotalPrice: totalPrice,
       saleUnitPrice: saleUnitPrice,
       costPrice: costPrice,
-      remark: raw['outDescription'] as String? ?? '',
-      operatorName:
-          raw['operationNickName'] as String? ??
-          raw['nickName'] as String? ??
-          raw['operationUserName'] as String? ??
-          '',
-      time: raw['operationTime'] as String? ?? '',
+      remark: _toStr(raw['outDescription']),
+      operatorName: [
+        _toStr(raw['operationNickName']),
+        _toStr(raw['nickName']),
+        _toStr(raw['operationUserName']),
+      ].firstWhere((s) => s.isNotEmpty, orElse: () => ''),
+      time: _toStr(raw['operationTime']),
       status: outState == 2 ? '已撤销' : '正常',
     );
   }
@@ -274,34 +297,31 @@ class ReturnRecord {
   });
 
   factory ReturnRecord.fromJson(Map<String, dynamic> raw) {
-    final parts = (raw['numberAndSpec'] as String?)?.split('/') ?? const [];
-    final inState = (raw['inState'] as num?)?.toInt() ?? 1;
+    final parts = _toStr(raw['numberAndSpec']).split('/');
+    final inState = _toInt(raw['inState']) ?? 1;
     return ReturnRecord(
-      id: raw['id'] as int? ?? 0,
-      itemName: raw['freightName'] as String? ?? '',
+      id: int.tryParse(_toStr(raw['id'])) ?? 0,
+      itemName: _toStr(raw['freightName']),
       warehouse:
-          (raw['warehouseName'] as String?) ??
-          (raw['storageName'] as String?) ??
-          '',
-      code:
-          (raw['freightNumber'] as String?) ??
-          (parts.isNotEmpty ? parts[0] : ''),
-      spec:
-          (raw['specification'] as String?) ??
-          (parts.length > 1 ? parts[1] : ''),
-      returnQty:
-          (raw['num'] as num?)?.toInt() ??
-          (raw['returnQty'] as num?)?.toInt() ??
-          0,
-      borrower: raw['inBorrowerUserName'] as String? ?? '',
-      operatorName:
-          raw['operationNickName'] as String? ??
-          raw['nickName'] as String? ??
-          raw['operationUserName'] as String? ??
-          raw['userName'] as String? ??
-          '',
-      time: raw['operationTime'] as String? ?? '',
-      remark: raw['inDescription'] as String? ?? '',
+          _toStr(raw['warehouseName']).isNotEmpty
+              ? _toStr(raw['warehouseName'])
+              : _toStr(raw['storageName']),
+      code: _toStr(raw['freightNumber']).isNotEmpty
+          ? _toStr(raw['freightNumber'])
+          : (parts.isNotEmpty ? parts[0] : ''),
+      spec: _toStr(raw['specification']).isNotEmpty
+          ? _toStr(raw['specification'])
+          : (parts.length > 1 ? parts[1] : ''),
+      returnQty: _toInt(raw['num']) ?? _toInt(raw['returnQty']) ?? 0,
+      borrower: _toStr(raw['inBorrowerUserName']),
+      operatorName: [
+        _toStr(raw['operationNickName']),
+        _toStr(raw['nickName']),
+        _toStr(raw['operationUserName']),
+        _toStr(raw['userName']),
+      ].firstWhere((s) => s.isNotEmpty, orElse: () => ''),
+      time: _toStr(raw['operationTime']),
+      remark: _toStr(raw['inDescription']),
       status: inState == 2 ? '已撤销' : '正常',
     );
   }
@@ -343,22 +363,19 @@ class InventoryCheckRecord {
 
   factory InventoryCheckRecord.fromJson(Map<String, dynamic> raw) {
     return InventoryCheckRecord(
-      id: raw['id'] as int? ?? 0,
-      inventoryId: raw['inventoryId'] as int? ?? 0,
-      itemName: raw['freightName'] as String? ?? '',
-      warehouse: raw['storageName'] as String? ?? '',
-      code: raw['freightNumber'] as String? ?? '',
-      spec: raw['specification'] as String? ?? '',
-      bookQty: (raw['warehousNum'] as num?)?.toInt() ?? 0,
-      actualQty:
-          (raw['physicalInventoryQuantity'] as num?)?.toInt() ??
-          (raw['actualQty'] as num?)?.toInt() ??
-          0,
-      difference: (raw['difference'] as num?)?.toInt() ?? 0,
-      costPrice: (raw['unitPrice'] as num?)?.toDouble() ?? 0.0,
-      remark: raw['remark'] as String? ?? '',
-      operatorName: raw['purchaseUserName'] as String? ?? '',
-      time: raw['purchaseTime'] as String? ?? '',
+      id: _toStr(raw['id']).isEmpty ? 0 : int.tryParse(_toStr(raw['id'])) ?? 0,
+      inventoryId: int.tryParse(_toStr(raw['inventoryId'])) ?? 0,
+      itemName: _toStr(raw['freightName']),
+      warehouse: _toStr(raw['storageName']),
+      code: _toStr(raw['freightNumber']),
+      spec: _toStr(raw['specification']),
+      bookQty: _toInt(raw['warehousNum']) ?? 0,
+      actualQty: _toInt(raw['physicalInventoryQuantity']) ?? _toInt(raw['actualQty']) ?? 0,
+      difference: _toInt(raw['difference']) ?? 0,
+      costPrice: _toDouble(raw['unitPrice']),
+      remark: _toStr(raw['remark']),
+      operatorName: _toStr(raw['purchaseUserName']),
+      time: _toStr(raw['purchaseTime']),
       status: '正常',
     );
   }
