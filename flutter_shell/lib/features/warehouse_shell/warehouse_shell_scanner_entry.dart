@@ -332,8 +332,8 @@ class _WarehouseShellScannerEntryState
     final record = result.data!.first;
     final snapshot = ReturnBorrowRecordSnapshot(
       loanId: record.loanId,
-      freightId: record.id,
-      storageId: record.inventoryId,
+      freightId: record.freightId,
+      storageId: record.storageId,
       borrowQty: record.borrowQty,
       costPrice: record.costPrice,
       itemName: record.itemName,

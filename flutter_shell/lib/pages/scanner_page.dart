@@ -91,11 +91,19 @@ class _ScannerPageState extends State<ScannerPage> {
     });
   }
 
-  /// Plays the scan-success feedback: a haptic heavy-impact + a system click
-  /// sound.  Called from both the adapter-stream path and the onDetect path.
-  void _playSuccessFeedback() {
-    HapticFeedback.heavyImpact();
-    SystemSound.play(SystemSoundType.click);
+  /// Plays the scan-success feedback: a haptic buzz + a system click sound.
+  ///
+  /// Uses [HapticFeedback.heavyImpact] for a strong tap on devices that
+  /// support amplitude-controlled vibration, then [HapticFeedback.vibrate]
+  /// as a guaranteed fallback (some Android OEMs ignore `heavyImpact` but
+  /// always honour the plain vibrate API).  The system click sound provides
+  /// audible confirmation.
+  ///
+  /// Called from both the adapter-stream path and the onDetect path.
+  Future<void> _playSuccessFeedback() async {
+    await HapticFeedback.heavyImpact();
+    await HapticFeedback.vibrate();
+    await SystemSound.play(SystemSoundType.click);
   }
 
   @override

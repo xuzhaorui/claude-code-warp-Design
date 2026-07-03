@@ -379,19 +379,27 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     }
   }
 
-  BorrowRecord _mapBorrowRecord(Map<String, dynamic> raw) => BorrowRecord(
-    id: raw['id'] as int? ?? 0,
-    loanId: raw['id'] as int? ?? 0,
-    inventoryId: raw['inventoryId'] as int? ?? 0,
-    itemName: raw['freightName'] as String? ?? '',
-    warehouse: raw['storageName'] as String? ?? '',
-    code: raw['freightNumber'] as String? ?? '',
-    spec: raw['specification'] as String? ?? '',
-    borrowQty: (raw['loanQuantity'] as num?)?.toInt() ?? 0,
-    costPrice: (raw['loanPrice'] as num?)?.toDouble() ?? 0.0,
-    borrower: raw['userName'] as String? ?? '',
-    borrowTime: raw['recentLoanInboundTime'] as String? ?? '',
-  );
+  BorrowRecord _mapBorrowRecord(Map<String, dynamic> raw) {
+    // Mirrors Web `src/api/return.js` mapBorrowerCandidate, reading raw
+    // server fields. Safe-parses each value (server may send int/String/etc).
+    final id = toInt(raw['id']) ?? 0;
+    return BorrowRecord(
+      id: id,
+      loanId: id, // Web maps loanId = item.id
+      inventoryId: toInt(raw['inventoryId']) ?? 0,
+      freightId: toInt(raw['freightId']) ?? 0,
+      storageId: toInt(raw['storageId']) ?? 0,
+      borrowerUserId: toInt(raw['borrowerUserId']) ?? 0,
+      itemName: toStr(raw['freightName']),
+      warehouse: toStr(raw['storageName']),
+      code: toStr(raw['freightNumber']),
+      spec: toStr(raw['specification']),
+      borrowQty: toInt(raw['loanQuantity']) ?? 0,
+      costPrice: toDouble(raw['loanPrice']),
+      borrower: toStr(raw['userName']),
+      borrowTime: toStr(raw['recentLoanInboundTime']),
+    );
+  }
 
   @override
   Future<WarehouseApiResult<BorrowRecord>> getBorrowerDetail(

@@ -4,6 +4,8 @@
     <!-- Flutter native scanner (mobile_scanner / ML Kit). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <!-- Scan-success haptic feedback (HapticFeedback / vibrator). -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
         android:label="仓库管理"
