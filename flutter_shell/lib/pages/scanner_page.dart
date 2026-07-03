@@ -82,12 +82,20 @@ class _ScannerPageState extends State<ScannerPage> {
       if (_completed) return;
       _completed = true;
       debugPrint('[ScannerPage] adapter result: ${result.code}');
+      _playSuccessFeedback();
       widget.onScanResult?.call(result.code);
     });
 
     _failureSub = adapter.failures.listen((failure) {
       widget.onScanFailure?.call(failure);
     });
+  }
+
+  /// Plays the scan-success feedback: a haptic heavy-impact + a system click
+  /// sound.  Called from both the adapter-stream path and the onDetect path.
+  void _playSuccessFeedback() {
+    HapticFeedback.heavyImpact();
+    SystemSound.play(SystemSoundType.click);
   }
 
   @override
@@ -150,9 +158,7 @@ class _ScannerPageState extends State<ScannerPage> {
     _completed = true;
     debugPrint('[ScannerPage] scan result (in window): $raw');
 
-    // Haptic + sound feedback on a successful scan.
-    HapticFeedback.heavyImpact();
-    SystemSound.play(SystemSoundType.click);
+    _playSuccessFeedback();
 
     if (widget.adapter != null) {
       widget.onScanResult?.call(raw);
