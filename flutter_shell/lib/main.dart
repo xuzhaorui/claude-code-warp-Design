@@ -206,7 +206,8 @@ class _WarehouseAppState extends State<WarehouseApp> {
 
     return WarehouseShellScannerEntry(
       apiClient: _apiClient,
-      activeUsername: _activeServerName ?? '未知',
+      activeUsername: _session?.displayName ?? '未知',
+      profile: _session?.profile,
       onLogout: _onLogout,
       onSessionExpired: _onSessionExpired,
       onServerChanged: _onServerChanged,

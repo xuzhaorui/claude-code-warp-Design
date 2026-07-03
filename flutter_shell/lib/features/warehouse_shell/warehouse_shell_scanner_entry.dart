@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 
 import '../../pages/scanner_page.dart';
+import '../../utils/permissions.dart';
 import '../api/warehouse_api_client.dart';
 import '../api/warehouse_api_models.dart';
 import '../business_forms/business_form_sheets.dart';
@@ -38,6 +39,7 @@ class WarehouseShellScannerEntry extends StatefulWidget {
     this.adapter,
     this.apiClient,
     this.activeUsername,
+    this.profile,
     this.onScanResult,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
@@ -56,6 +58,11 @@ class WarehouseShellScannerEntry extends StatefulWidget {
   /// Display name of the currently logged-in user, surfaced in the shell's
   /// status row.  Passed through to [WarehouseShellMin].
   final String? activeUsername;
+
+  /// Login profile containing `permissions` and `roles` arrays.
+  /// Drives tab visibility (getAllowedTabs) and cost-price visibility
+  /// (canViewCostPrice) — mirrors Web `src/utils/permissions.js`.
+  final Map<String, dynamic>? profile;
 
   /// Fired when the API signals the session has expired (401/302) so the
   /// app shell can clear state and return to the login page.
@@ -90,6 +97,27 @@ class _WarehouseShellScannerEntryState
 
   /// Guards against double-trigger during async API lookup.
   bool _isSearching = false;
+
+  /// Maps a WarehouseTab to its permission key (mirrors Web AppShell allTabs).
+  String _tabKey(WarehouseTab tab) {
+    switch (tab) {
+      case WarehouseTab.checkout: return 'outbound';
+      case WarehouseTab.returnForm: return 'return';
+      case WarehouseTab.inventoryCheck: return 'inventory';
+      case WarehouseTab.settings: return 'settings';
+    }
+  }
+
+  /// Reverse of [_tabKey].
+  WarehouseTab? _tabFromKey(String key) {
+    switch (key) {
+      case 'outbound': return WarehouseTab.checkout;
+      case 'return': return WarehouseTab.returnForm;
+      case 'inventory': return WarehouseTab.inventoryCheck;
+      case 'settings': return WarehouseTab.settings;
+      default: return null;
+    }
+  }
 
   @override
   void initState() {
@@ -143,11 +171,25 @@ class _WarehouseShellScannerEntryState
 
   @override
   Widget build(BuildContext context) {
+    // Permission-derived visibility (mirrors Web permissions.js).
+    final allowedTabs = getAllowedTabs(widget.profile);
+    final showCostPrice = canViewCostPrice(widget.profile);
+
+    // If the current active tab is not allowed, pick the first allowed one.
+    // This handles the case where a user without 出库 permission lands on
+    // the checkout tab by default.
+    final tabKey = _tabKey(_activeTab);
+    if (!allowedTabs.contains(tabKey) && allowedTabs.isNotEmpty) {
+      _activeTab = _tabFromKey(allowedTabs.first) ?? _activeTab;
+    }
+
     return ScaffoldMessenger(
       key: _messengerKey,
       child: WarehouseShellFormWiring(
         records: _records[_activeTab] ?? [],
         activeUsername: widget.activeUsername,
+        allowedTabs: allowedTabs,
+        showCostPrice: showCostPrice,
         onCheckoutSubmit: widget.onCheckoutSubmit,
         onReturnSubmit: widget.onReturnSubmit,
         onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
@@ -319,6 +361,7 @@ class _WarehouseShellScannerEntryState
       showCheckoutFormSheet(
         context: context,
         item: snapshot,
+        showCostPrice: canViewCostPrice(widget.profile),
         apiClient: widget.apiClient,
         onSubmitSuccess: _onSubmitSuccess(WarehouseTab.checkout),
         onSubmit: widget.onCheckoutSubmit,
@@ -354,6 +397,7 @@ class _WarehouseShellScannerEntryState
       showReturnFormSheet(
         context: context,
         record: snapshot,
+        showCostPrice: canViewCostPrice(widget.profile),
         apiClient: widget.apiClient,
         onSubmitSuccess: _onSubmitSuccess(WarehouseTab.returnForm),
         onSubmit: widget.onReturnSubmit,
@@ -385,6 +429,7 @@ class _WarehouseShellScannerEntryState
       showInventoryCheckFormSheet(
         context: context,
         item: snapshot,
+        showCostPrice: canViewCostPrice(widget.profile),
         apiClient: widget.apiClient,
         onSubmitSuccess: _onSubmitSuccess(WarehouseTab.inventoryCheck),
         onSubmit: widget.onInventoryCheckSubmit,

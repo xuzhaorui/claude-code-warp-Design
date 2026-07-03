@@ -26,7 +26,9 @@ void main() {
       await tester.pumpWidget(const WarehouseApp());
       await tester.pumpAndSettle();
 
-      expect(find.text('当前用户：A'), findsOneWidget);
+      // Restored session shows the logged-in user name (from sessionUsername),
+      // not the server name.
+      expect(find.text('当前用户：张三'), findsOneWidget);
 
       await tester.tap(find.text('设置'));
       await tester.pumpAndSettle();
@@ -36,6 +38,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('登录'), findsOneWidget);
+      // After server switch the login page shows the active server name.
       expect(find.text('当前使用用户：B'), findsOneWidget);
 
       final prefs = await SharedPreferences.getInstance();

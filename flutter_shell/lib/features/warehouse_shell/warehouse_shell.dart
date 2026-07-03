@@ -42,6 +42,15 @@ class _WS {
   static const detailMetaIconSize = 18.0;
 }
 
+/// Navigation metadata for a tab: permission key, icon, label.
+/// Mirrors Web AppShell.jsx `allTabs` entries.
+class _NavMeta {
+  final String key;
+  final IconData icon;
+  final String label;
+  const _NavMeta(this.key, this.icon, this.label);
+}
+
 // ---- Public widget ----
 
 /// Warehouse bottom navigation shell — Web parity.
@@ -59,6 +68,8 @@ class WarehouseShellMin extends StatefulWidget {
     this.records,
     this.serverConfigStore,
     this.activeUsername,
+    this.allowedTabs,
+    this.showCostPrice = true,
     this.onScanRequested,
     this.onSettingsRequested,
     this.onTabChanged,
@@ -79,6 +90,14 @@ class WarehouseShellMin extends StatefulWidget {
   /// Display name of the currently logged-in user, shown in the status row
   /// of each business tab.  Null/empty shows "未知".
   final String? activeUsername;
+
+  /// Tab keys the user is allowed to see (from `getAllowedTabs`).
+  /// Null/empty shows all tabs (open mode). Valid keys: 'outbound',
+  /// 'return', 'inventory', 'settings'.
+  final List<String>? allowedTabs;
+
+  /// Whether cost-price fields are visible (from `canViewCostPrice`).
+  final bool showCostPrice;
 
   /// Fired when the scan card is tapped. Carries the current tab.
   final ValueChanged<WarehouseTab>? onScanRequested;
@@ -103,10 +122,42 @@ class WarehouseShellMin extends StatefulWidget {
 class _WarehouseShellMinState extends State<WarehouseShellMin> {
   late WarehouseTab _activeTab;
 
+  /// Maps permission tab keys to the enum + nav metadata.
+  /// Order matches Web AppShell.jsx `allTabs`.
+  static const _tabMeta = <WarehouseTab, _NavMeta>{
+    WarehouseTab.checkout: _NavMeta('outbound', Icons.logout, '出库'),
+    WarehouseTab.returnForm: _NavMeta('return', Icons.replay, '归还'),
+    WarehouseTab.inventoryCheck: _NavMeta('inventory', Icons.checklist, '盘点'),
+    WarehouseTab.settings: _NavMeta('settings', Icons.settings, '设置'),
+  };
+
+  /// Visible tabs after permission filtering.
+  List<WarehouseTab> get _visibleTabs {
+    final allowed = widget.allowedTabs;
+    if (allowed == null || allowed.isEmpty) return _tabMeta.keys.toList();
+    return _tabMeta.entries
+        .where((e) => allowed.contains(e.value.key))
+        .map((e) => e.key)
+        .toList();
+  }
+
+  bool _isTabAllowed(WarehouseTab tab) {
+    final allowed = widget.allowedTabs;
+    if (allowed == null || allowed.isEmpty) return true;
+    final meta = _tabMeta[tab];
+    return meta != null && allowed.contains(meta.key);
+  }
+
   @override
   void initState() {
     super.initState();
-    _activeTab = widget.initialTab;
+    // If the requested initial tab isn't allowed, fall back to the first
+    // visible tab (matching Web's `visibleTabs[0]` default).
+    if (_isTabAllowed(widget.initialTab)) {
+      _activeTab = widget.initialTab;
+    } else {
+      _activeTab = _visibleTabs.isNotEmpty ? _visibleTabs.first : WarehouseTab.settings;
+    }
   }
 
   void _onTabChanged(WarehouseTab tab) {
@@ -116,14 +167,19 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
 
   @override
   Widget build(BuildContext context) {
+    final visible = _visibleTabs;
+    // Clamp active tab to the visible set.
+    if (!visible.contains(_activeTab) && visible.isNotEmpty) {
+      _activeTab = visible.first;
+    }
     return Scaffold(
       backgroundColor: AppDesignColors.background,
       body: SafeArea(child: _buildTabContent()),
       bottomNavigationBar: SizedBox(
         height: _WS.bottomNavHeight,
         child: BottomNavigationBar(
-          currentIndex: WarehouseTab.values.indexOf(_activeTab),
-          onTap: (i) => _onTabChanged(WarehouseTab.values[i]),
+          currentIndex: visible.indexOf(_activeTab).clamp(0, visible.length - 1),
+          onTap: (i) => _onTabChanged(visible[i]),
           backgroundColor: AppDesignColors.surface,
           selectedItemColor: AppDesignColors.primary,
           unselectedItemColor: AppDesignColors.textSecondary,
@@ -131,12 +187,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
           unselectedFontSize: AppTextStyles.caption.fontSize ?? 12,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
           type: BottomNavigationBarType.fixed,
-          items: [
-            _navItem(Icons.logout, '出库'),
-            _navItem(Icons.replay, '归还'),
-            _navItem(Icons.checklist, '盘点'),
-            _navItem(Icons.settings, '设置'),
-          ],
+          items: visible
+              .map((tab) => _navItem(_tabMeta[tab]!.icon, _tabMeta[tab]!.label))
+              .toList(),
         ),
       ),
     );
@@ -370,7 +423,7 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       children: [
         _detailHeader(r.itemName, r.spec, r.code),
         _DetailRow(label: '数量', value: '${r.quantity} 件 · ${r.method}'),
-        if (r.costPrice > 0)
+        if (widget.showCostPrice && r.costPrice > 0)
           _DetailRow(
             label: '成本单价',
             value: '¥${r.costPrice.toStringAsFixed(2)}',
@@ -425,12 +478,12 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         _DetailRow(label: '实盘数量', value: '${r.actualQty} 件'),
         _DetailRow(label: '账面库存', value: '${r.bookQty} 件'),
         _DetailRow(label: '盘点差值', value: '$diffText 件'),
-        if (r.costPrice > 0)
+        if (widget.showCostPrice && r.costPrice > 0)
           _DetailRow(
             label: '成本单价',
             value: '¥${r.costPrice.toStringAsFixed(2)}',
           ),
-        if (r.costPrice > 0 && diff != 0)
+        if (widget.showCostPrice && r.costPrice > 0 && diff != 0)
           _DetailRow(
             label: diff < 0 ? '损失' : '溢价',
             value: '¥${loss.toStringAsFixed(2)}',

@@ -16,6 +16,7 @@ class CheckoutFormSheetContent extends StatelessWidget {
     super.key,
     required this.item,
     this.operatorName,
+    this.showCostPrice = true,
     this.apiClient,
     this.onSubmit,
     this.onClose,
@@ -24,6 +25,7 @@ class CheckoutFormSheetContent extends StatelessWidget {
 
   final CheckoutItemSnapshot item;
   final String? operatorName;
+  final bool showCostPrice;
   final WarehouseApiClient? apiClient;
   final ValueChanged<CheckoutSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
@@ -34,6 +36,7 @@ class CheckoutFormSheetContent extends StatelessWidget {
     return AppBottomSheetFrame(
       title: '出库表单', onClose: onClose,
       child: CheckoutFormMin(item: item, operatorName: operatorName,
+          showCostPrice: showCostPrice,
           apiClient: apiClient, onSubmit: onSubmit, onClose: onClose,
           onSubmitSuccess: onSubmitSuccess),
     );
@@ -42,12 +45,14 @@ class CheckoutFormSheetContent extends StatelessWidget {
 
 Future<void> showCheckoutFormSheet({
   required BuildContext context, required CheckoutItemSnapshot item,
-  String? operatorName, WarehouseApiClient? apiClient,
+  String? operatorName, bool showCostPrice = true,
+  WarehouseApiClient? apiClient,
   ValueChanged<CheckoutSubmitPayload>? onSubmit, VoidCallback? onSubmitSuccess,
 }) {
   return showAppBottomSheet(
     context: context, title: '出库表单',
     child: CheckoutFormMin(item: item, operatorName: operatorName,
+        showCostPrice: showCostPrice,
         apiClient: apiClient, onSubmit: onSubmit,
         onSubmitSuccess: onSubmitSuccess,
         onClose: () => Navigator.of(context).pop()),
@@ -59,11 +64,13 @@ Future<void> showCheckoutFormSheet({
 class ReturnFormSheetContent extends StatelessWidget {
   const ReturnFormSheetContent({
     super.key, required this.record, this.operatorName,
+    this.showCostPrice = true,
     this.apiClient, this.onSubmit, this.onClose, this.onSubmitSuccess,
   });
 
   final ReturnBorrowRecordSnapshot record;
   final String? operatorName;
+  final bool showCostPrice;
   final WarehouseApiClient? apiClient;
   final ValueChanged<ReturnSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
@@ -74,6 +81,7 @@ class ReturnFormSheetContent extends StatelessWidget {
     return AppBottomSheetFrame(
       title: '归还表单', onClose: onClose,
       child: ReturnFormMin(record: record, operatorName: operatorName,
+          showCostPrice: showCostPrice,
           apiClient: apiClient, onSubmit: onSubmit, onClose: onClose,
           onSubmitSuccess: onSubmitSuccess),
     );
@@ -82,12 +90,14 @@ class ReturnFormSheetContent extends StatelessWidget {
 
 Future<void> showReturnFormSheet({
   required BuildContext context, required ReturnBorrowRecordSnapshot record,
-  String? operatorName, WarehouseApiClient? apiClient,
+  String? operatorName, bool showCostPrice = true,
+  WarehouseApiClient? apiClient,
   ValueChanged<ReturnSubmitPayload>? onSubmit, VoidCallback? onSubmitSuccess,
 }) {
   return showAppBottomSheet(
     context: context, title: '归还表单',
     child: ReturnFormMin(record: record, operatorName: operatorName,
+        showCostPrice: showCostPrice,
         apiClient: apiClient, onSubmit: onSubmit,
         onSubmitSuccess: onSubmitSuccess,
         onClose: () => Navigator.of(context).pop()),
@@ -99,11 +109,13 @@ Future<void> showReturnFormSheet({
 class InventoryCheckFormSheetContent extends StatelessWidget {
   const InventoryCheckFormSheetContent({
     super.key, required this.item, this.operatorName,
+    this.showCostPrice = true,
     this.apiClient, this.onSubmit, this.onClose, this.onSubmitSuccess,
   });
 
   final InventoryCheckItemSnapshot item;
   final String? operatorName;
+  final bool showCostPrice;
   final WarehouseApiClient? apiClient;
   final ValueChanged<InventoryCheckSubmitPayload>? onSubmit;
   final VoidCallback? onClose;
@@ -114,6 +126,7 @@ class InventoryCheckFormSheetContent extends StatelessWidget {
     return AppBottomSheetFrame(
       title: '盘点表单', onClose: onClose,
       child: InventoryCheckFormMin(item: item, operatorName: operatorName,
+          showCostPrice: showCostPrice,
           apiClient: apiClient, onSubmit: onSubmit, onClose: onClose,
           onSubmitSuccess: onSubmitSuccess),
     );
@@ -122,12 +135,14 @@ class InventoryCheckFormSheetContent extends StatelessWidget {
 
 Future<void> showInventoryCheckFormSheet({
   required BuildContext context, required InventoryCheckItemSnapshot item,
-  String? operatorName, WarehouseApiClient? apiClient,
+  String? operatorName, bool showCostPrice = true,
+  WarehouseApiClient? apiClient,
   ValueChanged<InventoryCheckSubmitPayload>? onSubmit, VoidCallback? onSubmitSuccess,
 }) {
   return showAppBottomSheet(
     context: context, title: '盘点表单',
     child: InventoryCheckFormMin(item: item, operatorName: operatorName,
+        showCostPrice: showCostPrice,
         apiClient: apiClient, onSubmit: onSubmit,
         onSubmitSuccess: onSubmitSuccess,
         onClose: () => Navigator.of(context).pop()),

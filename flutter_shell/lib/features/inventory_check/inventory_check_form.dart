@@ -18,6 +18,7 @@ class InventoryCheckFormMin extends StatefulWidget {
     super.key,
     required this.item,
     this.operatorName,
+    this.showCostPrice = true,
     this.apiClient,
     this.onSubmit,
     this.onClose,
@@ -26,6 +27,7 @@ class InventoryCheckFormMin extends StatefulWidget {
 
   final InventoryCheckItemSnapshot item;
   final String? operatorName;
+  final bool showCostPrice;
   final WarehouseApiClient? apiClient;
   final ValueChanged<InventoryCheckSubmitPayload>? onSubmit;
   final VoidCallback? onClose;

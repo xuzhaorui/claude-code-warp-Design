@@ -25,6 +25,8 @@ class WarehouseShellFormWiring extends StatelessWidget {
     this.lastScanCode,
     this.records,
     this.activeUsername,
+    this.allowedTabs,
+    this.showCostPrice = true,
     this.onCheckoutSubmit,
     this.onReturnSubmit,
     this.onInventoryCheckSubmit,
@@ -44,6 +46,12 @@ class WarehouseShellFormWiring extends StatelessWidget {
   /// Display name of the currently logged-in user, surfaced in the shell
   /// status row.  Passed through to [WarehouseShellMin].
   final String? activeUsername;
+
+  /// Tab keys the user is allowed to see (from `getAllowedTabs`).
+  final List<String>? allowedTabs;
+
+  /// Whether cost-price fields are visible.
+  final bool showCostPrice;
 
   final ValueChanged<CheckoutSubmitPayload>? onCheckoutSubmit;
   final ValueChanged<ReturnSubmitPayload>? onReturnSubmit;
@@ -73,6 +81,8 @@ class WarehouseShellFormWiring extends StatelessWidget {
       lastScanCode: lastScanCode,
       records: records,
       activeUsername: activeUsername,
+      allowedTabs: allowedTabs,
+      showCostPrice: showCostPrice,
       onScanRequested: onScanRequested,
       onSettingsRequested: onSettingsRequested,
       onTabChanged: onTabChanged,
