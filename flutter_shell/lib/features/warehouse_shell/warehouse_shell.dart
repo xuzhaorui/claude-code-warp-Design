@@ -38,7 +38,6 @@ class _WS {
   static const accentBarW = 3.0;
   static const accentBarH = 14.0;
   static const statusIconSize = 18.0;
-  static const resultIconSize = 20.0;
   static const detailRowVPad = 14.0;
   static const detailMetaIconSize = 18.0;
 }
@@ -57,7 +56,6 @@ class WarehouseShellMin extends StatefulWidget {
     super.key,
     this.initialTab = WarehouseTab.checkout,
     this.lastScanCode,
-    this.scanError,
     this.records,
     this.serverConfigStore,
     this.activeUsername,
@@ -70,9 +68,6 @@ class WarehouseShellMin extends StatefulWidget {
 
   final WarehouseTab initialTab;
   final String? lastScanCode;
-
-  /// Error message from scan lookup to display in the shell.
-  final String? scanError;
 
   /// Records to display in the current tab (after successful submit).
   final List<RecordItem>? records;
@@ -329,8 +324,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
               ),
             ),
           )
-        else if (widget.scanError != null && widget.scanError!.isNotEmpty)
-          _buildScanError(widget.scanError!)
         else
           _buildEmptyState(emptyText),
       ],
@@ -477,36 +470,6 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
   }
 
   String _orDash(String value) => value.isEmpty ? '-' : value;
-
-  Widget _buildScanError(String message) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppDesignColors.surface,
-        borderRadius: BorderRadius.all(AppRadii.md),
-        border: Border.all(color: AppDesignColors.borderMuted),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.warning_amber,
-            color: AppDesignColors.textSecondary,
-            size: _WS.resultIconSize,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.body.copyWith(
-                color: AppDesignColors.textSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildEmptyState(String text) {
     return Center(

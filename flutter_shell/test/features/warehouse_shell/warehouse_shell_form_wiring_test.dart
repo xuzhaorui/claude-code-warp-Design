@@ -72,18 +72,14 @@ void main() {
       expect(find.byType(WarehouseShellFormWiring), findsOneWidget);
     });
 
-    testWidgets('scanError is displayed when present', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellFormWiring(scanError: '未找到该物资'),
-      ));
-      expect(find.text('未找到该物资'), findsOneWidget);
-    });
-
-    testWidgets('scanError absent when not provided', (tester) async {
+    // task: scan errors are now shown via SnackBar toast (in the scanner
+    // entry layer), not as an inline card in the shell.  The shell renders
+    // only records / empty state — no inline error text.
+    testWidgets('no inline scan error card in shell', (tester) async {
       await tester.pumpWidget(wrapApp(
         const WarehouseShellFormWiring(),
       ));
-      expect(find.text('未找到'), findsNothing);
+      expect(find.text('未找到该物资'), findsNothing);
     });
   });
 }

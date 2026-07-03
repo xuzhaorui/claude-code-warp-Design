@@ -79,8 +79,11 @@ class WarehouseShellScannerEntry extends StatefulWidget {
 
 class _WarehouseShellScannerEntryState
     extends State<WarehouseShellScannerEntry> {
-  String? _scanError;
   WarehouseTab _activeTab = WarehouseTab.checkout;
+
+  /// GlobalKey for the ScaffoldMessenger so we can show SnackBars from async
+  /// scan-lookup callbacks regardless of the current build context.
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
 
   /// Per-tab records populated after successful submit.
   final Map<WarehouseTab, List<RecordItem>> _records = {};
@@ -117,18 +120,29 @@ class _WarehouseShellScannerEntryState
     return false;
   }
 
+  /// Shows a transient error/info toast.  Replaces the old inline scan-error
+  /// card — avoids the error leaking onto the wrong tab and is more prominent.
+  void _showToast(String message) {
+    _messengerKey.currentState?.hideCurrentSnackBar();
+    _messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // task-041: the user-visible Debug manual-code overlay is removed from
-    // the production UI.  Real paper-label scanning remains the only
-    // user-facing entry; the manual-input affordance is no longer rendered.
-    return WarehouseShellFormWiring(
-      scanError: _scanError,
-      records: _records[_activeTab] ?? [],
-      activeUsername: widget.activeUsername,
-      onCheckoutSubmit: widget.onCheckoutSubmit,
-      onReturnSubmit: widget.onReturnSubmit,
-      onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: WarehouseShellFormWiring(
+        records: _records[_activeTab] ?? [],
+        activeUsername: widget.activeUsername,
+        onCheckoutSubmit: widget.onCheckoutSubmit,
+        onReturnSubmit: widget.onReturnSubmit,
+        onInventoryCheckSubmit: widget.onInventoryCheckSubmit,
       onScanRequested: (tab) {
         _activeTab = tab;
         _openScanner(context, tab);
@@ -137,6 +151,7 @@ class _WarehouseShellScannerEntryState
       onLogout: widget.onLogout,
       onSessionExpired: widget.onSessionExpired,
       onServerChanged: widget.onServerChanged,
+      ),
     );
   }
 
@@ -163,10 +178,6 @@ class _WarehouseShellScannerEntryState
     debugPrint('[ScannerFlow] scanner returned code=$code tab=$tab');
 
     if (!context.mounted || code == null || code.isEmpty) return;
-
-    setState(() {
-      _scanError = null;
-    });
 
     // Look up the code via API.
     await _lookupCode(context, tab, code);
@@ -280,7 +291,7 @@ class _WarehouseShellScannerEntryState
     if (_isSessionExpired(result)) return;
 
     if (!result.isSuccess || result.data == null) {
-      setState(() => _scanError = result.message ?? '未找到该物资');
+      _showToast(result.message ?? '未找到该物资');
       return;
     }
 
@@ -313,7 +324,7 @@ class _WarehouseShellScannerEntryState
     if (_isSessionExpired(result)) return;
 
     if (!result.isSuccess || result.data == null || result.data!.isEmpty) {
-      setState(() => _scanError = result.message ?? '未找到借用记录');
+      _showToast(result.message ?? '未找到借用记录');
       return;
     }
 
@@ -348,7 +359,7 @@ class _WarehouseShellScannerEntryState
     if (_isSessionExpired(result)) return;
 
     if (!result.isSuccess || result.data == null) {
-      setState(() => _scanError = result.message ?? '未找到该物资');
+      _showToast(result.message ?? '未找到该物资');
       return;
     }
 

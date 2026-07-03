@@ -23,7 +23,6 @@ class WarehouseShellFormWiring extends StatelessWidget {
   const WarehouseShellFormWiring({
     super.key,
     this.lastScanCode,
-    this.scanError,
     this.records,
     this.activeUsername,
     this.onCheckoutSubmit,
@@ -38,7 +37,6 @@ class WarehouseShellFormWiring extends StatelessWidget {
   });
 
   final String? lastScanCode;
-  final String? scanError;
 
   /// Records to display in the current tab.
   final List<RecordItem>? records;
@@ -73,7 +71,6 @@ class WarehouseShellFormWiring extends StatelessWidget {
   Widget build(BuildContext context) {
     return WarehouseShellMin(
       lastScanCode: lastScanCode,
-      scanError: scanError,
       records: records,
       activeUsername: activeUsername,
       onScanRequested: onScanRequested,
