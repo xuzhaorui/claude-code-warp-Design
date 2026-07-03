@@ -343,7 +343,7 @@ class _BlackSegmented<T> extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: active ? AppDesignColors.textPrimary : AppDesignColors.textSecondary,
+                    color: active ? AppDesignColors.surface : AppDesignColors.textSecondary,
                   ),
                 ),
               ),

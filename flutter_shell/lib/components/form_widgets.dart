@@ -256,7 +256,7 @@ class BlackStepper extends StatelessWidget {
             glyph,
             style: AppTextStyles.title.copyWith(
               fontWeight: FontWeight.w700,
-              color: dark ? AppDesignColors.textPrimary : AppDesignColors.textPrimary,
+              color: dark ? AppDesignColors.surface : AppDesignColors.textPrimary,
             ),
           ),
         ),
@@ -267,8 +267,9 @@ class BlackStepper extends StatelessWidget {
 
 /// Full-width submit button (Web `提交`/`确认归还`/`提交盘点`).
 ///
-/// primary (#E8986E) background, textPrimary (#292524) text, pill shape,
-/// 40% opacity when disabled.
+/// primary (#E8986E) background, surface (#FFFFFF) white text — orange+white
+/// pairing matching the main-screen scan UI, pill shape, 40% opacity when
+/// disabled.
 class BlackSubmitButton extends StatelessWidget {
   const BlackSubmitButton({
     super.key,
@@ -292,7 +293,7 @@ class BlackSubmitButton extends StatelessWidget {
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppDesignColors.primary,
-            foregroundColor: AppDesignColors.textPrimary,
+            foregroundColor: AppDesignColors.surface,
             shape: const StadiumBorder(),
             elevation: 0,
           ),
@@ -302,10 +303,13 @@ class BlackSubmitButton extends StatelessWidget {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation(AppDesignColors.textPrimary),
+                    valueColor: AlwaysStoppedAnimation(AppDesignColors.surface),
                   ),
                 )
-              : Text(text, style: AppTextStyles.title),
+              : Text(
+                  text,
+                  style: AppTextStyles.title.copyWith(color: AppDesignColors.surface),
+                ),
         ),
       ),
     );
