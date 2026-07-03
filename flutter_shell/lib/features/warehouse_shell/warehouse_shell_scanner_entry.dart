@@ -109,11 +109,19 @@ class _WarehouseShellScannerEntryState
   }
 
   /// Returns true (and fires [onSessionExpired]) when an API result signals
-  /// the session has expired (401/未登录).  Used by lookup + fetch paths to
-  /// bail out and let the app shell redirect to login.
+  /// the session has expired.
+  ///
+  /// Detection is multi-layered (matching Web `parseJsonResponse`):
+  /// - [WarehouseApiResult.isAuthExpired] flag (set by the HTTP client when
+  ///   the server responds with 401, 3xx redirect to login, login-page HTML,
+  ///   or JSON code 401 / auth-expiry message).
+  /// - Fallback: message string contains '未登录' (belt-and-suspenders for
+  ///   any path that constructs a result without setting the flag).
   bool _isSessionExpired(WarehouseApiResult? result) {
-    final msg = result?.message ?? '';
-    if (result != null && result.isFailure && msg.contains('未登录')) {
+    if (result == null || result.isSuccess) return false;
+    final expired = result.isAuthExpired ||
+        (result.message ?? '').contains('未登录');
+    if (expired) {
       widget.onSessionExpired?.call();
       return true;
     }

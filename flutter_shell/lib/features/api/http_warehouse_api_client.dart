@@ -156,14 +156,53 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     return map;
   }
 
+  /// Regex matching server messages that indicate an expired session.
+  /// Mirrors Web `src/api/config.js` `parseJsonResponse` line:
+  ///   /未登录|登录超时|重新登录|会话已失效|登录状态已过期/
+  static final RegExp _authExpiredMsgPattern =
+      RegExp(r'未登录|登录超时|重新登录|会话已失效|登录状态已过期');
+
   /// Parses JSON response following Web's `parseJsonResponse` + `ensureAjaxSuccess`.
+  ///
+  /// Session-expiry detection (matching Web `parseJsonResponse`):
+  ///   1. HTTP 401 → auth expired.
+  ///   2. HTTP 3xx redirect → auth expired (Spring Security redirects to
+  ///      login page when the session cookie is invalid). `followRedirects`
+  ///      is false in both `_get` and `_post`, so we see the raw 302.
+  ///   3. HTML response body containing "登录" or "login" → auth expired.
+  ///   4. JSON `code === 401` or `msg` matching the auth-expiry pattern →
+  ///      auth expired.
   Future<Map<String, dynamic>> _parseResponse(http.Response response) async {
+    // 1. HTTP 401 — explicit Unauthorized.
     if (response.statusCode == 401) {
-      throw WarehouseApiError(message: '未登录或会话已过期', httpStatus: 401);
+      throw const WarehouseApiError(
+        message: '未登录或会话已过期',
+        httpStatus: 401,
+        isAuthExpired: true,
+      );
     }
+
+    // 2. HTTP 3xx redirect — Spring Security login redirect (session expired).
+    //    `followRedirects` is false, so the raw redirect status reaches us.
+    if (response.statusCode >= 300 && response.statusCode < 400) {
+      final location = response.headers['location'] ?? '';
+      debugPrint('[Debug_HTTP] 3xx redirect to: $location');
+      throw WarehouseApiError(
+        message: '未登录或会话已过期',
+        httpStatus: response.statusCode,
+        isAuthExpired: true,
+      );
+    }
+
+    // 3. HTTP 403 — permission denied (distinct from auth-expired).
     if (response.statusCode == 403) {
-      throw WarehouseApiError(message: '账号权限不足', httpStatus: 403);
+      throw const WarehouseApiError(
+        message: '账号权限不足',
+        httpStatus: 403,
+      );
     }
+
+    // 4. Other non-2xx — generic HTTP error.
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw WarehouseApiError(
         message: 'HTTP ${response.statusCode}',
@@ -171,8 +210,20 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       );
     }
 
+    // 5. HTML response — server redirected to login page (session expired)
+    //    or returned an error page. Match Web's content sniffing.
     final contentType = response.headers['content-type'] ?? '';
     if (contentType.contains('text/html')) {
+      final html = response.body;
+      if (html.contains('登录') || html.contains('login')) {
+        throw const WarehouseApiError(
+          message: '未登录或会话已过期',
+          isAuthExpired: true,
+        );
+      }
+      if (html.contains('403') || html.contains('权限') || html.contains('denied')) {
+        throw const WarehouseApiError(message: '账号权限不足，无法访问此系统');
+      }
       throw WarehouseApiError(
         message: '服务器返回了HTML而不是JSON',
         httpStatus: response.statusCode,
@@ -183,22 +234,32 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
     try {
       data = jsonDecode(response.body) as Map<String, dynamic>;
     } catch (_) {
-      throw WarehouseApiError(message: 'JSON解析失败');
+      throw const WarehouseApiError(message: 'JSON解析失败');
     }
 
-    // Web ensureAjaxSuccess logic
-    if (data['success'] == false || data['code'] == '1') {
+    // 6. JSON-level auth-expiry: code===401 or msg matches the pattern.
+    final code = int.tryParse('${data['code']}') ?? -1;
+    final msg = toStr(data['msg'] ?? data['message']);
+    if (code == 401 || _authExpiredMsgPattern.hasMatch(msg)) {
       throw WarehouseApiError(
-        message: data['msg'] as String? ?? data['message'] as String? ?? '操作失败',
-        serverCode: data['code'] as String?,
+        message: '未登录或会话已过期',
+        httpStatus: response.statusCode,
+        serverCode: '${data['code']}',
+        isAuthExpired: true,
       );
     }
-    // Normalize `code` to int for comparison (Web uses String, server may use int).
-    final code = int.tryParse('${data['code']}') ?? -1;
+
+    // 7. Web ensureAjaxSuccess logic.
+    if (data['success'] == false || data['code'] == '1') {
+      throw WarehouseApiError(
+        message: msg.isNotEmpty ? msg : '操作失败',
+        serverCode: '${data['code']}',
+      );
+    }
     if (code != -1 && code != 0 && code != 200) {
       throw WarehouseApiError(
-        message: data['msg'] as String? ?? data['message'] as String? ?? '操作失败',
-        serverCode: data['code'] as String?,
+        message: msg.isNotEmpty ? msg : '操作失败',
+        serverCode: '${data['code']}',
       );
     }
     return data;
@@ -305,7 +366,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       debugPrint(
         '[Debug_Auth] login WarehouseApiError: code=${e.serverCode} message=${e.message} httpStatus=${e.httpStatus}',
       );
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       debugPrint('[Debug_Auth] login unexpected: $e ${e.runtimeType}');
       return WarehouseApiResult(success: false, message: '登录请求失败');
@@ -320,7 +381,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       return const WarehouseApiResult(success: true);
     } on WarehouseApiError catch (e) {
       _clearCookies();
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       _clearCookies();
       return WarehouseApiResult(success: false, message: '网络请求失败');
@@ -353,7 +414,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       );
       return WarehouseApiResult(success: true, data: item);
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -373,7 +434,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
           .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -414,7 +475,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
       }
       return WarehouseApiResult(success: true, data: _mapBorrowRecord(raw));
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -447,7 +508,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
         data: BusinessSubmitResult(message: '出库成功'),
       );
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -464,7 +525,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
           .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -491,7 +552,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
         data: BusinessSubmitResult(message: '归还成功'),
       );
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -508,7 +569,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
           .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -532,7 +593,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
         data: BusinessSubmitResult(message: '盘点提交成功'),
       );
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }
@@ -551,7 +612,7 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
           .toList();
       return WarehouseApiResult(success: true, data: records);
     } on WarehouseApiError catch (e) {
-      return WarehouseApiResult(success: false, message: e.message);
+      return WarehouseApiResult(success: false, message: e.message, isAuthExpired: e.isAuthExpired);
     } catch (e) {
       return WarehouseApiResult(success: false, message: '网络请求失败');
     }

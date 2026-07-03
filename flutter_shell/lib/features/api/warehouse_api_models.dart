@@ -34,11 +34,16 @@ class WarehouseApiResult<T> {
   final T? data;
   final String? code;
 
+  /// True when this failure was caused by an expired/invalid session.
+  /// Propagated from [WarehouseApiError.isAuthExpired] by the HTTP client.
+  final bool isAuthExpired;
+
   const WarehouseApiResult({
     required this.success,
     this.message,
     this.data,
     this.code,
+    this.isAuthExpired = false,
   });
 
   bool get isSuccess => success;
@@ -51,15 +56,28 @@ class WarehouseApiError {
   final int? httpStatus;
   final String? serverCode;
 
+  /// True when this error was caused by an expired/invalid session.
+  ///
+  /// Set when the server responds with any of:
+  /// - HTTP 401 Unauthorized
+  /// - HTTP 3xx redirect (Spring Security redirects to login page on expiry)
+  /// - JSON `{code: 401}` or `msg` matching the auth-expiry pattern
+  /// - HTML response containing login keywords (redirected to login page)
+  ///
+  /// Downstream code checks this flag to trigger the logout → login flow,
+  /// instead of doing fragile string matching on [message].
+  final bool isAuthExpired;
+
   const WarehouseApiError({
     required this.message,
     this.httpStatus,
     this.serverCode,
+    this.isAuthExpired = false,
   });
 
   @override
   String toString() =>
-      'WarehouseApiError($message, httpStatus=$httpStatus, code=$serverCode)';
+      'WarehouseApiError($message, httpStatus=$httpStatus, code=$serverCode, authExpired=$isAuthExpired)';
 }
 
 // ── Lookup / Query DTOs ──
