@@ -31,6 +31,9 @@ warehouse-release.jks
 
 # Web build output (regenerable via npm run build; bundled into flutter_shell/assets)
 wms-app/
+
+# Icon generation master (regenerable; launcher PNGs live under android mipmap dirs)
+flutter_shell/assets/app_icon_1024.png
 certs/
 
 # Local install / dev logs
