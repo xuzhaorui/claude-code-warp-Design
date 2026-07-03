@@ -52,6 +52,13 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // ProGuard/R8 keep rules for ML Kit (mobile_scanner) and other
+            // plugins that use reflection. Without this, R8 strips the ML Kit
+            // component registrars and the scanner fails at runtime.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
