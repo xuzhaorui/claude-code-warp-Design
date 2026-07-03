@@ -6,7 +6,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
 
     <application
-        android:label="wms_app"
+        android:label="仓库管理"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
