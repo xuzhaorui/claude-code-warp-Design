@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../design/app_design_colors.dart';
+import '../features/scanner/scan_feedback.dart';
 import '../features/scanner/scanner_adapter.dart';
 
 /// Result popped back to caller when a code is decoded (legacy mode).
@@ -91,19 +91,17 @@ class _ScannerPageState extends State<ScannerPage> {
     });
   }
 
-  /// Plays the scan-success feedback: a haptic buzz + a system click sound.
+  /// Plays the scan-success feedback: a beep sound + a vibration.
   ///
-  /// Uses [HapticFeedback.heavyImpact] for a strong tap on devices that
-  /// support amplitude-controlled vibration, then [HapticFeedback.vibrate]
-  /// as a guaranteed fallback (some Android OEMs ignore `heavyImpact` but
-  /// always honour the plain vibrate API).  The system click sound provides
-  /// audible confirmation.
+  /// Delegates to [ScanFeedback], which uses `audioplayers` + `vibration`
+  /// because Flutter's built-in `SystemSoundType.click` is a no-op on
+  /// Android (flutter/flutter#57531) and `HapticFeedback` is unreliable on
+  /// MIUI.
   ///
   /// Called from both the adapter-stream path and the onDetect path.
-  Future<void> _playSuccessFeedback() async {
-    await HapticFeedback.heavyImpact();
-    await HapticFeedback.vibrate();
-    await SystemSound.play(SystemSoundType.click);
+  void _playSuccessFeedback() {
+    // Fire-and-forget; ScanFeedback swallows all errors internally.
+    ScanFeedback.playSuccess();
   }
 
   @override
