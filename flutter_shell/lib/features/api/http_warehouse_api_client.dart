@@ -534,8 +534,9 @@ class HttpWarehouseApiClient implements WarehouseApiClient {
   Future<WarehouseApiResult<List<InventoryCheckRecord>>>
       fetchInventoryCheckRecords() async {
     try {
-      // Web `getInventoryCheckRecords` → GET /calculate/calculate/mobilePhoneInventoryLog/100
-      final data = await _get('/calculate/calculate/mobilePhoneInventoryLog/100');
+      // Web `getInventoryCheckRecords` → POST /calculate/calculate/mobilePhoneInventoryLog/100
+      // with empty form body (matches Web `buildFormBody({})`)
+      final data = await _post('/calculate/calculate/mobilePhoneInventoryLog/100', <String, dynamic>{});
       final rows = _normalizeRows(data);
       final records = rows
           .map((r) => InventoryCheckRecord.fromJson(r as Map<String, dynamic>))
