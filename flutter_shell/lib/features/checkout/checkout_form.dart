@@ -238,8 +238,6 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                     ),
                   if (isSale) ...[
                     const SizedBox(height: AppSpacing.md),
-                    _SalePriceField(controller: _saleTotalController),
-                    const SizedBox(height: AppSpacing.sm),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(AppSpacing.md),
@@ -265,6 +263,8 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _SalePriceField(controller: _saleTotalController),
                     if (ev.isLoss && !_confirmLoss) ...[
                       const SizedBox(height: AppSpacing.sm),
                       _LossWarning(

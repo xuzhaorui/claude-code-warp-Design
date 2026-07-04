@@ -113,6 +113,23 @@ void main() {
       expect(find.text('¥50.00'), findsOneWidget);
     });
 
+    testWidgets('sale unit price is rendered above sale total field', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+
+      final saleUnitValue = find.byWidgetPredicate(
+        (widget) => widget is Text && widget.data == '¥0.00',
+      );
+      final saleTotalField = find.byType(TextFormField).first;
+      expect(saleUnitValue, findsOneWidget);
+      expect(saleTotalField, findsOneWidget);
+
+      final saleUnitTopLeft = tester.getTopLeft(saleUnitValue);
+      final saleTotalTopLeft = tester.getTopLeft(saleTotalField);
+      expect(saleUnitTopLeft.dy, lessThan(saleTotalTopLeft.dy));
+    });
+
     // 9. over stock warning renders when quantity exceeds stock
     testWidgets('over stock warning renders', (tester) async {
       await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
