@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:wms_app/components/form_widgets.dart';
 import 'package:wms_app/design/app_theme.dart';
 import 'package:wms_app/features/checkout/checkout_form.dart';
 import 'package:wms_app/features/checkout/checkout_form_rules.dart';
@@ -18,25 +19,24 @@ const _item = CheckoutItemSnapshot(
 );
 
 Widget wrapApp(Widget child) {
-  return MaterialApp(theme: AppTheme.light, home: Scaffold(body: child));
+  return MaterialApp(
+    theme: AppTheme.light,
+    home: Scaffold(body: child),
+  );
 }
 
 void main() {
   group('CheckoutFormMin', () {
     // 1. renders item basic info
     testWidgets('renders item basic info', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       expect(find.text('测试货物'), findsOneWidget);
       expect(find.text('主仓库'), findsOneWidget);
     });
 
     // 2. default method is 外销
     testWidgets('default method is 外销', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       // The segmented control renders "外销" and "外借".
       expect(find.text('外销'), findsOneWidget);
       expect(find.text('外借'), findsOneWidget);
@@ -44,9 +44,7 @@ void main() {
 
     // 3. method can switch to 外借
     testWidgets('method can switch to 外借', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       // Default shows sale fields; tap 外借 to switch.
       await tester.ensureVisible(find.text('外借'));
       await tester.pump();
@@ -58,17 +56,13 @@ void main() {
 
     // 4. 外销 shows 销售总价 field
     testWidgets('外销 shows 销售总价 field', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       expect(find.text('销售总价'), findsOneWidget);
     });
 
     // 5. 外借 shows 备注 field
     testWidgets('外借 shows 备注 field', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       await tester.tap(find.text('外借'));
       await tester.pump();
       expect(find.text('出库备注（选填）'), findsOneWidget);
@@ -76,9 +70,7 @@ void main() {
 
     // 6. quantity stepper changes quantity
     testWidgets('quantity stepper changes quantity', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       // Stepper default value is 1. Tap "+" to increase.
       await tester.ensureVisible(find.text('+'));
       await tester.pump();
@@ -89,9 +81,7 @@ void main() {
 
     // 7. sale total input changes sale total
     testWidgets('sale total input changes sale total', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       // The sale total field is a TextField.
       final field = find.byType(TextFormField);
       await tester.enterText(field, '500');
@@ -101,9 +91,7 @@ void main() {
 
     // 8. sale unit price renders after quantity and sale total
     testWidgets('sale unit price renders', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
 
       // Ensure stepper is visible and tap "+" multiple times.
       final plusBtn = find.text('+');
@@ -127,10 +115,8 @@ void main() {
 
     // 9. over stock warning renders when quantity exceeds stock
     testWidgets('over stock warning renders', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
-      await tester.ensureVisible(find.text('+')) ;
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.ensureVisible(find.text('+'));
       await tester.pump();
       // The stepper only allows up to max, so we can't exceed it via the
       // stepper. The overStock check is with qty > stockQty, so at qty=100
@@ -145,11 +131,36 @@ void main() {
       expect(find.textContaining('超出库存数量'), findsNothing);
     });
 
+    testWidgets('manual qty above stock shows warning and blocks submit', (
+      tester,
+    ) async {
+      CheckoutSubmitPayload? captured;
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, onSubmit: (p) => captured = p)),
+      );
+
+      await tester.enterText(find.byType(TextField).first, '101');
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField).first, '1000');
+      await tester.pump();
+
+      final stepper = tester.widget<BlackStepper>(
+        find.byType(BlackStepper).first,
+      );
+      expect(stepper.error, isTrue);
+
+      final submit = tester.widget<ElevatedButton>(
+        find.byType(ElevatedButton).last,
+      );
+      expect(submit.onPressed, isNull);
+      expect(captured, isNull);
+    });
+
     // 10. loss warning renders when sale unit price below cost
     testWidgets('loss warning renders when below cost', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item, showCostPrice: true),
-      ));
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, showCostPrice: true)),
+      );
 
       final plusBtn = find.text('+');
       for (int i = 0; i < 9; i++) {
@@ -172,9 +183,9 @@ void main() {
 
     // 11. confirm loss allows submit
     testWidgets('confirm loss allows submit', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item, showCostPrice: true),
-      ));
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, showCostPrice: true)),
+      );
 
       final plusBtn = find.text('+');
       for (int i = 0; i < 9; i++) {
@@ -203,9 +214,7 @@ void main() {
 
     // 12. submit disabled when canSubmit=false
     testWidgets('submit disabled when canSubmit=false', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       // With qty=0 (default stepper shows 1, so it IS submittable).
       // Actually the stepper starts at 1 and qty > 0. For canSubmit=false
       // with sale, saleTotal must be empty/0.
@@ -220,12 +229,9 @@ void main() {
     // 13. submit calls onSubmit with sale payload
     testWidgets('submit calls onSubmit with sale payload', (tester) async {
       CheckoutSubmitPayload? captured;
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(
-          item: _item,
-          onSubmit: (p) => captured = p,
-        ),
-      ));
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, onSubmit: (p) => captured = p)),
+      );
 
       // Ensure plus button visible before tapping.
       final plusBtn = find.text('+');
@@ -258,12 +264,9 @@ void main() {
     // 14. submit calls onSubmit with borrow payload
     testWidgets('submit calls onSubmit with borrow payload', (tester) async {
       CheckoutSubmitPayload? captured;
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(
-          item: _item,
-          onSubmit: (p) => captured = p,
-        ),
-      ));
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, onSubmit: (p) => captured = p)),
+      );
       // Switch to 外借.
       await tester.ensureVisible(find.text('外借'));
       await tester.pump();
@@ -293,9 +296,9 @@ void main() {
 
     // 15. showCostPrice=false hides cost price and disables loss warning
     testWidgets('showCostPrice=false hides cost price', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item, showCostPrice: false),
-      ));
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, showCostPrice: false)),
+      );
       // Cost price text should not appear.
       expect(find.textContaining('成本单价'), findsNothing);
     });
@@ -311,31 +314,33 @@ void main() {
         code: '超长编号' * 20,
         spec: '超长规格' * 20,
       );
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: longItem),
-      ));
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: longItem)));
       expect(find.byType(CheckoutFormMin), findsOneWidget);
     });
 
     // 17. onClose renders (if implemented with close button)
     testWidgets('form renders with onClose callback', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item, onClose: () {}),
-      ));
+      await tester.pumpWidget(
+        wrapApp(CheckoutFormMin(item: _item, onClose: () {})),
+      );
       // Verify the form renders without crash when onClose is provided.
       expect(find.byType(CheckoutFormMin), findsOneWidget);
     });
 
     // 18. apiClient renders without crash
     testWidgets('apiClient renders without crash', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        CheckoutFormMin(item: _item, apiClient: MockWarehouseApiClient()),
-      ));
+      await tester.pumpWidget(
+        wrapApp(
+          CheckoutFormMin(item: _item, apiClient: MockWarehouseApiClient()),
+        ),
+      );
       expect(find.byType(CheckoutFormMin), findsOneWidget);
     });
 
     // 19. Web-parity two-column layout: left item-info panel with 库存 badge
-    testWidgets('two-column layout shows 库存 badge and item fields', (tester) async {
+    testWidgets('two-column layout shows 库存 badge and item fields', (
+      tester,
+    ) async {
       await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
       await tester.pump();
       // Left panel: 库存 badge value (stockQty=100) + item info labels.

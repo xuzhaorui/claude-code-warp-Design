@@ -43,7 +43,7 @@ class CheckoutFormMin extends StatefulWidget {
 }
 
 class _CheckoutFormMinState extends State<CheckoutFormMin> {
-  String _quantity = '1';
+  String _quantity = '';
   CheckoutMethod _method = CheckoutMethod.sale;
   String _saleTotalPrice = '';
   String _remark = '';
@@ -58,20 +58,20 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   late final TextEditingController _remarkController;
 
   CheckoutFormInput get _input => CheckoutFormInput(
-        quantity: _quantity,
-        method: _method,
-        saleTotalPrice: _saleTotalPrice,
-        remark: _remark,
-        confirmLoss: _confirmLoss,
-        showCostPrice: widget.showCostPrice,
-      );
+    quantity: _quantity,
+    method: _method,
+    saleTotalPrice: _saleTotalPrice,
+    remark: _remark,
+    confirmLoss: _confirmLoss,
+    showCostPrice: widget.showCostPrice,
+  );
 
   late CheckoutFormEvaluation _evaluation;
 
   @override
   void initState() {
     super.initState();
-    _qtyController = TextEditingController(text: '1');
+    _qtyController = TextEditingController();
     _saleTotalController = TextEditingController();
     _remarkController = TextEditingController();
     _qtyController.addListener(_onQtyListener);
@@ -92,13 +92,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   }
 
   void _onQtyListener() {
-    final raw = _qtyController.text;
-    if (raw.isEmpty) {
-      _quantity = '1';
-    } else {
-      final n = int.tryParse(raw);
-      if (n != null) _quantity = n.clamp(1, widget.item.stockQty).toString();
-    }
+    _quantity = _qtyController.text;
     _confirmLoss = false;
     _recompute();
   }
@@ -116,7 +110,10 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
 
   void _recompute() {
     setState(() {
-      _evaluation = CheckoutFormRules.evaluate(input: _input, item: widget.item);
+      _evaluation = CheckoutFormRules.evaluate(
+        input: _input,
+        item: widget.item,
+      );
     });
   }
 
@@ -137,7 +134,10 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
   }
 
   Future<void> _handleSubmit() async {
-    final payload = CheckoutFormRules.buildPayload(input: _input, item: widget.item);
+    final payload = CheckoutFormRules.buildPayload(
+      input: _input,
+      item: widget.item,
+    );
     if (payload == null) return;
 
     final api = widget.apiClient;
@@ -224,7 +224,10 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                   ),
                   if (ev.overStock)
                     Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.sm,
+                        left: AppSpacing.xs,
+                      ),
                       child: Text(
                         '超出库存数量（库存: ${item.stockQty}）',
                         style: AppTextStyles.caption.copyWith(
@@ -235,9 +238,7 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                     ),
                   if (isSale) ...[
                     const SizedBox(height: AppSpacing.md),
-                    _SalePriceField(
-                      controller: _saleTotalController,
-                    ),
+                    _SalePriceField(controller: _saleTotalController),
                     const SizedBox(height: AppSpacing.sm),
                     Container(
                       width: double.infinity,
@@ -248,45 +249,69 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                       ),
                       child: Row(
                         children: [
-                          Text('销售单价：',
-                              style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                          Text(
+                            '销售单价：',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppDesignColors.textSecondary,
+                            ),
+                          ),
                           const Spacer(),
-                          Text('¥${ev.saleUnitPrice.toStringAsFixed(2)}',
-                              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600)),
+                          Text(
+                            '¥${ev.saleUnitPrice.toStringAsFixed(2)}',
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     if (ev.isLoss && !_confirmLoss) ...[
                       const SizedBox(height: AppSpacing.sm),
-                      _LossWarning(costPrice: item.costPrice, onConfirm: () {
-                        setState(() => _confirmLoss = true);
-                        _recompute();
-                      }),
+                      _LossWarning(
+                        costPrice: item.costPrice,
+                        onConfirm: () {
+                          setState(() => _confirmLoss = true);
+                          _recompute();
+                        },
+                      ),
                     ],
                     if (ev.isLoss && _confirmLoss)
                       Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.sm),
-                        child: Text('已确认亏损操作',
-                            style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                        child: Text(
+                          '已确认亏损操作',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppDesignColors.textSecondary,
+                          ),
+                        ),
                       ),
                   ],
                   if (!isSale) ...[
                     const SizedBox(height: AppSpacing.md),
-                    _RemarkField(label: '出库备注（选填）', controller: _remarkController),
+                    _RemarkField(
+                      label: '出库备注（选填）',
+                      controller: _remarkController,
+                    ),
                   ],
                   if (widget.showCostPrice) ...[
                     const SizedBox(height: AppSpacing.md),
-                    Text('成本单价：¥${item.costPrice.toStringAsFixed(2)}',
-                        style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+                    Text(
+                      '成本单价：¥${item.costPrice.toStringAsFixed(2)}',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppDesignColors.textSecondary,
+                      ),
+                    ),
                   ],
                   if (_submitError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Text(_submitError!,
-                          style: AppTextStyles.caption.copyWith(
-                            color: Theme.of(context).colorScheme.error,
-                            fontWeight: FontWeight.w600,
-                          )),
+                      child: Text(
+                        _submitError!,
+                        style: AppTextStyles.caption.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   const SizedBox(height: AppSpacing.lg),
                   BlackSubmitButton(
@@ -343,7 +368,9 @@ class _BlackSegmented<T> extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTextStyles.body.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: active ? AppDesignColors.surface : AppDesignColors.textSecondary,
+                    color: active
+                        ? AppDesignColors.surface
+                        : AppDesignColors.textSecondary,
                   ),
                 ),
               ),
@@ -374,15 +401,25 @@ class _SalePriceField extends StatelessWidget {
         color: AppDesignColors.surfaceMuted,
         borderRadius: BorderRadius.all(AppRadii.md),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       child: Row(
         children: [
-          Text('销售总价', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          Text(
+            '销售总价',
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: TextFormField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
                 LengthLimitingTextInputFormatter(10),
@@ -417,11 +454,19 @@ class _RemarkField extends StatelessWidget {
         color: AppDesignColors.surfaceMuted,
         borderRadius: BorderRadius.all(AppRadii.md),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
           TextFormField(
             controller: controller,
             style: AppTextStyles.body,
@@ -456,14 +501,21 @@ class _LossWarning extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('销售单价低于成本单价（¥${costPrice.toStringAsFixed(2)}），存在亏损风险',
-              style: AppTextStyles.caption.copyWith(color: cs.error)),
+          Text(
+            '销售单价低于成本单价（¥${costPrice.toStringAsFixed(2)}），存在亏损风险',
+            style: AppTextStyles.caption.copyWith(color: cs.error),
+          ),
           const SizedBox(height: AppSpacing.sm),
           GestureDetector(
             onTap: onConfirm,
-            child: Text('确认继续',
-                style: AppTextStyles.caption.copyWith(
-                    color: cs.error, fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
+            child: Text(
+              '确认继续',
+              style: AppTextStyles.caption.copyWith(
+                color: cs.error,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+              ),
+            ),
           ),
         ],
       ),

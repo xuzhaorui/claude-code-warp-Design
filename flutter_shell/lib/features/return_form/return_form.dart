@@ -42,33 +42,69 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
   String _remark = '';
   bool _isSubmitting = false;
   String? _submitError;
+  late final TextEditingController _qtyController;
+  late final TextEditingController _remarkController;
 
-  ReturnFormInput get _input => ReturnFormInput(returnQty: _returnQty, remark: _remark);
+  ReturnFormInput get _input =>
+      ReturnFormInput(returnQty: _returnQty, remark: _remark);
 
   late ReturnFormEvaluation _evaluation;
 
   @override
   void initState() {
     super.initState();
-    _evaluation = ReturnFormRules.evaluate(input: _input, record: widget.record);
+    _qtyController = TextEditingController();
+    _remarkController = TextEditingController();
+    _qtyController.addListener(_onQtyListener);
+    _remarkController.addListener(_onRemarkListener);
+    _evaluation = ReturnFormRules.evaluate(
+      input: _input,
+      record: widget.record,
+    );
+  }
+
+  @override
+  void dispose() {
+    _qtyController.removeListener(_onQtyListener);
+    _remarkController.removeListener(_onRemarkListener);
+    _qtyController.dispose();
+    _remarkController.dispose();
+    super.dispose();
   }
 
   void _recompute() {
-    setState(() => _evaluation = ReturnFormRules.evaluate(input: _input, record: widget.record));
+    setState(
+      () => _evaluation = ReturnFormRules.evaluate(
+        input: _input,
+        record: widget.record,
+      ),
+    );
+  }
+
+  void _onQtyListener() {
+    _returnQty = _qtyController.text;
+    _recompute();
+  }
+
+  void _onRemarkListener() {
+    _remark = _remarkController.text;
+    _recompute();
   }
 
   void _onQtyChanged(num v) {
     _returnQty = v.toString();
-    _recompute();
-  }
-
-  void _onRemarkChanged(String v) {
-    _remark = v;
+    _qtyController.text = _returnQty;
+    _qtyController.selection = TextSelection.fromPosition(
+      TextPosition(offset: _returnQty.length),
+    );
     _recompute();
   }
 
   Future<void> _handleSubmit() async {
-    final payload = ReturnFormRules.buildPayload(input: _input, record: widget.record);
+    final payload = ReturnFormRules.buildPayload(
+      input: _input,
+      record: widget.record,
+    );
     if (payload == null) return;
 
     final api = widget.apiClient;
@@ -132,7 +168,7 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
                   ],
                   BlackStepper(
                     label: '归还数量',
-                    controller: TextEditingController(text: _returnQty),
+                    controller: _qtyController,
                     min: 1,
                     max: record.borrowQty,
                     error: ev.overQty,
@@ -140,19 +176,30 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
                   ),
                   if (ev.overQty)
                     Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
-                      child: Text('超出在借数量（在借: ${record.borrowQty}）',
-                          style: AppTextStyles.caption.copyWith(
-                              color: AppDesignColors.textPrimary, fontWeight: FontWeight.w600)),
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.sm,
+                        left: AppSpacing.xs,
+                      ),
+                      child: Text(
+                        '超出在借数量（在借: ${record.borrowQty}）',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppDesignColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   const SizedBox(height: AppSpacing.md),
-                  _RemarkField(value: _remark, onChanged: _onRemarkChanged),
+                  _RemarkField(controller: _remarkController),
                   if (_submitError != null)
                     Padding(
                       padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Text(_submitError!,
-                          style: AppTextStyles.caption.copyWith(
-                              color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w600)),
+                      child: Text(
+                        _submitError!,
+                        style: AppTextStyles.caption.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   const SizedBox(height: AppSpacing.lg),
                   BlackSubmitButton(
@@ -171,9 +218,8 @@ class _ReturnFormMinState extends State<ReturnFormMin> {
 }
 
 class _RemarkField extends StatelessWidget {
-  const _RemarkField({required this.value, required this.onChanged});
-  final String value;
-  final ValueChanged<String> onChanged;
+  const _RemarkField({required this.controller});
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -182,20 +228,27 @@ class _RemarkField extends StatelessWidget {
         color: AppDesignColors.surfaceMuted,
         borderRadius: BorderRadius.all(AppRadii.md),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('归还备注（选填）', style: AppTextStyles.caption.copyWith(color: AppDesignColors.textSecondary)),
+          Text(
+            '归还备注（选填）',
+            style: AppTextStyles.caption.copyWith(
+              color: AppDesignColors.textSecondary,
+            ),
+          ),
           TextFormField(
-            controller: TextEditingController(text: value),
+            controller: controller,
             style: AppTextStyles.body,
             decoration: const InputDecoration(
               isCollapsed: true,
               border: InputBorder.none,
               contentPadding: EdgeInsets.only(top: AppSpacing.xs),
             ),
-            onChanged: onChanged,
           ),
         ],
       ),
