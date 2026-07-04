@@ -47,6 +47,10 @@ npm install
 npm run dev
 ```
 
+## 文档
+
+- 使用文档：`docs/delivery/warehouse-app-usage-guide.md`
+
 ## 版本
 
-最新版本：**v1.0.0** — [下载 APK](https://github.com/xuzhaorui/warehouse-app/releases/tag/v1.0.0)
+最新版本：**v1.0.1** — [下载 APK](https://github.com/xuzhaorui/warehouse-app/releases/tag/v1.0.1)
