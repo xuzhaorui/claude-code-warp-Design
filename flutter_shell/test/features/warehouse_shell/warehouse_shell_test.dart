@@ -67,9 +67,9 @@ void main() {
     // 8. scan card tap fires onScanRequested with current tab
     testWidgets('scan card tap fires onScanRequested', (tester) async {
       WarehouseTab? captured;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(onScanRequested: (tab) => captured = tab),
-      ));
+      await tester.pumpWidget(
+        wrapApp(WarehouseShellMin(onScanRequested: (tab) => captured = tab)),
+      );
       await tester.tap(find.byKey(const Key('scan_card')));
       await tester.pump();
       expect(captured, WarehouseTab.checkout);
@@ -134,18 +134,18 @@ void main() {
 
     // 17. "最近扫码" reminder removed (task-042); lastScanCode no longer
     // surfaced as a card — only the empty state shows when there are no records.
-    testWidgets('last scan result no longer shown when provided', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(lastScanCode: 'P293'),
-      ));
+    testWidgets('last scan result no longer shown when provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrapApp(const WarehouseShellMin(lastScanCode: 'P293')),
+      );
       expect(find.textContaining('最近扫码'), findsNothing);
     });
 
     // 18. settings tab renders ServerConfigPage
     testWidgets('settings tab renders ServerConfigPage', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(),
-      ));
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin()));
       // Tapping settings tab should show the server config page.
       await tester.tap(find.text('设置').last);
       await tester.pump();
@@ -164,9 +164,9 @@ void main() {
     // 20. scanning carries correct tab
     testWidgets('scan from return tab carries returnTab', (tester) async {
       WarehouseTab? captured;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(onScanRequested: (tab) => captured = tab),
-      ));
+      await tester.pumpWidget(
+        wrapApp(WarehouseShellMin(onScanRequested: (tab) => captured = tab)),
+      );
       await tester.tap(find.text('归还').last);
       await tester.pump();
       await tester.tap(find.byKey(const Key('scan_card')));
@@ -186,9 +186,7 @@ void main() {
         RecordItem(title: 'Item A', detail: '5件', status: '正常'),
         RecordItem(title: 'Item B', detail: '3件', status: '已撤销'),
       ];
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(records: records),
-      ));
+      await tester.pumpWidget(wrapApp(WarehouseShellMin(records: records)));
       await tester.pumpAndSettle();
       expect(find.text('Item A'), findsOneWidget);
       expect(find.text('Item B'), findsOneWidget);
@@ -197,9 +195,7 @@ void main() {
 
     // 23. empty records shows empty state
     testWidgets('empty records shows empty state', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(records: []),
-      ));
+      await tester.pumpWidget(wrapApp(const WarehouseShellMin(records: [])));
       // Empty records should still show the "暂无出库记录" empty state.
       expect(find.text('暂无出库记录'), findsOneWidget);
     });
@@ -245,9 +241,9 @@ void main() {
     // 24f. onTabChanged fires when switching business tabs (task-042)
     testWidgets('onTabChanged fires on tab switch', (tester) async {
       WarehouseTab? captured;
-      await tester.pumpWidget(wrapApp(
-        WarehouseShellMin(onTabChanged: (tab) => captured = tab),
-      ));
+      await tester.pumpWidget(
+        wrapApp(WarehouseShellMin(onTabChanged: (tab) => captured = tab)),
+      );
       await tester.tap(find.text('归还').last);
       await tester.pump();
       expect(captured, WarehouseTab.returnForm);
@@ -255,9 +251,9 @@ void main() {
 
     // 25. status row shows the current user when provided (task-046)
     testWidgets('status row shows current user name', (tester) async {
-      await tester.pumpWidget(wrapApp(
-        const WarehouseShellMin(activeUsername: 'admin'),
-      ));
+      await tester.pumpWidget(
+        wrapApp(const WarehouseShellMin(activeUsername: 'admin')),
+      );
       expect(find.textContaining('当前用户'), findsOneWidget);
       expect(find.textContaining('admin'), findsOneWidget);
     });
@@ -339,6 +335,46 @@ void main() {
       expect(find.text('仓库'), findsOneWidget);
     });
 
+    testWidgets('checkout detail shows sale unit price above sale total', (
+      tester,
+    ) async {
+      final records = [
+        RecordItem(
+          title: 'Widget Pro',
+          detail: '5 件 · 成本 ¥25.00 · 外销',
+          status: '正常',
+          kind: RecordKind.checkout,
+          source: const CheckoutRecord(
+            itemName: 'Widget Pro',
+            spec: '500ml',
+            code: 'WP-001',
+            quantity: 5,
+            costPrice: 25.0,
+            saleTotalPrice: 150.0,
+            saleUnitPrice: 30.0,
+            type: 1,
+            warehouse: '主仓库',
+            operatorName: '张三',
+            time: '2026-07-01',
+            status: '正常',
+          ),
+        ),
+      ];
+      await tester.pumpWidget(wrapApp(WarehouseShellMin(records: records)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Widget Pro'));
+      await tester.pumpAndSettle();
+
+      final unitPriceValue = find.text('¥30.00');
+      final totalPriceValue = find.text('¥150.00');
+      expect(unitPriceValue, findsOneWidget);
+      expect(totalPriceValue, findsOneWidget);
+
+      final unitPriceTopLeft = tester.getTopLeft(unitPriceValue);
+      final totalPriceTopLeft = tester.getTopLeft(totalPriceValue);
+      expect(unitPriceTopLeft.dy, lessThan(totalPriceTopLeft.dy));
+    });
+
     // 30. tapping a return record opens the detail BottomSheet
     testWidgets('tapping return record opens detail sheet', (tester) async {
       final records = [
@@ -357,10 +393,14 @@ void main() {
           ),
         ),
       ];
-      await tester.pumpWidget(wrapApp(WarehouseShellMin(
-        initialTab: WarehouseTab.returnForm,
-        records: records,
-      )));
+      await tester.pumpWidget(
+        wrapApp(
+          WarehouseShellMin(
+            initialTab: WarehouseTab.returnForm,
+            records: records,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Widget Pro'));
       await tester.pumpAndSettle();
@@ -387,10 +427,14 @@ void main() {
           ),
         ),
       ];
-      await tester.pumpWidget(wrapApp(WarehouseShellMin(
-        initialTab: WarehouseTab.inventoryCheck,
-        records: records,
-      )));
+      await tester.pumpWidget(
+        wrapApp(
+          WarehouseShellMin(
+            initialTab: WarehouseTab.inventoryCheck,
+            records: records,
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Widget Pro'));
       await tester.pumpAndSettle();

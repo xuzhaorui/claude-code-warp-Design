@@ -53,4 +53,4 @@ npm run dev
 
 ## 版本
 
-最新版本：**v1.0.1** — [下载 APK](https://github.com/xuzhaorui/warehouse-app/releases/tag/v1.0.1)
+最新版本：**v1.0.2** — [下载 APK](https://github.com/xuzhaorui/warehouse-app/releases/tag/v1.0.2)

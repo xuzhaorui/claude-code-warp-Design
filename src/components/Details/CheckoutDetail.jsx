@@ -33,7 +33,7 @@ function Row({ label, value, bold = false, valueColor, editable, onEdit }) {
   return (
     <div className="flex items-baseline justify-between" style={{ padding: '11px 0', borderBottom: '1px solid #EDE2D5' }}>
       <span style={{ fontSize: '17px', color: '#888888' }}>{label}</span>
-      {editable && (
+      {editable ? (
         <input
           ref={inputRef}
           type="text"
@@ -52,8 +52,7 @@ function Row({ label, value, bold = false, valueColor, editable, onEdit }) {
             caretColor: editing ? 'auto' : 'transparent',
           }}
         />
-      )}
-      {!editable && (
+      ) : (
         <span className="text-right" style={{ fontSize: '18px', fontWeight: bold ? 700 : 400, color: valueColor ?? '#292524' }}>
           {value}
         </span>
@@ -86,6 +85,7 @@ function MetaStrip({ operatorName, time, remark }) {
 
 export default function CheckoutDetail({ record, showCostPrice = true }) {
   const isLoss = showCostPrice && record.method === '外销' && record.saleUnitPrice < record.costPrice;
+
   return (
     <div style={{ padding: '4px 0' }}>
       <div style={{ padding: '12px 0 10px', borderBottom: '1px solid #F0F0F0' }}>
@@ -99,8 +99,12 @@ export default function CheckoutDetail({ record, showCostPrice = true }) {
       {record.method === '外销' && (
         <>
           <div style={{ borderTop: '1px solid #EDE2D5' }} />
+          <Row
+            label="销售单价"
+            value={`¥${record.saleUnitPrice.toFixed(2)}${showCostPrice ? (isLoss ? ' ↓' : ' ↑') : ''}`}
+            bold
+          />
           <Row label="销售总价" value={`¥${record.saleTotalPrice.toFixed(2)}`} bold editable />
-          <Row label="销售单价" value={`¥${record.saleUnitPrice.toFixed(2)}${showCostPrice ? (isLoss ? ' ↓' : ' ↑') : ''}`} bold />
         </>
       )}
       <div style={{ borderTop: '1px solid #EDE2D5' }} />

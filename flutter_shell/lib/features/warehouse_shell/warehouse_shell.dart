@@ -156,7 +156,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
     if (_isTabAllowed(widget.initialTab)) {
       _activeTab = widget.initialTab;
     } else {
-      _activeTab = _visibleTabs.isNotEmpty ? _visibleTabs.first : WarehouseTab.settings;
+      _activeTab = _visibleTabs.isNotEmpty
+          ? _visibleTabs.first
+          : WarehouseTab.settings;
     }
   }
 
@@ -178,7 +180,9 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
       bottomNavigationBar: SizedBox(
         height: _WS.bottomNavHeight,
         child: BottomNavigationBar(
-          currentIndex: visible.indexOf(_activeTab).clamp(0, visible.length - 1),
+          currentIndex: visible
+              .indexOf(_activeTab)
+              .clamp(0, visible.length - 1),
           onTap: (i) => _onTabChanged(visible[i]),
           backgroundColor: AppDesignColors.surface,
           selectedItemColor: AppDesignColors.primary,
@@ -432,12 +436,12 @@ class _WarehouseShellMinState extends State<WarehouseShellMin> {
         _DetailRow(label: '仓库', value: _orDash(r.warehouse)),
         if (r.type == 1) ...[
           _DetailRow(
-            label: '销售总价',
-            value: '¥${r.saleTotalPrice.toStringAsFixed(2)}',
-          ),
-          _DetailRow(
             label: '销售单价',
             value: '¥${r.saleUnitPrice.toStringAsFixed(2)}',
+          ),
+          _DetailRow(
+            label: '销售总价',
+            value: '¥${r.saleTotalPrice.toStringAsFixed(2)}',
           ),
         ],
         _DetailMeta(
