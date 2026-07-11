@@ -36,9 +36,10 @@ Android Studio Run
 当前以已验证事实为准，不为了路径审美迁移 SDK。
 
 ```text
-D:\dev\flutter
-C:\Users\Lenovo\AppData\Local\Android\Sdk
-D:\claude-code-warp\Design
+Flutter SDK:      D:\dev\flutter
+Android SDK:      D:\Android\Sdk
+Android AVD:      D:\Android\avd
+Project root:     D:\claude-code-warp\Design
 ```
 
 说明：
@@ -46,9 +47,9 @@ D:\claude-code-warp\Design
 JAVA_HOME 实际路径：C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot
 
 ```text
-D:\Android\Sdk 当前不存在。
-android/local.properties 当前指向 C:\Users\Lenovo\AppData\Local\Android\Sdk。
-只要 CLI 工具链和 Flutter 构建可通过，该路径就是当前有效事实路径。
+SDK 已从 C:\Users\Lenovo\AppData\Local\Android\Sdk 迁移至 D:\Android\Sdk。
+local.properties 已同步指向 D:\\Android\\Sdk。
+AVD 存储路径跟随 ANDROID_AVD_HOME 移至 D:\Android\avd。
 ```
 
 仍不建议新装到：
@@ -65,11 +66,22 @@ PowerShell 当前会话设置：
 
 ```powershell
 $env:FLUTTER_HOME="D:\dev\flutter"
-$env:ANDROID_HOME="C:\Users\Lenovo\AppData\Local\Android\Sdk"
-$env:ANDROID_SDK_ROOT="C:\Users\Lenovo\AppData\Local\Android\Sdk"
+$env:ANDROID_HOME="D:\Android\Sdk"
+$env:ANDROID_SDK_ROOT="D:\Android\Sdk"
+$env:ANDROID_AVD_HOME="D:\Android\avd"
 $env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
 $env:Path="$env:FLUTTER_HOME\bin;$env:ANDROID_HOME\cmdline-tools\latest\bin;$env:ANDROID_HOME\platform-tools;$env:Path"
 ```
+
+用户系统环境变量已设置：
+
+| 变量 | 值 |
+|------|-----|
+| `ANDROID_HOME` | `D:\Android\Sdk` |
+| `ANDROID_SDK_ROOT` | `D:\Android\Sdk` |
+| `ANDROID_AVD_HOME` | `D:\Android\avd` |
+
+长期使用应写入系统环境变量。若 JDK 实际路径不同，先用 `where java` / `where keytool` / `flutter doctor -v` 查事实，再更新本契约。
 
 长期使用应写入系统环境变量。若 JDK 实际路径不同，先用 `where java` / `where keytool` / `flutter doctor -v` 查事实，再更新本契约。
 
