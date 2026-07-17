@@ -254,10 +254,20 @@ class _CheckoutFormMinState extends State<CheckoutFormMin> {
                             ),
                           ),
                           const Spacer(),
-                          Text(
-                            '¥${ev.saleUnitPrice.toStringAsFixed(2)}',
-                            style: AppTextStyles.body.copyWith(
-                              fontWeight: FontWeight.w600,
+                          // Allow the price value to shrink/wrap when it is
+                          // long (e.g. large totals) instead of overflowing
+                          // into a horizontal strip. Flexible + FittedBox
+                          // keeps it on one line, scaling down only if needed.
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                '¥${ev.saleUnitPrice.toStringAsFixed(2)}',
+                                style: AppTextStyles.body.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -421,8 +431,15 @@ class _SalePriceField extends StatelessWidget {
                 decimal: true,
               ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                LengthLimitingTextInputFormatter(10),
+                // Allow up to 6 integer digits (十万位, ≤999999) + optional
+                // decimal point + up to 2 fraction digits. The `$` end anchor
+                // is required: FilteringTextInputFormatter.allow matches the
+                // whole input string, and without it digits beyond 3 places
+                // get silently rejected (总价被截到百位，单价因此看似不更新).
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'^\d{0,6}\.?\d{0,2}$'),
+                ),
+                LengthLimitingTextInputFormatter(9),
               ],
               textAlign: TextAlign.right,
               style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),

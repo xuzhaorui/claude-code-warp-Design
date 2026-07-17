@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wms_app/components/form_widgets.dart';
@@ -379,6 +380,106 @@ void main() {
       await tester.pump();
       // After switching to 外借, the remark field appears.
       expect(find.text('出库备注（选填）'), findsOneWidget);
+    });
+
+    // 21. Regression: 销售总价 accepts 4+ integer digits (was truncated to
+    // 百位 by a missing `$` end anchor) and 销售单价 updates accordingly.
+    testWidgets('sale total keeps full integer value and updates unit price', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      // Set qty=1 directly in the stepper field so unit price == sale total.
+      await tester.enterText(find.byType(TextField).first, '1');
+      await tester.pump();
+
+      // The sale total is the only TextFormField on the sale form.
+      final field = find.byType(TextFormField);
+      await tester.ensureVisible(field);
+      await tester.pump();
+      await tester.enterText(field, '1781');
+      await tester.pump();
+      // Field retains the full value (not truncated to 781), and with qty=1
+      // the derived unit price matches it exactly.
+      expect(find.text('1781'), findsOneWidget);
+      expect(find.text('¥1781.00'), findsOneWidget);
+    });
+
+    // 22. 销售总价 supports up to 十万位 (6 integer digits, e.g. 123456).
+    testWidgets('sale total supports up to 6 integer digits (十万位)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.enterText(find.byType(TextField).first, '1');
+      await tester.pump();
+
+      final field = find.byType(TextFormField);
+      await tester.ensureVisible(field);
+      await tester.pump();
+      await tester.enterText(field, '123456');
+      await tester.pump();
+      expect(find.text('123456'), findsOneWidget);
+      expect(find.text('¥123456.00'), findsOneWidget);
+    });
+
+    // 23. 销售总价 rejects a 7th integer digit (cap at 999999). We type the
+    // 7th digit char-by-char so the formatter can reject only the overflow,
+    // rather than rejecting the whole string via enterText().
+    testWidgets('sale total rejects 7th integer digit', (tester) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.enterText(find.byType(TextField).first, '1');
+      await tester.pump();
+
+      final field = find.byType(TextFormField);
+      await tester.ensureVisible(field);
+      await tester.pump();
+      // Enter the first 6 digits (the allowed cap) as a whole string.
+      await tester.enterText(field, '123456');
+      await tester.pump();
+      // Now type a 7th digit one key at a time; the formatter must drop it.
+      await tester.showKeyboard(field);
+      await tester.sendKeyEvent(LogicalKeyboardKey.digit7);
+      await tester.pump();
+      // Still capped at 6 integer digits.
+      expect(find.text('123456'), findsOneWidget);
+      expect(find.text('1234567'), findsNothing);
+    });
+
+    // 24. 销售总价 keeps 2 fraction digits intact (decimal regression).
+    testWidgets('sale total allows 2 decimal places', (tester) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.enterText(find.byType(TextField).first, '1');
+      await tester.pump();
+
+      final field = find.byType(TextFormField);
+      await tester.ensureVisible(field);
+      await tester.pump();
+      await tester.enterText(field, '1234.56');
+      await tester.pump();
+      expect(find.text('1234.56'), findsOneWidget);
+      expect(find.text('¥1234.56'), findsOneWidget);
+    });
+
+    // 25. 销售单价行在大数值下不溢出（防御性：用 Flexible+FittedBox 缩放，
+    // 而非无界横向长条）。qty=1 → unitPrice == saleTotal。
+    testWidgets('sale unit price row does not overflow on large value', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrapApp(CheckoutFormMin(item: _item)));
+      await tester.enterText(find.byType(TextField).first, '1');
+      await tester.pump();
+
+      final field = find.byType(TextFormField);
+      await tester.ensureVisible(field);
+      await tester.pump();
+      // Max allowed by formatter: 999999.99. With qty=1 the unit price text
+      // is "¥999999.99" — long enough to overflow a plain Row without
+      // Flexible. If the layout overflows, pumpWidget throws a RenderFlex
+      // overflow exception and this test fails.
+      await tester.enterText(field, '999999.99');
+      await tester.pumpAndSettle();
+      expect(find.text('¥999999.99'), findsOneWidget);
+      // No FlutterError (overflow) was emitted during the above.
+      expect(tester.takeException(), isNull);
     });
   });
 }
